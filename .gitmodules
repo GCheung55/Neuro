@@ -1,0 +1,6 @@
+[submodule "Specs/Testigo"]
+	path = Specs/Testigo
+	url = https://github.com/keeto/testigo.git
+[submodule "Specs/MooTools-Core"]
+	path = Specs/MooTools-Core
+	url = https://github.com/mootools/mootools-core.git
