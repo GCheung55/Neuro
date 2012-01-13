@@ -7,3 +7,6 @@
 [submodule "Specs/MooTools-More"]
 	path = Specs/MooTools-More
 	url = https://github.com/mootools/mootools-more.git
+[submodule "Source/Company"]
+	path = Source/Company
+	url = https://github.com/keeto/company.git
