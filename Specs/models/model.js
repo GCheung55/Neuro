@@ -102,7 +102,7 @@ exports.setup = function(Tests){
         });
 
         // test prefixed change publisher
-        it('notify subscribers of changed Model instance', function(expect){
+        it('should notify subscribers of changed Model instance', function(expect){
             var fn = this.createSpy(),
                 unit = new Unit().subscribe(this.mockPrefix + '.change', fn);
 
@@ -133,13 +133,14 @@ exports.setup = function(Tests){
                     lastName: 'notCheung',
                     age: 30
                 },
+                key = 'age',
                 fn = this.createSpy(),
                 unit = new Unit().subscribe(this.mockPrefix + '.change:' + key, fn);
 
             this.mockModelWithData.setPrefix(this.mockPrefix).set(obj);
 
-            expect(fn.getCallCount()).toBe(3);
-            expect(fn.getLastArgs()).toBeLike([this.mockModelWithData, key, val]);
+            expect(fn.getCallCount()).toBe(1);
+            expect(fn.getLastArgs()).toBeLike([this.mockModelWithData, key, 30]);
         });
     });
 
@@ -170,6 +171,9 @@ exports.setup = function(Tests){
                 result = this.mockModelWithData._data;
 
             expect(test).toBeSimilar(result);
+
+            this.mockModelWithData.set('age', 30);
+            expect(test).not.toBeSimilar(result);
         });
 
         it('should return subset of Model instance data', function(expect){

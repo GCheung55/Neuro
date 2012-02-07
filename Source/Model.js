@@ -19,9 +19,9 @@ provides: [Model]
 
 ...
 */
-(function(){
+(function(context){
 
-var Model = this.Model = new Class({
+var Model = context.Model = new Class({
 
     //Implements: [Unit],
     Extends: Unit,
@@ -195,4 +195,4 @@ var Model = this.Model = new Class({
     });
 });
 
-}());
+}(typeof exports != 'undefined' ? exports : window));
