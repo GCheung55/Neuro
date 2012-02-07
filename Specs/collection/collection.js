@@ -141,7 +141,7 @@ exports.setup = function(Tests){
 
     });
 
-    Test.describe('Collection: Array methods', function(it, setup){
+    Tests.describe('Collection: Array methods', function(it, setup){
 
         setup('beforeEach', function(){
             this.mockCollection = new Collection();
@@ -149,6 +149,16 @@ exports.setup = function(Tests){
             this.mockData = {
                 a: 'str', b: [], c: {}
             };
+        });
+
+        it('should loop through each Model instance in the Collection', function(expect){
+            var spy = this.createSpy();
+
+            this.mockCollection.add(this.mockData, this.mockData);
+
+            this.mockCollection.each(spy);
+
+            expect(spy.getCallCount()).toBe(this.mockCollection._models.length);
         });
 
     });
