@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+    <script type="text/javascript" src="../Testigo/Source/runners/html/assets/require.js"></script>
+    <script type="text/javascript" src="../assets/MooTools-Core-1.4.2-nocompat.js"></script>
+    <script type="text/javascript" src="../assets/MooTools-More-1.4.0.1-nocompat.js"></script>
+
+    <script type="text/javascript" src="../../Source/Company/Source/Company.js"></script>
+    <script type="text/javascript" src="../../Source/Model.js"></script>
+    <script type="text/javascript" src="../../Source/Collection.js"></script>
+
+    <script type="text/javascript">
+        window.runTests = function(){}
+        /*
+            make sure to edit this next line to reflect the path of the testigo
+            source path in your installation.
+        */
+        require.paths.unshift('/Neuro/Specs/Testigo/Source/');
+
+        var Testigo = require('/testigo').Testigo,
+            Tests = new Testigo();
+        Tests.setCallbacks({
+            describe: function(suite){
+                window.top.addSuite(suite);
+            },
+            after: function(success, results){
+                window.top.after(success, results);
+            },
+            suiteError: function(suite, count, error){
+                window.top.suiteError(suite, count, error);
+            },
+            afterSuite: function(suite, success, results){
+                window.top.afterSuite(suite, success, results);
+            },
+            afterTest: function(suite, test, results){
+                window.top.addTest(suite, test, results);
+            }
+        });
+        require('../../collection/tests').setup(Tests);
+        window.runTests = function(){ Tests.run(); }
+
+    </script>
+</head>
+
+<body>
+
+</body>
+</html>
