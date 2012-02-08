@@ -50,13 +50,12 @@ var Collection = context.Collection = new Class({
     },
 
     add: function(){
-        var l;
+        var models = arguments,
+            len = models.length,
+            i = 0;
 
-        models = Array.from(arguments);
-        l = models.length;
-
-        while(l--){
-            this._add(models[l]);
+        while(len--){
+            this._add(models[i++]);
         }
 
         return this;
@@ -68,11 +67,23 @@ var Collection = context.Collection = new Class({
      * argument is passed
      *
      * @param  {Number} index Index of model to return
-     * @return {Class} Model instance
+     * @return {Class || Array} Model instance or Array of Model instances
      */
     get: function(index){
+        var len = arguments.length, i = 0, results;
+
+        if (len > 1) {
+            results = [];
+
+            while(len--){
+                results.push(this.get(arguments[i++]));
+            }
+
+            return results;
+        }
+
         return this._models[index];
-    }.overloadGetter(),
+    },
 
     _remove: function(model){
         model.destroy();

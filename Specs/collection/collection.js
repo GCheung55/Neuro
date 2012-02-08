@@ -25,17 +25,20 @@ exports.setup = function(Tests){
 
             expect(models[0]).toBeAnInstanceOf(Model);
 
-            expect(models[0]).toBeSimilar(this.mockData);
+            expect(models[0].getData()).toBeSimilar(this.mockData);
         });
 
-        it('should get a Model instance from the Collection instance by index number', function(expect){
-            var model;
+        it('should get a Model instance or instances from the Collection instance by index number', function(expect){
+            var model, models;
 
-            this.mockCollection.add(this.mockData);
+            this.mockCollection.add(this.mockData, this.mockData);
 
             model = this.mockCollection.get(0);
 
-            expect(model).toBeSimilar(this.mockData);
+            models = this.mockCollection.get(0, 1);
+
+            expect(model).toEqual(this.mockCollection._models[0]);
+            expect(models).toBeSimilar([this.mockCollection._models[0], this.mockCollection._models[1]]);
         });
 
         it('should remove a Model instance from the Collection instance by model', function(expect){
@@ -159,6 +162,35 @@ exports.setup = function(Tests){
             this.mockCollection.each(spy);
 
             expect(spy.getCallCount()).toBe(this.mockCollection._models.length);
+            expect(spy.getLastArgs()).toBeLike([this.mockCollection._models[1], 1, this.mockCollection._models]);
+        });
+
+        it('should return an array or arrays of keys of each Model instance in the Collection', function(expect){
+            this.mockCollection.add(this.mockData);
+
+            var test = [['a','b','c']],
+                results = this.mockCollection.invoke('keys');
+
+            expect(results).toBeLike(test);
+        });
+
+        it('should return true if every Model instance in the Collection matches the comparator', function(expect){
+            this.mockCollection.add(this.mockData);
+
+            var test = this.mockCollection.every(typeOf),
+                test2 = this.mockCollection.every(Type.isNumber);
+
+            expect(test).toBeTruthy();
+            expect(test2).toBeFalsy();
+        });
+
+        it('should filter Model instances from the Collection instance according to comparator', function(expect){
+            var test = this.mockCollection.add(this.mockData, {d:true}).filter(function(model){
+                    return model.get('d');
+                }),
+                result = this.mockCollection.get(1);
+
+            expect(test).toBeSimilar([result]);
         });
 
     });
