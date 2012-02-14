@@ -19,12 +19,12 @@ var Collection = context.Collection = new Class({
     setup: function(models, options){
         if (!options) { options = {}; }
 
-        if (options.prefix) { this.Prefix = options.prefix; }
+        if (options.Prefix) { this.Prefix = options.Prefix; }
 
         this.setupUnit();
 
         if (models) {
-            if (options.silent) {
+            if (options.silentSetup) {
                 this.detachUnit();
             }
 
