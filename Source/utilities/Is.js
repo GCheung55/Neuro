@@ -3,6 +3,7 @@
  * Inspired/influenced/copied from Underscore.js
  *
  * @author Garrick Cheung
+ * @shoutout Mark Obcena (keeto)
  * @producer Dimitar Christoff (Suggested I take a look at Underscore.js)
  *
  * @requires [MooTools-Core]
