@@ -10,7 +10,7 @@ exports.setup = function(Tests){
             };
         });
 
-        it('should return a Model instance', function(expect){
+        it('should return a Collection instance', function(expect){
             expect(this.mockCollection).toBeAnInstanceOf(Collection);
         });
 
