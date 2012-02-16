@@ -19,6 +19,7 @@ provides: [Model]
 
 ...
 */
+
 (function(context){
 
 var Model = context.Model = new Class({
@@ -53,7 +54,7 @@ var Model = context.Model = new Class({
         if (!options) { options = {}; }
 
         // a unique prefix should always be set
-        this.Prefix = options.prefix || String.uniqueID();
+        this.Prefix = options.Prefix || String.uniqueID();
 
         this.setupUnit();
 
@@ -73,7 +74,16 @@ var Model = context.Model = new Class({
     _set: function(prop, val){
         var old = this._data[prop];
 
-        if (old !== val) {
+        // if (old !== val) {
+
+        // Dereference the new val
+        if (Is.Array(val)) {
+            val = val.slice();
+        } else if(Is.Object(val)){
+            val = Object.clone(val);
+        }
+
+        if (!Is.Equal(old, val)) {
             this._changed = true;
 
             this._changedProperties[prop] = val;
