@@ -5,6 +5,7 @@
     <script type="text/javascript" src="../assets/MooTools-Core-1.4.2-nocompat.js"></script>
     <script type="text/javascript" src="../assets/MooTools-More-1.4.0.1-nocompat.js"></script>
 
+    <script type="text/javascript" src="../../Source/utilities/Is.js"></script>
     <script type="text/javascript" src="../../Source/Company/Source/Company.js"></script>
     <script type="text/javascript" src="../../Source/Model.js"></script>
 
@@ -14,9 +15,10 @@
             make sure to edit this next line to reflect the path of the testigo
             source path in your installation.
         */
-        require.paths.unshift('/Neuro/Specs/Testigo/Source/');
+        // require.paths.unshift('/Neuro/Specs/Testigo/Source/');
+        // require.paths.unshift('../../../Source/');
 
-        var Testigo = require('/testigo').Testigo,
+        var Testigo = require('../../Specs/Testigo/Source/testigo').Testigo,
             Tests = new Testigo();
         Tests.setCallbacks({
             describe: function(suite){
@@ -35,7 +37,7 @@
                 window.top.addTest(suite, test, results);
             }
         });
-        require('../../model/tests').setup(Tests);
+        require('../../Specs/model/tests').setup(Tests);
         window.runTests = function(){ Tests.run(); }
 
     </script>

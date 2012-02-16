@@ -1,3 +1,4 @@
+
 exports.setup = function(Tests){
 
     Tests.describe('Model', function(it, setup){
@@ -40,6 +41,22 @@ exports.setup = function(Tests){
             expect(age).toBe(30);
         });
 
+        it('should set and dereference arrays an objects in Model instance', function(expect){
+            var obj = {a: 'str', b: [], c: {more: 'tests'}},
+                test, result;
+
+            this.mockModel.set(obj);
+
+            test = JSON.stringify(this.mockModel.getData());
+
+            obj.a = 'rts';
+            obj.b.push(0);
+            obj.c.tests = 'more';
+            result = JSON.stringify(obj);
+
+            expect(test).not.toBeSimilar(result);
+        });
+
         //test unset
         it('should unset and return age to be undefined from Model instance', function(expect){
             var age = this.mockModelWithData.unset('age').get('age');
@@ -72,7 +89,7 @@ exports.setup = function(Tests){
 
         it('should set an optional prefix on the Model instance', function(expect){
             var prefix = 123,
-                modelPrefix = new Model(null, {prefix: prefix}).getPrefix();
+                modelPrefix = new Model(null, {Prefix: prefix}).getPrefix();
 
             expect(modelPrefix).toEqual(prefix);
         });
@@ -114,7 +131,7 @@ exports.setup = function(Tests){
         });
 
         // test prefixed changed data property publisher
-        it('notify subscribers of changed data property of changed Model instance', function(expect){
+        it('should notify subscribers of changed data property of changed Model instance', function(expect){
             var key = 'age',
                 val = 30,
                 fn = this.createSpy(),
@@ -127,7 +144,7 @@ exports.setup = function(Tests){
         });
 
         // test prefixed changed data property publisher when all data is set
-        it('notify subscribers of changed data property of changed Model instance', function(expect){
+        it('should notify subscribers of changed data property of changed Model instance', function(expect){
             var obj = {
                     firstName: 'notGarrick',
                     lastName: 'notCheung',
@@ -142,6 +159,7 @@ exports.setup = function(Tests){
             expect(fn.getCallCount()).toBe(1);
             expect(fn.getLastArgs()).toBeLike([this.mockModelWithData, key, 30]);
         });
+
     });
 
     Tests.describe('Model: Object methods', function(it, setup){
