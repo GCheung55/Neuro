@@ -9,29 +9,6 @@
  * @requires [MooTools-Core]
  */
 
-/*
----
-name: Is
-
-description: A utility with functions to test equality
-
-version: .10
-
-license: TBD
-
-authors:
-- Garrick Cheung
-
-producer:
-- Dimitar Christoff (Suggested I take a look at Underscore.js)
-
-requires:
-- MooTools-Core/1.3
-
-provides: [Is]
-
-...
-*/
 (function(context){
 
 var toString = Object.prototype.toString,
