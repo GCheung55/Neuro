@@ -8,5 +8,8 @@
 	path = Specs/MooTools-More
 	url = https://github.com/mootools/mootools-more.git
 [submodule "Source/Company"]
-	path = Source/Company
+	path = Source/libs/Company
 	url = https://github.com/keeto/company.git
+[submodule "Build/link.js"]
+	path = Build/link.js
+	url = https://github.com/calyptus/link.js
