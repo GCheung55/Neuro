@@ -1,3 +1,7 @@
+require: './utilities/Is';
+
+exports: Model
+
 /*
 ---
 name: Model
@@ -20,9 +24,10 @@ provides: [Model]
 ...
 */
 
-(function(context){
+// (function(context){
+var Unit = require('./libs/Company/Source/Company').Unit;
 
-var Model = context.Model = new Class({
+var Model = new Class({
 
     //Implements: [Unit],
     Extends: Unit,
@@ -61,6 +66,8 @@ var Model = context.Model = new Class({
         // Should the data be cloned instead of referenced?
         // if (data) { this._data = data; }
         if (data) { this._data = Object.clone(data); }
+
+        return this;
     },
 
     /**
@@ -205,4 +212,4 @@ var Model = context.Model = new Class({
     });
 });
 
-}(typeof exports != 'undefined' ? exports : window));
+// }(typeof exports != 'undefined' ? exports : window));

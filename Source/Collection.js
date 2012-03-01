@@ -1,6 +1,11 @@
-(function(context){
+require: './Model';
 
-var Collection = context.Collection = new Class({
+exports: Collection
+
+// (function(context){
+var Unit = require('./libs/Company/Source/Company').Unit;
+
+var Collection = new Class({
 
     //Implements: [Unit],
     Extends: Unit,
@@ -13,7 +18,7 @@ var Collection = context.Collection = new Class({
     _models: [],
 
     initialize: function(models, options){
-        return this.setup(models, options);
+        this.setup(models, options);
     },
 
     setup: function(models, options){
@@ -28,8 +33,22 @@ var Collection = context.Collection = new Class({
                 this.detachUnit();
             }
 
-            this.add(models).attachUnit();
+            this.add(models);
+
+            if (options.silentSetup) {
+                this.attachUnit();
+            }
+
+            // ((options.silentSetup) ? function(){
+            //     this.detatchUnit();
+            //     this.add(models);
+            //     this.attachUnit();
+            // } : function(){
+            //     this.add(models);
+            // }).call(this);
         }
+
+        return this;
     },
 
     hasModel: function(model){
@@ -127,4 +146,4 @@ var Collection = context.Collection = new Class({
     });
 });
 
-}(typeof exports != 'undefined' ? exports : window));
+// }(typeof exports != 'undefined' ? exports : window));
