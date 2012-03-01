@@ -1,0 +1,18 @@
+{
+    "name": "Neuro",
+    "description": "A MVC written with MooTools.",
+    "version": "0.1.0",
+    "license": "MIT (http://mootools.net/license.txt)",
+    "main": "./Source/commonjs/Neuro.js",
+    "keywords": [
+        "neuro",
+        "mootools",
+        "mvc"
+    ],
+    "author": "Garrick Cheung <@GCheung55> (http://garrickcheung.com)",
+    "bugs": "https://github.com/gcheung55/neuro/issues",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/gcheung55/neuro.git"
+    }
+}
