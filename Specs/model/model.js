@@ -4,7 +4,7 @@ exports.setup = function(Tests){
     Tests.describe('Model', function(it, setup){
 
         setup('beforeEach', function(){
-            this.mockModel = new Model();
+            this.mockModel = new Neuro.Model();
 
             this.mockData = {
                 'firstName': 'Garrick',
@@ -15,15 +15,15 @@ exports.setup = function(Tests){
                 'age': 29
             };
 
-            this.mockModelWithData = new Model(this.mockData);
+            this.mockModelWithData = new Neuro.Model(this.mockData);
         });
 
         it('should return a Model instance', function(expect){
-            expect(this.mockModel).toBeAnInstanceOf(Model);
+            expect(this.mockModel).toBeAnInstanceOf(Neuro.Model);
         });
 
         it('should return a Model instance with data', function(expect){
-           expect(this.mockModelWithData).toBeAnInstanceOf(Model);
+           expect(this.mockModelWithData).toBeAnInstanceOf(Neuro.Model);
            expect(this.mockModelWithData).not.toBeSimilar({});
         });
 
@@ -89,7 +89,7 @@ exports.setup = function(Tests){
 
         it('should set an optional prefix on the Model instance', function(expect){
             var prefix = 123,
-                modelPrefix = new Model(null, {Prefix: prefix}).getPrefix();
+                modelPrefix = new Neuro.Model(null, {Prefix: prefix}).getPrefix();
 
             expect(modelPrefix).toEqual(prefix);
         });
@@ -98,11 +98,11 @@ exports.setup = function(Tests){
 
     Tests.describe('Model: PubSub', function(it, setup){
         setup('before', function(){
-            this.dispatcher = Unit.Dispatcher;
+            this.dispatcher = Neuro.Observer.Dispatcher;
         });
 
         setup('beforeEach', function(){
-            Unit.Dispatcher.flush();
+            Neuro.Observer.Dispatcher.flush();
 
             this.mockPrefix = '123';
 
@@ -115,13 +115,13 @@ exports.setup = function(Tests){
                 'age': 29
             };
 
-            this.mockModelWithData = new Model(this.mockData);
+            this.mockModelWithData = new Neuro.Model(this.mockData);
         });
 
         // test prefixed change publisher
         it('should notify subscribers of changed Model instance', function(expect){
             var fn = this.createSpy(),
-                unit = new Unit().subscribe(this.mockPrefix + '.change', fn);
+                unit = new Neuro.Observer().subscribe(this.mockPrefix + '.change', fn);
 
             this.mockModelWithData.setPrefix(this.mockPrefix).set('age', 30);
 
@@ -135,7 +135,7 @@ exports.setup = function(Tests){
             var key = 'age',
                 val = 30,
                 fn = this.createSpy(),
-                unit = new Unit().subscribe(this.mockPrefix + '.change:' + key, fn);
+                unit = new Neuro.Observer().subscribe(this.mockPrefix + '.change:' + key, fn);
 
             this.mockModelWithData.setPrefix(this.mockPrefix).set(key, val);
 
@@ -152,7 +152,7 @@ exports.setup = function(Tests){
                 },
                 key = 'age',
                 fn = this.createSpy(),
-                unit = new Unit().subscribe(this.mockPrefix + '.change:' + key, fn);
+                unit = new Neuro.Observer().subscribe(this.mockPrefix + '.change:' + key, fn);
 
             this.mockModelWithData.setPrefix(this.mockPrefix).set(obj);
 
@@ -173,7 +173,7 @@ exports.setup = function(Tests){
                 'age': 29
             };
 
-            this.mockModelWithData = new Model(this.mockData);
+            this.mockModelWithData = new Neuro.Model(this.mockData);
 
             this.mockComparatorData = {
                 'a': 'string',
@@ -181,7 +181,7 @@ exports.setup = function(Tests){
                 'c': {}
             }
 
-            this.mockComparatorModel = new Model(this.mockComparatorData);
+            this.mockComparatorModel = new Neuro.Model(this.mockComparatorData);
         });
 
         it('should return a copy of Model instance data', function(expect){

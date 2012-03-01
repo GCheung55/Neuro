@@ -3,7 +3,7 @@ exports.setup = function(Tests){
     Tests.describe('Collection', function(it, setup){
 
         setup('beforeEach', function(){
-            this.mockCollection = new Collection();
+            this.mockCollection = new Neuro.Collection();
 
             this.mockData = {
                 a: 'str', b: [], c: {}
@@ -11,7 +11,7 @@ exports.setup = function(Tests){
         });
 
         it('should return a Collection instance', function(expect){
-            expect(this.mockCollection).toBeAnInstanceOf(Collection);
+            expect(this.mockCollection).toBeAnInstanceOf(Neuro.Collection);
         });
 
         it('should add data by creating a new Model instance to the Collection instance', function(expect){
@@ -23,7 +23,7 @@ exports.setup = function(Tests){
 
             expect(models.length).toEqual(1);
 
-            expect(models[0]).toBeAnInstanceOf(Model);
+            expect(models[0]).toBeAnInstanceOf(Neuro.Model);
 
             expect(models[0].getData()).toBeSimilar(this.mockData);
         });
@@ -78,14 +78,14 @@ exports.setup = function(Tests){
     Tests.describe('Collection: PubSub', function(it, setup){
 
         setup('before', function(){
-            this.dispatcher = Unit.Dispatcher;
+            this.dispatcher = Neuro.Observer.Dispatcher;
         });
 
         setup('beforeEach', function(){
 
-            Unit.Dispatcher.flush();
+            Neuro.Observer.Dispatcher.flush();
 
-            this.mockCollection = new Collection();
+            this.mockCollection = new Neuro.Collection();
 
             this.mockPrefix = '123';
 
@@ -96,7 +96,7 @@ exports.setup = function(Tests){
 
         it('should notify subscribers of models added to Collection instance', function(expect){
             var spy = this.createSpy(),
-                unit = new Unit().subscribe(this.mockPrefix + '.add', spy),
+                unit = new Neuro.Observer().subscribe(this.mockPrefix + '.add', spy),
                 model;
 
             this.mockCollection.setPrefix(this.mockPrefix).add(this.mockData);
@@ -111,7 +111,7 @@ exports.setup = function(Tests){
 
         it('should notify subscribers of models removed from Collection instance', function(expect){
             var spy = this.createSpy(),
-                unit = new Unit().subscribe(this.mockPrefix + '.remove', spy),
+                unit = new Neuro.Observer().subscribe(this.mockPrefix + '.remove', spy),
                 model;
 
             this.mockCollection.setPrefix(this.mockPrefix).add(this.mockData);
@@ -127,7 +127,7 @@ exports.setup = function(Tests){
 
         it('should notify subscribers emptying Collection instance', function(expect){
             var spy = this.createSpy(),
-                unit = new Unit().subscribe(this.mockPrefix + '.empty', spy),
+                unit = new Neuro.Observer().subscribe(this.mockPrefix + '.empty', spy),
                 model;
 
             this.mockCollection.setPrefix(this.mockPrefix).add(this.mockData);
@@ -147,7 +147,7 @@ exports.setup = function(Tests){
     Tests.describe('Collection: Array methods', function(it, setup){
 
         setup('beforeEach', function(){
-            this.mockCollection = new Collection();
+            this.mockCollection = new Neuro.Collection();
 
             this.mockData = {
                 a: 'str', b: [], c: {}
