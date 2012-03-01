@@ -13,3 +13,6 @@
 [submodule "Build/link.js"]
 	path = Build/link.js
 	url = https://github.com/calyptus/link.js
+[submodule "Source/libs/mootools-class-extras"]
+	path = Source/libs/mootools-class-extras
+	url = https://github.com/cpojer/mootools-class-extras.git
