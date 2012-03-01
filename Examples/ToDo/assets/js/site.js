@@ -1,6 +1,6 @@
 // Prep ToDo Collection
 window.addEvent('domready', function(){
-    var collection = new Collection(null, {
+    var collection = new Neuro.Collection(null, {
         silentSetup: true,
         Prefix: 'ToDoCollection'
     });
@@ -39,7 +39,7 @@ window.addEvent('domready', function(){
 
     var count = counter.getElement('span.count'),
         max = counter.getElement('span.max'),
-        unit = new Unit({
+        unit = new Neuro.Observer({
             initSetup: function(){
                 this.complete = this.complete.bind(this);
 

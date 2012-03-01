@@ -18,7 +18,7 @@ var ToDoForm = new Class({
     setup: function(element, options){
         this.setOptions(options);
 
-        this.unit = new Unit(this.options.unitOptions);
+        this.unit = new Neuro.Observer(this.options.unitOptions);
 
         this.attachEvents(element);
 
