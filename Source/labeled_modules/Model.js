@@ -1,4 +1,4 @@
-require: './utilities/Is';
+require: '../utilities/Is';
 
 exports: Model
 
@@ -25,7 +25,7 @@ provides: [Model]
 */
 
 // (function(context){
-var Unit = require('./libs/Company/Source/Company').Unit;
+var Unit = require('../libs/Company/Source/Company').Unit;
 
 var Model = new Class({
 

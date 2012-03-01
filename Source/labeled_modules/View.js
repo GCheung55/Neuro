@@ -1,9 +1,9 @@
-require: './libs/mootools-class-extras/Source/Class.Binds';
+require: '../libs/mootools-class-extras/Source/Class.Binds';
 
 exports: View
 
 // (function(context){
-    var Unit = require('./libs/Company/Source/Company').Unit;
+    var Unit = require('../libs/Company/Source/Company').Unit;
 
     // creates functions to subscribe/unsubscribe based on handlers
     var modelBinder = function(bindType){

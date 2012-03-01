@@ -3,7 +3,7 @@ require: './Model';
 exports: Collection
 
 // (function(context){
-var Unit = require('./libs/Company/Source/Company').Unit;
+var Unit = require('../libs/Company/Source/Company').Unit;
 
 var Collection = new Class({
 
