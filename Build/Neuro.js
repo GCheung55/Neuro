@@ -1,4 +1,4 @@
-(function(modules, versions, mains) {
+(function(modules) {
     var cache = {}, require = function(id) {
         var module;
         if (module = cache[id]) return module.exports;
@@ -9,15 +9,15 @@
         modules[id].call(exports, require, module, exports, window);
         return module.exports;
     };
-    window["Neuro"] = require("Neuro@0.1.0/Source/commonjs/Neuro");
+    window.Neuro = require("0");
 })({
-    "Neuro@0.1.0/Source/commonjs/Neuro": function(require, module, exports, global) {
-        exports.Observer = require("Neuro@0.1.0/Source/libs/Company/Source/Company").Unit;
-        exports.View = require("Neuro@0.1.0/Source/commonjs/View").View;
-        exports.Collection = require("Neuro@0.1.0/Source/commonjs/Collection").Collection;
-        exports.Model = require("Neuro@0.1.0/Source/commonjs/Model").Model;
+    "0": function(require, module, exports, global) {
+        exports.Observer = require("1").Unit;
+        exports.View = require("2").View;
+        exports.Collection = require("4").Collection;
+        exports.Model = require("5").Model;
     },
-    "Neuro@0.1.0/Source/libs/Company/Source/Company": function(require, module, exports, global) {
+    "1": function(require, module, exports, global) {
         ((function() {
             var removeOnRegexp = /^on([A-Z])/, removeOnFn = function(_, ch) {
                 return ch.toLowerCase();
@@ -405,11 +405,11 @@
             };
         })).call(this);
     },
-    "Neuro@0.1.0/Source/commonjs/View": function(require, module, exports, global) {
-        var __MODULE0__ = require("Neuro@0.1.0/Source/libs/mootools-class-extras/Source/Class.Binds"), Unit, modelBinder;
+    "2": function(require, module, exports, global) {
+        var __MODULE0__ = require("3"), Unit, bridgeEnds;
         exports.View;
-        Unit = require("Neuro@0.1.0/Source/libs/Company/Source/Company").Unit;
-        modelBinder = function(bindType) {
+        Unit = require("1").Unit;
+        bridgeEnds = function(bindType) {
             return function() {
                 var prefix = this.getPrefix();
                 prefix && (prefix += ".");
@@ -423,10 +423,10 @@
         };
         exports.View = new Class({
             Implements: [ Class.Binds, Options, Unit ],
-            handlers: undefined,
+            bridges: undefined,
             element: undefined,
             options: {
-                handlers: {
+                bridges: {
                     change: [ "render" ],
                     destroy: "destroy"
                 }
@@ -436,7 +436,7 @@
             },
             setup: function(data, options) {
                 this.setOptions(options);
-                this.handlers = this.options.handlers;
+                this.bridges = this.options.bridges;
                 this.setPrefix(this.options.Prefix);
                 this.setupUnit();
                 this.bindModel();
@@ -449,8 +449,8 @@
             detachEvents: function() {
                 return this;
             },
-            bindModel: modelBinder("subscribe"),
-            unbindModel: modelBinder("unsubscribe"),
+            bindModel: bridgeEnds("subscribe"),
+            unbindModel: bridgeEnds("unsubscribe"),
             render: function() {
                 this.attachEvents();
                 return this;
@@ -462,7 +462,7 @@
             }
         });
     },
-    "Neuro@0.1.0/Source/libs/mootools-class-extras/Source/Class.Binds": function(require, module, exports, global) {
+    "3": function(require, module, exports, global) {
         Class.Binds = new Class({
             $bound: {},
             bound: function(name) {
@@ -470,10 +470,10 @@
             }
         });
     },
-    "Neuro@0.1.0/Source/commonjs/Collection": function(require, module, exports, global) {
-        var __MODULE0__ = require("Neuro@0.1.0/Source/commonjs/Model"), Unit;
+    "4": function(require, module, exports, global) {
+        var __MODULE0__ = require("5"), Unit;
         exports.Collection;
-        Unit = require("Neuro@0.1.0/Source/libs/Company/Source/Company").Unit;
+        Unit = require("1").Unit;
         exports.Collection = new Class({
             Extends: Unit,
             Prefix: "",
@@ -546,15 +546,16 @@
             });
         });
     },
-    "Neuro@0.1.0/Source/commonjs/Model": function(require, module, exports, global) {
-        var __MODULE0__ = require("Neuro@0.1.0/Source/utilities/Is"), Unit;
+    "5": function(require, module, exports, global) {
+        var __MODULE0__ = require("6"), Unit;
         exports.Model;
-        Unit = require("Neuro@0.1.0/Source/libs/Company/Source/Company").Unit;
+        Unit = require("1").Unit;
         exports.Model = new Class({
             Extends: Unit,
             _data: {},
             _changed: !1,
             _changedProperties: {},
+            _previousProperties: {},
             initialize: function(data, options) {
                 if (instanceOf(data, this.constructor)) return data;
                 this.setup(data, options);
@@ -580,6 +581,7 @@
                 this._set(prop, val);
                 this.changeProperty(this._changedProperties);
                 this.change();
+                this._previousProperties = Object.clone(this._changedProperties);
                 this._changed = !1;
                 this._changedProperties = {};
                 return this;
@@ -617,7 +619,7 @@
             });
         });
     },
-    "Neuro@0.1.0/Source/utilities/Is": function(require, module, exports, global) {
+    "6": function(require, module, exports, global) {
         (function(context) {
             var toString = Object.prototype.toString, hasOwnProperty = Object.prototype.hasOwnProperty, Is = context.Is = {
                 Array: Array.isArray || function(a) {
