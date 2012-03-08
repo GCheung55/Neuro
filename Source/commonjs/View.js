@@ -1,5 +1,5 @@
 var __MODULE0__ = require("../libs/mootools-class-extras/Source/Class.Binds");
-var Unit, modelBinder;
+var Unit, bridgeEnds;
 ;
 
 exports.View
@@ -8,7 +8,7 @@ exports.View
     Unit = require('../libs/Company/Source/Company').Unit;
 
     // creates functions to subscribe/unsubscribe based on handlers
-    modelBinder = function(bindType){
+    bridgeEnds = function(bindType){
         return function(){
             var prefix = this.getPrefix();
 
@@ -35,12 +35,12 @@ exports.View
         Implements: [Class.Binds, Options, Unit],
 
         // Model publishers / View methods mapping
-        handlers: undefined,
+        bridges: undefined,
 
         element: undefined,
 
         options: {
-            handlers: {
+            bridges: {
                 'change': ['render'],
                 'destroy': 'destroy'
             }
@@ -53,7 +53,7 @@ exports.View
         setup: function(data, options){
             this.setOptions(options);
 
-            this.handlers = this.options.handlers;
+            this.bridges = this.options.bridges;
 
             this.setPrefix(this.options.Prefix);
 
@@ -70,9 +70,9 @@ exports.View
 
         detachEvents: function(){ return this; },
 
-        bindModel: modelBinder('subscribe'),
+        bindModel: bridgeEnds('subscribe'),
 
-        unbindModel: modelBinder('unsubscribe'),
+        unbindModel: bridgeEnds('unsubscribe'),
 
         render: function(){
             this.attachEvents();

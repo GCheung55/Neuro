@@ -6,7 +6,7 @@ exports: View
     var Unit = require('../libs/Company/Source/Company').Unit;
 
     // creates functions to subscribe/unsubscribe based on handlers
-    var modelBinder = function(bindType){
+    var bridgeEnds = function(bindType){
         return function(){
             var prefix = this.getPrefix();
 
@@ -33,12 +33,12 @@ exports: View
         Implements: [Class.Binds, Options, Unit],
 
         // Model publishers / View methods mapping
-        handlers: undefined,
+        bridges: undefined,
 
         element: undefined,
 
         options: {
-            handlers: {
+            bridges: {
                 'change': ['render'],
                 'destroy': 'destroy'
             }
@@ -51,7 +51,7 @@ exports: View
         setup: function(data, options){
             this.setOptions(options);
 
-            this.handlers = this.options.handlers;
+            this.bridges = this.options.bridges;
 
             this.setPrefix(this.options.Prefix);
 
@@ -68,9 +68,9 @@ exports: View
 
         detachEvents: function(){ return this; },
 
-        bindModel: modelBinder('subscribe'),
+        bindModel: bridgeEnds('subscribe'),
 
-        unbindModel: modelBinder('unsubscribe'),
+        unbindModel: bridgeEnds('unsubscribe'),
 
         render: function(){
             this.attachEvents();

@@ -50,6 +50,8 @@ exports.Model = new Class({
 
     _changedProperties: {},
 
+    _previousProperties: {},
+
     initialize: function(data, options){
         if (instanceOf(data, this.constructor)) {
             return data;
@@ -119,6 +121,9 @@ exports.Model = new Class({
         this.changeProperty(this._changedProperties);
 
         this.change();
+
+        // store the previously changed properties
+        this._previousProperties = Object.clone(this._changedProperties);
 
         // reset the changed
         this._changed = false;
