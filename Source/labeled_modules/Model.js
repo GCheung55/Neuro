@@ -27,6 +27,15 @@ provides: [Model]
 // (function(context){
 var Unit = require('../libs/Company/Source/Company').Unit;
 
+var createGetter = function(type){
+    return function(prop){
+        var val = this[type][prop];
+
+        // should function values be executed?
+        return Is.Function(val) ? val.call(this) : val;
+    }.overloadGetter();
+};
+
 var Model = new Class({
 
     //Implements: [Unit],
@@ -47,7 +56,7 @@ var Model = new Class({
 
     _changedProperties: {},
 
-    _previousProperties: {},
+    _previousData: {},
 
     initialize: function(data, options){
         if (instanceOf(data, this.constructor)) {
@@ -120,7 +129,7 @@ var Model = new Class({
         this.change();
 
         // store the previously changed properties
-        this._previousProperties = Object.clone(this._changedProperties);
+        this._previousData = Object.clone(this._changedProperties);
 
         // reset the changed
         this._changed = false;
@@ -150,12 +159,7 @@ var Model = new Class({
      * @param  {String} prop Property name to retrieve
      * @return Value referenced by prop param
      */
-    get: function(prop){
-        var val = this._data[prop];
-
-        // should function values be executed?
-        return (typeOf(val) == 'function') ? val.call(this) : val;
-    }.overloadGetter(),
+    get: createGetter('_data'),
 
     /**
      * Retrieve entire data object in Model instance
@@ -164,8 +168,14 @@ var Model = new Class({
      */
     getData: function(){
         /** Should the data be cloned instead of referenced? */
-        //return this.clone();
-        return this._data;
+        return this.clone();
+        //return this._data;
+    },
+    
+    getPrevious: createGetter('_previousData'),
+    
+    getPreviousData: function(){
+        return Object.clone(this._previousData);
     },
 
     /**

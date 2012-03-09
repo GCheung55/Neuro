@@ -41,7 +41,7 @@ exports.setup = function(Tests){
             expect(age).toBe(30);
         });
 
-        it('should set and dereference arrays an objects in Model instance', function(expect){
+        it('should set and dereference arrays and objects in Model instance', function(expect){
             var obj = {a: 'str', b: [], c: {more: 'tests'}},
                 test, result;
 
@@ -86,6 +86,30 @@ exports.setup = function(Tests){
 
             expect(fullName).toBe('Garrick Cheung');
         });
+        
+        it('should return the previous changed age (29) after setting it to 30 on the Model instance', function(expect){
+            this.mockModelWithData.set('age', 30);
+            var test = this.mockModelWithData.getPrevious('age'),
+                result = 29;
+                
+            expect(test).toEqual(result);
+        });
+        
+        it('should return the previously changed dataset on the Model instance', function(expect){
+            this.mockModelWithData.set('age', 30);
+            
+            var test = this.mockModelWithData.getPreviousData(),
+                result = '{"age":29}';
+                
+            expect(test).toBeSimilar(result);
+            
+            this.mockModelWithData.set('age', 30);
+            
+            test = this.mockModelWithData.getPreviousData(),
+            result = '{"age":30}';
+            
+            expect(test).toBeSimilar(result);
+        });
 
         it('should set an optional prefix on the Model instance', function(expect){
             var prefix = 123,
@@ -93,7 +117,6 @@ exports.setup = function(Tests){
 
             expect(modelPrefix).toEqual(prefix);
         });
-
     });
 
     Tests.describe('Model: PubSub', function(it, setup){
