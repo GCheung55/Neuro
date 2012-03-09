@@ -1,4 +1,4 @@
-require: '../libs/mootools-class-extras/Source/Class.Binds';
+require: '../libs/mootools-class-extras/Source/Class.Binds', '../utilities/Is';
 
 exports: View
 
@@ -12,14 +12,15 @@ exports: View
 
             prefix && (prefix += '.');
 
-            Object.keys(this.handlers).each(function(type){
+            Object.keys(this.bridges).each(function(type){
                 var obj = {},
                     methods = Array.from(this.handlers[type]),
                     len = methods.length,
-                    i = 0;
+                    i = 0, method;
 
                 while(len--){
-                    obj[prefix + type] = this.bound(methods[i++]);
+                    method = methods[i++];
+                    obj[prefix + type] = Is.Function(method) ? method : this.bound(method);
                 }
 
                 this[bindType](obj);
@@ -40,7 +41,8 @@ exports: View
         options: {
             bridges: {
                 'change': ['render'],
-                'destroy': 'destroy'
+                'destroy': 'destroy',
+                'change:id': function(){}
             }
         },
 
@@ -59,7 +61,7 @@ exports: View
 
             this.bindModel();
 
-            this.render();
+            this.render(data);
 
             return this;
         },
@@ -72,7 +74,7 @@ exports: View
 
         unbindModel: bridgeEnds('unsubscribe'),
 
-        render: function(){
+        render: function(data){
             this.attachEvents();
 
             return this;
