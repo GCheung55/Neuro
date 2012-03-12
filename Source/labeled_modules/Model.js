@@ -123,19 +123,16 @@ var Model = new Class({
      */
     set: function(prop, val){
         this._set(prop, val);
-
+        
+        // store the previously changed properties
+        this._setPreviousData();
+        
         this.changeProperty(this._changedProperties);
 
         this.change();
-
-        // store the previously changed properties
-        this._previousData = Object.clone(this._changedProperties);
-
-        // reset the changed
-        this._changed = false;
-
-        // reset changed properties
-        this._changedProperties = {};
+        
+        // reset changed and changed properties
+        this._resetChanged();
 
         return this;
     },
@@ -172,10 +169,30 @@ var Model = new Class({
         //return this._data;
     },
     
+    _setPreviousData: function(){
+        if (this._changed) {
+            this._previousData = Object.merge({}, this._data, this._changedProperties);
+        }
+        
+        return this;
+    },
+    
     getPrevious: createGetter('_previousData'),
     
     getPreviousData: function(){
         return Object.clone(this._previousData);
+    },
+    
+    _resetChanged: function(){
+        if (this._changed) {
+            // reset the changed
+            this._changed = false;
+    
+            // reset changed properties
+            this._changedProperties = {};
+        }
+        
+        return this;
     },
 
     /**
@@ -185,7 +202,7 @@ var Model = new Class({
      */
     change: function(){
         if (this._changed) {
-            this.publish('change', this);
+            this.publishChange();
         }
 
         return this;
@@ -198,7 +215,7 @@ var Model = new Class({
      */
     changeProperty: function(prop, val){
         if (this._changed) {
-            this.publish('change:' + prop, [this, prop, val]);
+            this.publishChangeProperty(prop, val);
         }
 
         return this;
@@ -210,8 +227,23 @@ var Model = new Class({
      * @return {[type]}
      */
     destroy: function(){
-        this.publish('destroy', this);
+        this.publishDestroy();
 
+        return this;
+    },
+    
+    publishChange: function(){
+        this.publish('change', this);
+        return this;
+    },
+    
+    publishChangeProperty: function(prop, val){
+        this.publish('change:' + prop, [this, prop, val]);
+        return this;
+    },
+    
+    publishDestroy: function(){
+        this.publish('destroy', this);
         return this;
     },
 

@@ -62,7 +62,7 @@ var Collection = new Class({
         if (!this.hasModel(model)) {
             this._models.push(model);
 
-            this.publish('add', [this, model]);
+            this.publishAdd(model);
         }
 
         return this;
@@ -108,18 +108,19 @@ var Collection = new Class({
         model.destroy();
 
         this._models.erase(model);
-
-        // Silent publishing by using detachUnit before removing
-        this.publish('remove', [this, model]);
+        
+        this.publishRemove();
 
         return this;
     },
 
     remove: function(){
-        var models = Array.from(arguments), l = models.length;
+        var models = Array.from(arguments),
+            l = models.length,
+            i = 0;
 
         while(l--){
-            this._remove(models[l]);
+            this._remove(models[i++]);
         }
 
         return this;
@@ -128,8 +129,27 @@ var Collection = new Class({
     empty: function(){
         this.remove.apply(this, this._models);
 
-        this.publish('empty', this);
+        this.publishEmpty();
 
+        return this;
+    },
+    
+    publishAdd: function(model){
+        this.publish('add', [this, model]);
+        
+        return this;
+    },
+    
+    publishRemove: function(model){
+        // Silent publishing by using detachUnit before removing
+        this.publish('remove', [this, model]);
+        
+        return this;
+    },
+    
+    publishEmpty: function(){
+        this.publish('empty', this);
+        
         return this;
     },
 
