@@ -3,7 +3,7 @@
     "description": "A MVC written with MooTools.",
     "version": "0.1.0",
     "license": "MIT (http://mootools.net/license.txt)",
-    "main": "./Source/commonjs/Neuro.js",
+    "main": "./Build/commonjs/Neuro.js",
     "keywords": [
         "neuro",
         "mootools",
