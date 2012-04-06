@@ -90,9 +90,11 @@ exports: View
         },
 
         destroy: function(){
+            var element = this.element;
+
             this.detachEvents();
 
-            this.element = (this.element.destroy(), undefined);
+            this.element = (element && element.destroy(), undefined);
 
             return this;
         }
