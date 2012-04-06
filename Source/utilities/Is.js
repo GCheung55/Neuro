@@ -12,31 +12,39 @@
 (function(context){
 
 var toString = Object.prototype.toString,
-    hasOwnProperty = Object.prototype.hasOwnProperty;
+    hasOwnProperty = Object.prototype.hasOwnProperty,
+    oldType = window.Type,
+    Is = context.Is = {};
+    
+// Wrap oldType so that any new Type will also add to Is object
+var Type = window.Type = function(name, object){
+    var obj = new oldType(name, object),
+        str;
+    
+    if (!obj) { return obj; }
+    
+    str = 'is' + name,
+    
+    Is[name] = Is.not[name] = Type[str] = oldType[str];
+    
+    return obj;
+}.extend(oldType);
+    
+// Make sure the new Type prototype is the same as the old one
+Type.prototype = oldType.prototype;
 
-var Is = context.Is = {
-        'Array': Array.isArray || function(a){
-            return typeOf(a) === 'array';
-        },
-        'NaN': function(a){
-            return a !== a;
-        },
-        'RegExp': function(a){
-            return typeOf(a) === 'regexp'
-        },
-        'Null': function(a){
-            return a === null;
-        },
-        'Undefined': function(a){
-            return a === void 0;
-        }
-    };
+for(var i in oldType){
+    if (Type.hasOwnProperty(i) && i.test('is')){
+        i = i.replace('is', '');
+        Is[i] = Type['is' + i];
+    }
+}
 
-['object', 'number', 'function', 'string', 'boolean', 'date', 'element', 'elements'].each(function(item){
-    Is[item.capitalize()] = function(a){
-        return typeOf(a) === item;
-    };
-});
+Is['NaN'] = function(a){ return a !== a; };
+
+Is['Null'] = function(a){ return a === null; };
+
+Is['Undefined'] = function(a){ return a === void 0; };
 
 var matchMap = {
     // Strings, numbers, dates, and booleans are compared by value.
