@@ -1,6 +1,3 @@
-[submodule "demos"]
-	path = demos
-	url = https://github.com/GCheung55/Neuro-Demos.git
 [submodule "lib/company"]
 	path = lib/company
 	url = https://github.com/keeto/company.git

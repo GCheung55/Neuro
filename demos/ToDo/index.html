@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+    <title>Neuro.js Example: ToDo</title>
+    <meta name="description" content="A ToDo app built using parts of Neuro.js">
+
+    <link rel="stylesheet" src="/assets/css/reset.css">
+    <link rel="stylesheet" src="/assets/css/styles.css">
+    <!--
+    <script type="text/javascript" src="../../Specs/assets/MooTools-Core-1.4.2-nocompat.js"></script>
+    <script type="text/javascript" src="../../Build/Neuro.js"></script>
+
+    <script type="text/javascript" src="https://raw.github.com/cpojer/mootools-class-extras/master/Source/Class.Singleton.js"></script>
+    <script type="text/javascript" src="assets/js/ToDoForm.js"></script>
+    <script type="text/javascript" src="assets/js/ToDoList.js"></script>
+    -->
+    <script src="js/util/mootools-core-1.4.5.js"></script>
+    <script src="js/class-extras/Class.Binds.js"></script>
+    <script src="js/class-extras/Class.Singleton.js"></script>
+    <script src="js/class-extras/Class.Instantiate.js"></script>
+    <script src="js/class-extras/Class.Properties.js"></script>
+
+    <script src="https://raw.github.com/cpojer/mootools-class-extras/master/Source/Class.Singleton.js"></script>
+    <script src="js/link/Web/link.js" data-main="js/app.js"></script>
+
+    <body>
+        <div id="container">
+            <form id="toDoForm" action="" method="post">
+                <input type="text" name="title" value="" placeholder="Enter task" />
+                <input type="submit" name="submit" value="Add" />
+            </form>
+
+            <div id="toDoCounter">
+                <span class="count">0</span>/<span class="max">0</span>
+            </div>
+
+            <ul id="toDoList"></ul>
+        </div>
+
+    </body>
+</html>
