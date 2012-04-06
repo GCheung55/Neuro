@@ -6,24 +6,27 @@ exports: View
     var Unit = require('../libs/Company/Source/Company').Unit;
 
     // creates functions to subscribe/unsubscribe based on handlers
-    var bridgeEnds = function(bindType){
+    var subCurry = function(bindType){
         return function(){
             var prefix = this.getPrefix();
 
+            // Prepare the prefix to prepend to the keys for subscribe/unsubscribing
             prefix && (prefix += '.');
 
-            Object.keys(this.bridges).each(function(type){
-                var obj = {},
-                    methods = Array.from(this.handlers[type]),
+            Object.each(this.subscriberMap, function(val, key){
+                var methods = Array.from(val),
                     len = methods.length,
                     i = 0, method;
 
+                // Create the object with all the methods
                 while(len--){
+                    // get the method name, or function
                     method = methods[i++];
-                    obj[prefix + type] = Is.Function(method) ? method : this.bound(method);
-                }
 
-                this[bindType](obj);
+                    // Subscribe/unsubscribe function or the bound method
+                    this[bindType](prefix + key, Is.Function(method) ? method : this.bound(method));
+                }
+                
             }, this);
 
             return this;
@@ -34,15 +37,15 @@ exports: View
         Implements: [Class.Binds, Options, Unit],
 
         // Model publishers / View methods mapping
-        bridges: undefined,
+        subscribeMap: undefined,
 
         element: undefined,
 
         options: {
-            bridges: {
-                'change': ['render'],
-                'destroy': 'destroy',
-                'change:id': function(){}
+            subscribeMap: {
+                'change': ['render']
+                ,'destroy': 'destroy'
+                // ,'change:id': function(){}
             }
         },
 
@@ -53,7 +56,7 @@ exports: View
         setup: function(data, options){
             this.setOptions(options);
 
-            this.bridges = this.options.bridges;
+            this.subscribeMap = this.options.subscribeMap;
 
             this.setPrefix(this.options.Prefix);
 
@@ -70,11 +73,17 @@ exports: View
 
         detachEvents: function(){ return this; },
 
-        bindModel: bridgeEnds('subscribe'),
+        bindModel: subCurry('subscribe'),
 
-        unbindModel: bridgeEnds('unsubscribe'),
+        unbindModel: subCurry('unsubscribe'),
+        
+        create: function(){
+            return this;
+        },
 
         render: function(data){
+            this.create();
+            
             this.attachEvents();
 
             return this;
