@@ -1,10 +1,11 @@
-require: '../libs/mootools-class-extras/Source/Class.Binds', '../utilities/Is';
+require: '../utilities/Is';
 
 exports: View
 
 // (function(context){
-    var Unit = require('../libs/Company/Source/Company').Unit;
-
+    var Unit = require('company').Unit;
+    //var Is =  require('is')
+    
     // creates functions to subscribe/unsubscribe based on handlers
     var subCurry = function(bindType){
         return function(){
