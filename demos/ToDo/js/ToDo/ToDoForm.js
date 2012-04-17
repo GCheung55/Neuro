@@ -1,3 +1,7 @@
+exports: ToDoForm
+
+var Observer = require('company').Unit
+
 var ToDoForm = new Class({
     Implements: [Class.Binds, Class.Singleton, Options],
 
@@ -18,7 +22,7 @@ var ToDoForm = new Class({
     setup: function(element, options){
         this.setOptions(options);
 
-        this.unit = new Neuro.Observer(this.options.unitOptions);
+        this.unit = new Observer(this.options.unitOptions);
 
         this.attachEvents(element);
 
@@ -73,3 +77,4 @@ var ToDoForm = new Class({
     }
 
 });
+

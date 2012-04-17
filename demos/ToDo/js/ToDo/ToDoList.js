@@ -1,3 +1,7 @@
+exports: ToDoList
+
+var Observer = require('company').Unit
+
 var ToDoList = new Class({
     Implements: [Class.Binds, Class.Singleton, Options],
 
@@ -16,7 +20,7 @@ var ToDoList = new Class({
     setup: function(element, options){
         this.setOptions(options);
 
-        this.unit = new Neuro.Observer(this.options.unitOptions);
+        this.unit = new Observer(this.options.unitOptions);
 
         this.attachEvents(element);
 

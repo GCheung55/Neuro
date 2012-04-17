@@ -1,18 +1,9 @@
-[submodule "Specs/Testigo"]
-	path = Specs/Testigo
-	url = https://github.com/keeto/testigo.git
-[submodule "Specs/MooTools-Core"]
-	path = Specs/MooTools-Core
-	url = https://github.com/mootools/mootools-core.git
-[submodule "Specs/MooTools-More"]
-	path = Specs/MooTools-More
-	url = https://github.com/mootools/mootools-more.git
-[submodule "Source/Company"]
-	path = Source/libs/Company
+[submodule "lib/company"]
+	path = lib/company
 	url = https://github.com/keeto/company.git
-[submodule "Build/link.js"]
-	path = Build/link.js
-	url = https://github.com/calyptus/link.js
-[submodule "Source/libs/mootools-class-extras"]
-	path = Source/libs/mootools-class-extras
+[submodule "lib/link"]
+	path = lib/link
+	url = https://github.com/sebmarkbage/link.js.git
+[submodule "lib/class-extras"]
+	path = lib/class-extras
 	url = https://github.com/cpojer/mootools-class-extras.git

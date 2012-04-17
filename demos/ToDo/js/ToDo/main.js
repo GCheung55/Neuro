@@ -1,6 +1,13 @@
 // Prep ToDo Collection
+var Collection = require('neuro/Collection').Collection
+    ,ToDoForm = require('todo/ToDoForm').ToDoForm
+    ,ToDoList = require('todo/ToDoList').ToDoList
+    ,Observer = require('company').Unit
+    
+console.log(ToDoForm)
+
 window.addEvent('domready', function(){
-    var collection = new Neuro.Collection(null, {
+    var collection = new Collection(null, {
         silentSetup: true,
         Prefix: 'ToDoCollection'
     });
@@ -39,7 +46,7 @@ window.addEvent('domready', function(){
 
     var count = counter.getElement('span.count'),
         max = counter.getElement('span.max'),
-        unit = new Neuro.Observer({
+        unit = new Observer({
             initSetup: function(){
                 this.complete = this.complete.bind(this);
 

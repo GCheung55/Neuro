@@ -1,14 +1,11 @@
-define(function(require, exports, module){
-var __MODULE0__ = require("./Model");
-var Unit;
-;
+require: './Model';
 
-exports.Collection
+exports: Collection
 
 // (function(context){
-Unit = require('../libs/Company/Source/Company').Unit;
+var Unit = require('company').Unit;
 
-exports.Collection = new Class({
+var Collection = new Class({
 
     //Implements: [Unit],
     Extends: Unit,
@@ -16,7 +13,7 @@ exports.Collection = new Class({
     // Set prefix when Extending to differentiate against other Collections
     Prefix: '',
 
-    Model: __MODULE0__.Model,
+    Model: Model,
 
     _models: [],
 
@@ -65,7 +62,7 @@ exports.Collection = new Class({
         if (!this.hasModel(model)) {
             this._models.push(model);
 
-            this.publish('add', [this, model]);
+            this.publishAdd(model);
         }
 
         return this;
@@ -111,18 +108,19 @@ exports.Collection = new Class({
         model.destroy();
 
         this._models.erase(model);
-
-        // Silent publishing by using detachUnit before removing
-        this.publish('remove', [this, model]);
+        
+        this.publishRemove();
 
         return this;
     },
 
     remove: function(){
-        var models = Array.from(arguments), l = models.length;
+        var models = Array.from(arguments),
+            l = models.length,
+            i = 0;
 
         while(l--){
-            this._remove(models[l]);
+            this._remove(models[i++]);
         }
 
         return this;
@@ -131,8 +129,27 @@ exports.Collection = new Class({
     empty: function(){
         this.remove.apply(this, this._models);
 
-        this.publish('empty', this);
+        this.publishEmpty();
 
+        return this;
+    },
+    
+    publishAdd: function(model){
+        this.publish('add', [this, model]);
+        
+        return this;
+    },
+    
+    publishRemove: function(model){
+        // Silent publishing by using detachUnit before removing
+        this.publish('remove', [this, model]);
+        
+        return this;
+    },
+    
+    publishEmpty: function(){
+        this.publish('empty', this);
+        
         return this;
     },
 
@@ -144,10 +161,9 @@ exports.Collection = new Class({
 });
 
 ['forEach', 'each', 'invoke', 'every', 'filter', 'clean',  'indexOf', 'map', 'some', 'associate', 'link', 'contains', /*'append',*/ 'getLast', 'getRandom', /*'include', 'combine', 'erase', 'empty',*/ 'flatten', 'pick'].each(function(method){
-    exports.Collection.implement(method, function(){
+    Collection.implement(method, function(){
         return Array[method].apply( Array, [this._models].append( Array.from(arguments) ) );
     });
 });
 
 // }(typeof exports != 'undefined' ? exports : window));
-});
