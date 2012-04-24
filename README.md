@@ -3,6 +3,8 @@ Neuro
 
 A MooTools client-side MVC.
 
+### Version: 0.1.0 (Alpha)
+
 ### Influences:
 
 * [Backbone](documentcloud/backbone)
@@ -12,6 +14,7 @@ A MooTools client-side MVC.
 
 * [MooTools-Core 1.x](mootools/mootools-core)
 * [Company](keeto/company)
+* [Is.js](gcheung55/is.js)
 
 ### Focus:
 
@@ -110,5 +113,6 @@ Humans.hasModel(garyElms); // false
 
 ToDo
 ----
+* Add a builder
 * Add a Router mechanism
 * Add a Sync mechanism
