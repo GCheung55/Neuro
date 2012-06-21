@@ -4,29 +4,6 @@ require: '../lib/util/Is';
 
 exports: Model
 
-/*
----
-name: Model
-
-description: Model to handle data
-
-version: .10
-
-license: TBD
-
-authors:
-- Garrick Cheung
-
-requires:
-- MooTools-Core/1.3
-- Company
-- Is.js
-
-provides: [Model]
-
-...
-*/
-
 // (function(context){
 
 var Silence = require('../mixins/silence');
