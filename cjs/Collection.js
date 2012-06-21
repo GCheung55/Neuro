@@ -5,49 +5,36 @@ require: './Model';
 exports: Collection
 
 // (function(context){
-var Unit = require('company').Unit;
+
+var Silence = require('../mixins/silence');
 
 var Collection = new Class({
-
-    //Implements: [Unit],
-    Extends: Unit,
-
-    // Set prefix when Extending to differentiate against other Collections
-    Prefix: '',
-
-    Model: Model,
+    Implements: [Events, Options, Silence],
 
     _models: [],
+
+    options: {
+        // onAdd: function(){},
+        // onRemove: function(){},
+        // onEmpty: function(){},
+        Model: Model,
+        silent: false
+    },
 
     initialize: function(models, options){
         this.setup(models, options);
     },
 
     setup: function(models, options){
-        if (!options) { options = {}; }
+        this.setOptions(options);
 
-        if (options.Prefix) { this.Prefix = options.Prefix; }
+        this._Model = this.options.Model;
 
-        this.setupUnit();
+        // Silent property determines whether model will excute signals
+        this.silence(this.options.silent);
 
         if (models) {
-            if (options.silentSetup) {
-                this.detachUnit();
-            }
-
             this.add(models);
-
-            if (options.silentSetup) {
-                this.attachUnit();
-            }
-
-            // ((options.silentSetup) ? function(){
-            //     this.detatchUnit();
-            //     this.add(models);
-            //     this.attachUnit();
-            // } : function(){
-            //     this.add(models);
-            // }).call(this);
         }
 
         return this;
@@ -57,21 +44,39 @@ var Collection = new Class({
         return this._models.contains(model);
     },
 
-    // Silent publishing by using detachUnit before adding
+    /**
+     * Private add method
+     * @param  {Class} model A Model instance
+     * @return {Class} Collection Instance
+     */
     _add: function(model){
-        model = new this.Model(model);
+        model = new this._Model(model);
 
         if (!this.hasModel(model)) {
+
+            // Remove the model if it destroys itself.
+            model.addEvent('destroy', this.remove.bind(this));
+
             this._models.push(model);
 
-            this.publishAdd(model);
+            this.signalAdd(model);
         }
 
         return this;
     },
 
+    /**
+     * Add a model or models
+     * @param {Class || Array} A single Model instance or an array of Model instances
+     * @return {Class} Collection Instance
+     *
+     * @example
+     * collectionInstance.add(model);
+     * collectionInstance.add(model, model);
+     * collectionInstance.add([model, model, model]);
+     */
     add: function(){
-        var models = arguments,
+        var models = Array.from(arguments).flatten(),
             len = models.length,
             i = 0;
 
@@ -106,18 +111,31 @@ var Collection = new Class({
         return this._models[index];
     },
 
+    /**
+     * Private remove method
+     * @param  {Class} model A Model instance
+     * @return {Class} Collection Instance
+     */
     _remove: function(model){
-        model.destroy();
-
         this._models.erase(model);
         
-        this.publishRemove();
+        this.signalRemove(model);
 
         return this;
     },
 
+    /**
+     * Remove a model or models
+     * @param {Class || Array} A single Model instance or an array of Model instances
+     * @return {Class} Collection Instance
+     *
+     * @example
+     * collectionInstance.remove(model);
+     * collectionInstance.remove(model, model);
+     * collectionInstance.remove([model, model, model]);
+     */
     remove: function(){
-        var models = Array.from(arguments),
+        var models = Array.from(arguments).flatten(),
             l = models.length,
             i = 0;
 
@@ -128,30 +146,55 @@ var Collection = new Class({
         return this;
     },
 
+    /**
+     * Replace an existing model with a new one
+     * @param  {Class} oldModel A Model instance that will be replaced with the new
+     * @param  {Object || Class} newModel An object or Model instance that will replace the old
+     * @param  {Boolean} signal A switch to signal add and remove event listeners
+     * @return {Class} Collection Instance
+     */
+    replace: function(oldModel, newModel, signal){
+        var index;
+
+        if (oldModel && newModel) {
+            index = this.indexOf(oldModel);
+
+            if (index > -1) {
+                newModel = new this._Model(newModel);
+
+                this._models.splice(index, 1, newModel);
+
+                if (signal) {
+                    this.signalAdd(newModel);
+
+                    this.signalRemove(oldModel);
+                }
+            }
+        }
+
+        return this;
+    },
+
     empty: function(){
         this.remove.apply(this, this._models);
 
-        this.publishEmpty();
+        this.signalEmpty();
 
         return this;
     },
     
-    publishAdd: function(model){
-        this.publish('add', [this, model]);
-        
+    signalAdd: function(model){
+        !this.isSilent() && this.fireEvent('add', [this, model]);
         return this;
     },
     
-    publishRemove: function(model){
-        // Silent publishing by using detachUnit before removing
-        this.publish('remove', [this, model]);
-        
+    signalRemove: function(model){
+        !this.isSilent() && this.fireEvent('remove', [this, model]);
         return this;
     },
     
-    publishEmpty: function(){
-        this.publish('empty', this);
-        
+    signalEmpty: function(){
+        !this.isSilent() && this.fireEvent('empty', this);
         return this;
     },
 
@@ -162,9 +205,9 @@ var Collection = new Class({
     }
 });
 
-['forEach', 'each', 'invoke', 'every', 'filter', 'clean',  'indexOf', 'map', 'some', 'associate', 'link', 'contains', /*'append',*/ 'getLast', 'getRandom', /*'include', 'combine', 'erase', 'empty',*/ 'flatten', 'pick'].each(function(method){
+['forEach', 'each', 'invoke', 'every', 'filter', 'clean',  'indexOf', 'map', 'some', 'associate', 'link', 'contains', 'getLast', 'getRandom', 'flatten', 'pick'].each(function(method){
     Collection.implement(method, function(){
-        return Array[method].apply( Array, [this._models].append( Array.from(arguments) ) );
+        return Array.prototype[method].apply(this._models, arguments);
     });
 });
 
