@@ -1,7 +1,7 @@
 {
     "name": "Neuro",
     "description": "A MVC written with MooTools.",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "license": "MIT (http://mootools.net/license.txt)",
     "main": "Source/main.js",
     "keywords": [

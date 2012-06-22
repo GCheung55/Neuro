@@ -3,7 +3,7 @@ Neuro
 
 A MooTools client-side MVC.
 
-### Version: 0.1.1 (Alpha)
+### Version: 0.1.2 (Alpha)
 
 ### Influences:
 
@@ -13,7 +13,6 @@ A MooTools client-side MVC.
 ### Dependencies:
 
 * [MooTools-Core 1.x](mootools/mootools-core)
-* [Company](keeto/company)
 * [Is.js](gcheung55/is.js)
 
 ### Focus:
