@@ -1,10 +1,7 @@
-require: '../lib/util/Is';
-
-exports: Model
-
 // (function(context){
 
-var Silence = require('../mixins/silence');
+var Is = require('../lib/util/Is').Is,
+    Silence = require('../mixins/silence');
 
 var createGetter = function(type){
     /**
@@ -23,7 +20,7 @@ var createGetter = function(type){
     }.overloadGetter();
 };
 
-var Model = new Class({
+var Model = exports.Model = new Class({
     Implements: [Events, Options, Silence],
 
     _data: {},

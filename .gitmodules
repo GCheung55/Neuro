@@ -1,9 +1,3 @@
-[submodule "lib/company"]
-	path = lib/company
-	url = https://github.com/keeto/company.git
-[submodule "lib/link"]
-	path = lib/link
-	url = https://github.com/sebmarkbage/link.js.git
 [submodule "lib/class-extras"]
 	path = lib/class-extras
 	url = https://github.com/cpojer/mootools-class-extras.git

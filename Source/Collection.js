@@ -1,12 +1,9 @@
-require: './Model';
-
-exports: Collection
-
 // (function(context){
 
-var Silence = require('../mixins/silence');
+var Model = require('./Model').Model,
+    Silence = require('../mixins/silence');
 
-var Collection = new Class({
+var Collection = exports.Collection = new Class({
     Implements: [Events, Options, Silence],
 
     _models: [],
