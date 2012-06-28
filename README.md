@@ -3,7 +3,7 @@ Neuro
 
 A MooTools client-side MVC.
 
-### Version: 0.1.3 (Alpha)
+### Version: 0.1.4 (Alpha)
 
 ### Influences:
 
@@ -31,15 +31,31 @@ Subclass Model with MooTools Class.
 var HumanModel = new Class({
     Extends: Neuro.Model
     // Set the default data
-    _data: {
-        firstName: ''
-        ,lastName: ''
-        ,hp: 10
-        ,max: 100
-        ,lvl: 1
-        // You can set a function as a custom getter. "this" will be _data, not the model itself.
-        ,name: function(){
-            return this.firstName + ' ' + this.lastName;
+    ,options: {
+        defaults: {
+            firstName: ''
+            ,lastName: ''
+            ,hp: 10
+            ,max: 100
+            ,lvl: 1
+            // You can set a function as a custom getter. "this" will be _data, not the model itself.
+            ,name: function(){
+                return this.firstName + ' ' + this.lastName;
+            }
+        }
+        // Custom setters and getters go here.
+        // Return a null not trigger change.
+        ,accessors: {
+            name: {
+                // isPrevious is a flag set when using the getPrevious method, to help you know what data to look for
+                get: function(isPrevious){
+                    // Just an example. You can also go directly to the data because "this" is exposed, which will allow you to bypass other custom getters.
+                    var getMethod = 'get';
+                    isPrevious && (method += 'Previous');
+
+                    return this[getMethod]('firstName') + ' ' + this[getMethod]('lastName');
+                }
+            }
         }
     }
 });
@@ -80,8 +96,8 @@ Humans.add({
     ,hp: 1000
 });
 
-// Add multiple datasets to the collection
-Humans.add({
+// Add multiple datasets to the collection, must be an Array
+Humans.add([{
     firstName: 'Kareem Abdul'
     ,lastName: 'Jabbar'
     ,hp: 1000
@@ -91,7 +107,7 @@ Humans.add({
     ,lastName: 'Elms'
     ,hp: 800
     ,lvl: 81
-});
+}]);
 
 // Add a model instance
 Humans.add(bruceLee);
@@ -112,6 +128,5 @@ Humans.hasModel(garyElms); // false
 
 ToDo
 ----
-* Add a builder
 * Add a Router mechanism
-* Add a Sync mechanism
+* Add a basic View Class

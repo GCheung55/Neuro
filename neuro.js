@@ -18,7 +18,7 @@
     },
     "1": function(require, module, exports, global) {
         var Neuro = {
-            version: "0.1.3"
+            version: "0.1.4"
         };
         exports = module.exports = Neuro;
     },
@@ -296,8 +296,9 @@
             Implements: [ Events, Options, Silence ],
             _models: [],
             _bound: {},
+            _Model: Model,
             options: {
-                Model: Model,
+                Model: undefined,
                 modelOptions: undefined,
                 silent: false
             },
@@ -309,7 +310,9 @@
                 this._bound = {
                     remove: this.remove.bind(this)
                 };
-                this._Model = this.options.Model;
+                if (this.options.Model) {
+                    this._Model = this.options.Model;
+                }
                 this.silence(this.options.silent);
                 if (models) {
                     this.add(models);
