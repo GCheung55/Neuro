@@ -3,7 +3,7 @@ Neuro
 
 A MooTools client-side MVC.
 
-### Version: 0.1.2 (Alpha)
+### Version: 0.1.3 (Alpha)
 
 ### Influences:
 

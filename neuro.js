@@ -18,7 +18,7 @@
     },
     "1": function(require, module, exports, global) {
         var Neuro = {
-            version: "0.1.x"
+            version: "0.1.3"
         };
         exports = module.exports = Neuro;
     },
