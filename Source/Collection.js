@@ -10,11 +10,13 @@ var Collection = new Class({
 
     _bound: {},
 
+    _Model: Model,
+
     options: {
         // onAdd: function(){},
         // onRemove: function(){},
         // onEmpty: function(){},
-        Model: Model,
+        Model: undefined,
         // Model Options
         modelOptions: undefined,
         silent: false
@@ -31,7 +33,9 @@ var Collection = new Class({
             remove: this.remove.bind(this)
         };
 
-        this._Model = this.options.Model;
+        if (this.options.Model) {
+            this._Model = this.options.Model;
+        }
 
         // Silent property determines whether model will excute signals
         this.silence(this.options.silent);
