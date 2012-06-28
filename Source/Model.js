@@ -20,7 +20,7 @@ var createGetter = function(type){
     }.overloadGetter();
 };
 
-var Model = exports.Model = new Class({
+var Model = new Class({
     Implements: [Events, Options, Silence],
 
     _data: {},
@@ -34,8 +34,15 @@ var Model = exports.Model = new Class({
     _accessors: {
         /*
         key: {
-            set: function(){},
-            get: function(isPrevious){},
+            // Must return a value that is NOT null in order to mark this model changed by this property change
+            set: function(prop, val){return val;},
+
+            // isPrevious flag lets you choose whether to pull data from this._data or this._previousData
+            get: function(isPrevious){
+                //Example
+                var data = isPrevious ? this._data : this._previousData;
+                return data['somekey'];
+            },
         }
         */
     },
@@ -60,12 +67,16 @@ var Model = exports.Model = new Class({
     setup: function(data, options){
         this.setOptions(options);
 
+        // Set the _data defaults
+        this._data = this.options.defaults;
+
         this.setAccessor(this.options.accessors);
 
         // Silent property determines whether model will excute signals
         this.silence(this.options.silent);
 
-        if (data) { this._data = Object.merge({}, this.options.defaults, data); }
+        // Just set the data instead of Object merging. This will skip cloning Class instances.
+        if (data) { this.set(data); }
 
         return this;
     },
@@ -82,28 +93,37 @@ var Model = exports.Model = new Class({
         // Store the older pr
         var old = this._data[prop],
             accessor = this.getAccessor(prop),
-            setter = accessor && accessor.set;
+            setter = accessor && accessor.set,
+            setterVal;
 
-        // Dereference the new val
-        if (Is.Array(val)) {
-            val = val.slice();
-        } else if(Is.Object(val)){
-            val = Object.clone(val);
+        switch(typeOf(val)){
+            // Dereference the new val if it's an Array
+            case 'array': val = val.slice(); break;
+            // Or an Object but not an instance of Class
+            case 'object':
+                if (!val.$constructor || (val.$constructor && !instanceOf(val.$constructor, Class))){
+                    val = Object.clone(val);
+                }
+                break;
         }
 
         if (!Is.Equal(old, val)) {
-            this._changed = true;
-
-            this._changedProperties[prop] = val;
-
             /**
              * Use the custom setter accessor if it exists.
              * Otherwise, set the property in the regular fashion.
+             * Setter must return a value that is NOT null in order to mark the model as changed
              */
             if (setter) {
-                setter.apply(this, arguments);
+                setterVal = setter.apply(this, arguments);
+                if (setterVal !== null) {
+                    this._changed = true;
+
+                    this._data[prop] = this._changedProperties[prop] = setterVal;
+                }
             } else {
-                this._data[prop] = val;
+                this._changed = true;
+
+                this._data[prop] = this._changedProperties[prop] = val;
             }
         }
 
@@ -161,9 +181,7 @@ var Model = exports.Model = new Class({
      * @return {Object}
      */
     getData: function(){
-        /** Should the data be cloned instead of referenced? */
-        return this.clone();
-        //return this._data;
+        return Object.clone(this._data);
     },
     
     _setPreviousData: function(){
@@ -228,22 +246,22 @@ var Model = exports.Model = new Class({
     },
     
     signalChange: function(){
-        !this.isSilent() && this.fireEvent('change', this);
+        !this.isSilent() && this.fireEvent('change');
         return this;
     },
     
     signalChangeProperty: function(prop, val){
-        !this.isSilent() && this.fireEvent('change:' + prop, [this, prop, val]);
+        !this.isSilent() && this.fireEvent('change:' + prop, [prop, val]);
         return this;
     },
     
     signalDestroy: function(){
-        !this.isSilent() && this.fireEvent('destroy', this);
+        !this.isSilent() && this.fireEvent('destroy');
         return this;
     },
 
     toJSON: function(){
-        return this.clone();
+        return this.getData();
     },
 
     setAccessor: function(key, val){
@@ -264,10 +282,11 @@ var Model = exports.Model = new Class({
     }
 });
 
-['clone', 'subset', 'map', 'filter', 'every', 'some', 'keys', 'values', 'getLength', 'keyOf', 'contains', 'toQueryString'].each(function(method){
+['subset', 'map', 'filter', 'every', 'some', 'keys', 'values', 'getLength', 'keyOf', 'contains', 'toQueryString'].each(function(method){
     Model.implement(method, function(){
         return Object[method].apply( Object, [this._data].append( Array.from(arguments) ) );
     });
 });
 
+module.exports = Model;
 // }(typeof exports != 'undefined' ? exports : window));

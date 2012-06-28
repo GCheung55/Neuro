@@ -1,18 +1,22 @@
 // (function(context){
 
-var Model = require('./Model').Model,
+var Model = require('./Model'),
     Silence = require('../mixins/silence');
 
-var Collection = exports.Collection = new Class({
+var Collection = new Class({
     Implements: [Events, Options, Silence],
 
     _models: [],
+
+    _bound: {},
 
     options: {
         // onAdd: function(){},
         // onRemove: function(){},
         // onEmpty: function(){},
         Model: Model,
+        // Model Options
+        modelOptions: undefined,
         silent: false
     },
 
@@ -22,6 +26,10 @@ var Collection = exports.Collection = new Class({
 
     setup: function(models, options){
         this.setOptions(options);
+
+        this._bound = {
+            remove: this.remove.bind(this)
+        };
 
         this._Model = this.options.Model;
 
@@ -45,12 +53,12 @@ var Collection = exports.Collection = new Class({
      * @return {Class} Collection Instance
      */
     _add: function(model){
-        model = new this._Model(model);
+        model = new this._Model(model, this.options.modelOptions);
 
         if (!this.hasModel(model)) {
 
             // Remove the model if it destroys itself.
-            model.addEvent('destroy', this.remove.bind(this));
+            model.addEvent('destroy', this._bound.remove);
 
             this._models.push(model);
 
@@ -67,12 +75,12 @@ var Collection = exports.Collection = new Class({
      *
      * @example
      * collectionInstance.add(model);
-     * collectionInstance.add(model, model);
-     * collectionInstance.add([model, model, model]);
+     * collectionInstance.add([model, model]);
      */
-    add: function(){
-        var models = Array.from(arguments).flatten(),
-            len = models.length,
+    add: function(models){
+        models = Array.from(models);
+
+        var len = models.length,
             i = 0;
 
         while(len--){
@@ -112,6 +120,9 @@ var Collection = exports.Collection = new Class({
      * @return {Class} Collection Instance
      */
     _remove: function(model){
+        // Clean up when removing so that it doesn't try removing itself from the collection
+        model.removeEvent('destroy', this._bound.remove);
+
         this._models.erase(model);
         
         this.signalRemove(model);
@@ -126,12 +137,14 @@ var Collection = exports.Collection = new Class({
      *
      * @example
      * collectionInstance.remove(model);
-     * collectionInstance.remove(model, model);
-     * collectionInstance.remove([model, model, model]);
+     * collectionInstance.remove([model, model]);
      */
-    remove: function(){
-        var models = Array.from(arguments).flatten(),
-            l = models.length,
+    remove: function(models){
+        // Cloning after converting to an Array because it should be dereferenced
+        // in order to continue the while loop when erasing from this._models
+        models = Array.from(models).slice();
+
+        var l = models.length,
             i = 0;
 
         while(l--){
@@ -155,7 +168,7 @@ var Collection = exports.Collection = new Class({
             index = this.indexOf(oldModel);
 
             if (index > -1) {
-                newModel = new this._Model(newModel);
+                newModel = new this._Model(newModel, this.options.modelOptions);
 
                 this._models.splice(index, 1, newModel);
 
@@ -171,7 +184,7 @@ var Collection = exports.Collection = new Class({
     },
 
     empty: function(){
-        this.remove.apply(this, this._models);
+        this.remove(this._models);
 
         this.signalEmpty();
 
@@ -179,17 +192,17 @@ var Collection = exports.Collection = new Class({
     },
     
     signalAdd: function(model){
-        !this.isSilent() && this.fireEvent('add', [this, model]);
+        !this.isSilent() && this.fireEvent('add', model);
         return this;
     },
     
     signalRemove: function(model){
-        !this.isSilent() && this.fireEvent('remove', [this, model]);
+        !this.isSilent() && this.fireEvent('remove', model);
         return this;
     },
     
     signalEmpty: function(){
-        !this.isSilent() && this.fireEvent('empty', this);
+        !this.isSilent() && this.fireEvent('empty');
         return this;
     },
 
@@ -206,4 +219,5 @@ var Collection = exports.Collection = new Class({
     });
 });
 
+module.exports = Collection;
 // }(typeof exports != 'undefined' ? exports : window));

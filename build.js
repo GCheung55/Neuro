@@ -1,5 +1,4 @@
-var link = require('./lib/link/Source/Library/link.js')
-,   fs = require('fs')
+var fs = require('fs')
 ,   wrup = require('wrapup')();
 
 // Write the neuro.js file

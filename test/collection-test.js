@@ -28,7 +28,7 @@ buster.testCase('Neuro Collection', {
     'should add a model instance if it does not exist in the Collection instance': function(){
         var model = new Neuro.Model(this.mockData);
 
-        this.mockCollection.add(model, model);
+        this.mockCollection.add([model, model]);
 
         assert.same(this.mockCollection._models.length, 1);
 
@@ -40,7 +40,7 @@ buster.testCase('Neuro Collection', {
     'should get a Model instance / instances by index number': function(){
         var model, models;
 
-        this.mockCollection.add(this.mockData, this.mockData, this.mockData);
+        this.mockCollection.add([this.mockData, this.mockData, this.mockData]);
 
         model = this.mockCollection.get(0);
 
@@ -53,7 +53,7 @@ buster.testCase('Neuro Collection', {
     'should remove a Model instance by model object': function(){
         var model, models = this.mockCollection._models;
 
-        this.mockCollection.add(this.mockData, this.mockData);
+        this.mockCollection.add([this.mockData, this.mockData]);
 
         model = this.mockCollection.get(0);
 
@@ -67,7 +67,7 @@ buster.testCase('Neuro Collection', {
     'should replace an existing model with a new one': function(){
         var oldModel, test = {e: false};
 
-        this.mockCollection.add(this.mockData, {d: true});
+        this.mockCollection.add([this.mockData, {d: true}]);
 
         oldModel = this.mockCollection.get(0);
 
@@ -79,7 +79,7 @@ buster.testCase('Neuro Collection', {
     'should empty the Collection instance of all models': function(){
         var models = this.mockCollection._models;
 
-        this.mockCollection.add(this.mockData, this.mockData);
+        this.mockCollection.add([this.mockData, this.mockData]);
 
         assert.same(models.length, 2);
 
@@ -89,7 +89,7 @@ buster.testCase('Neuro Collection', {
     },
 
     'should return a JSON string of all models': function(){
-        this.mockCollection.add(this.mockData, this.mockData);
+        this.mockCollection.add([this.mockData, this.mockData]);
 
         assert.same(JSON.encode(this.mockCollection), '[{"a":"str","b":[],"c":{}},{"a":"str","b":[],"c":{}}]');
     },
@@ -101,7 +101,7 @@ buster.testCase('Neuro Collection', {
         collection.add(this.mockData);
 
         assert.called(spy);
-        assert.calledWith(spy, collection, collection.get(0));
+        assert.calledWith(spy, collection.get(0));
     },
 
     'should trigger a function that has been attached to the remove event': function(){
@@ -116,19 +116,19 @@ buster.testCase('Neuro Collection', {
         collection.remove( model );
 
         assert.called(spy);
-        assert.calledWith(spy, collection, model);
+        assert.calledWith(spy, model);
     },
 
     'should trigger a function that has been attached to the empty event': function(){
         var spy = this.spy(),
             collection = this.mockCollection.addEvent('empty', spy);
 
-        collection.add(this.mockData, {d: true});
+        collection.add([this.mockData, {d: true}]);
 
         collection.empty();
 
         assert.called(spy);
-        assert.calledWith(spy, collection);
+        assert.calledWith(spy);
         assert.equals(collection._models.length, 0);
     },
 
@@ -147,17 +147,17 @@ buster.testCase('Neuro Collection', {
         collection.replace(oldModel, newModel, true);
 
         assert.called(addSpy);
-        assert.calledWith(addSpy, collection, newModel);
+        assert.calledWith(addSpy, newModel);
 
         assert.called(removeSpy);
-        assert.calledWith(removeSpy, collection, oldModel);
+        assert.calledWith(removeSpy, oldModel);
     },
 
     'should enable/disable signal execution with the silence method': function(){
         var spy = this.spy(),
             collection = this.mockCollection,
             model1 = new Neuro.Model(this.mockData),
-            model2 = new Neuro.Model(this.mockData);
+            model2 = new Neuro.Model({Garrick:'Cheung'});
 
         collection.addEvent('add', spy);
 
@@ -169,16 +169,16 @@ buster.testCase('Neuro Collection', {
 
         assert.equals(collection._models.length, 2);
 
-        assert.calledWith(spy, collection, model1);
+        assert.calledWith(spy, model1);
 
-        refute.calledWith(spy, collection, model2);
+        refute.calledWith(spy, model2);
     },
 
     'Array Methods': {
         'Each should loop over each Model instance': function(){
             var spy = this.spy();
 
-            this.mockCollection.add(this.mockData, this.mockData);
+            this.mockCollection.add([this.mockData, this.mockData]);
 
             this.mockCollection.each(spy);
 
@@ -189,7 +189,7 @@ buster.testCase('Neuro Collection', {
         },
 
         'Invoke should execute a function over each Model instance and return an array or arrays of the executed functions value': function(){
-            this.mockCollection.add(this.mockData, this.mockData);
+            this.mockCollection.add([this.mockData, this.mockData]);
 
             var test = this.mockCollection.invoke('keys'),
                 results = [['a','b','c'],['a','b','c']];
@@ -208,7 +208,7 @@ buster.testCase('Neuro Collection', {
         },
 
         'Filter should return filtered Model instances according to comparator': function(){
-            var test = this.mockCollection.add(this.mockData, {d:true}).filter(function(model){
+            var test = this.mockCollection.add([this.mockData, {d:true}]).filter(function(model){
                     return model.get('d');
                 }),
                 result = [this.mockCollection.get(1)];
@@ -235,7 +235,7 @@ buster.testCase('Neuro Collection', {
         },
 
         'IndexOf should return the index of a Model instance': function(){
-            this.mockCollection.add(this.mockData, this.mockData, this.mockData);
+            this.mockCollection.add([this.mockData, this.mockData, this.mockData]);
 
             var model = this.mockCollection.get(1),
                 test = this.mockCollection.indexOf(model),
@@ -245,7 +245,7 @@ buster.testCase('Neuro Collection', {
         },
 
         'Map should return an array whos items are the result of a function': function(){
-            var test = this.mockCollection.add(this.mockData, this.mockData).map(function(model){
+            var test = this.mockCollection.add([this.mockData, this.mockData]).map(function(model){
                     return model.get('a') + 'str';
                 }),
                 result = ['strstr', 'strstr'];
@@ -254,7 +254,7 @@ buster.testCase('Neuro Collection', {
         },
 
         'Some should return true if at least one item satisfies the provided testing function': function(){
-            var test = this.mockCollection.add(this.mockData, this.mockData, {d:true}). some(function(model){
+            var test = this.mockCollection.add([this.mockData, this.mockData, {d:true}]). some(function(model){
                     return model.get('d');
                 }),
                 result = true;
@@ -263,7 +263,7 @@ buster.testCase('Neuro Collection', {
         },
 
         'Associate should create an object with key-value pairs based on the array of keywords passed in and the current content of the collection': function(){
-            var test = this.mockCollection.add(this.mockData, this.mockData).associate(['one', 'two']),
+            var test = this.mockCollection.add([this.mockData, this.mockData]).associate(['one', 'two']),
                 result = {
                     one: this.mockCollection.get(0),
                     two: this.mockCollection.get(1)
@@ -273,7 +273,7 @@ buster.testCase('Neuro Collection', {
         },
 
         'Link should create an object from an object of key / function pairs to assign values': function(){
-            var test = this.mockCollection.add(this.mockData, {d: true}).link({
+            var test = this.mockCollection.add([this.mockData, {d: true}]).link({
                     abc: function(model){ return Type.isString(model.get('a')) && Type.isArray(model.get('b')) && Type.isObject(model.get('c'));},
                     d: function(model){ return !model.get('a') && Type.isBoolean(model.get('d'));}
                 }),
@@ -286,7 +286,7 @@ buster.testCase('Neuro Collection', {
         },
 
         'Contains should return a boolean value of whether the collection contains a model': function(){
-            this.mockCollection.add(this.mockData, this.mockData);
+            this.mockCollection.add([this.mockData, this.mockData]);
 
             var model = this.mockCollection.get(0),
                 test = this.mockCollection.contains(model),
@@ -296,7 +296,7 @@ buster.testCase('Neuro Collection', {
         },
 
         'getLast should return the last model in the collection': function(){
-            this.mockCollection.add(this.mockData, {d: true}, {e: 123});
+            this.mockCollection.add([this.mockData, {d: true}, {e: 123}]);
 
             var test = this.mockCollection.getLast(),
                 result = this.mockCollection.get(2);
@@ -305,7 +305,7 @@ buster.testCase('Neuro Collection', {
         },
 
         'getRandom should return a random model in the collection': function(){
-            this.mockCollection.add(this.mockData, {d: true}, {e: 123});
+            this.mockCollection.add([this.mockData, {d: true}, {e: 123}]);
 
             assert(this.mockCollection.contains( this.mockCollection.getRandom() ));
             assert(this.mockCollection.contains( this.mockCollection.getRandom() ));
