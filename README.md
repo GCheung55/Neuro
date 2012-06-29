@@ -3,7 +3,7 @@ Neuro
 
 A MooTools client-side MVC.
 
-### Version: 0.1.4 (Alpha)
+### Version: 0.1.5 (Alpha)
 
 ### Influences:
 
@@ -39,9 +39,7 @@ var HumanModel = new Class({
             ,max: 100
             ,lvl: 1
             // You can set a function as a custom getter. "this" will be _data, not the model itself.
-            ,name: function(){
-                return this.firstName + ' ' + this.lastName;
-            }
+            ,name:''
         }
         // Custom setters and getters go here.
         // Return a null not trigger change.
