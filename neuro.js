@@ -27,7 +27,7 @@
         var createGetter = function(type) {
             var isPrevious = type == "_previousData" || void 0;
             return function(prop) {
-                var val = this[type][prop], accessor = this.getAccessor[prop], getter = accessor && accessor.get;
+                var val = this[type][prop], accessor = this.getAccessor(prop), getter = accessor && accessor.get;
                 return getter ? getter.call(this, isPrevious) : val;
             }.overloadGetter();
         };

@@ -13,7 +13,7 @@ var createGetter = function(type){
 
     return function(prop){
         var val = this[type][prop],
-            accessor = this.getAccessor[prop],
+            accessor = this.getAccessor(prop),
             getter = accessor && accessor.get;
 
         return getter ? getter.call(this, isPrevious) : val;
