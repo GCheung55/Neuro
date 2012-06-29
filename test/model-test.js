@@ -16,7 +16,7 @@ buster.testCase('Neuro Model', {
                         }
                     },
                     get: function(isPrevious){
-                        var data = isPrevious ? this._data : this._previousData;
+                        var data = isPrevious ? this._previousData : this._data;
 
                         return data['fullName'];
                     }
