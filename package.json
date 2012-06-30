@@ -3,7 +3,7 @@
     "description": "A MVC written with MooTools.",
     "version": "0.1.5",
     "license": "MIT (http://mootools.net/license.txt)",
-    "main": "Source/main.js",
+    "main": "src/main.js",
     "keywords": [
         "neuro",
         "mootools",
