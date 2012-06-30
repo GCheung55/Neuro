@@ -69,6 +69,15 @@ buster.testCase('Neuro Model', {
         refute.same(test, result);
     },
 
+    'should not dereference Class instances when set': function(){
+        var testClass = new (new Class()),
+            test = {a: 'str', b: testClass};
+
+        this.mockModel.set(test);
+
+        assert(this.mockModel.get('b') === testClass);
+    },
+
     'unset and return an undefined value': function(){
         var test = this.mockModelWithData.get('age');
         assert.equals(test, 29);
