@@ -2,6 +2,14 @@ buster.testCase('Neuro Model', {
     setUp: function(){
         var testModel = new Class({
             Extends: Neuro.Model,
+            options: {
+                defaults: {
+                    'firstName': '',
+                    'lastName': '',
+                    'fullName': '',
+                    'age': 0
+                }
+            },
             _accessors: {
                 'fullName': {
                     set: function(prop, val){
@@ -12,8 +20,9 @@ buster.testCase('Neuro Model', {
 
                             this.set('firstName', first);
                             this.set('lastName', last);
-                            return val;
                         }
+
+                        return val;
                     },
                     get: function(isPrevious){
                         var data = isPrevious ? this._previousData : this._data;
@@ -78,12 +87,53 @@ buster.testCase('Neuro Model', {
         assert(this.mockModel.get('b') === testClass);
     },
 
-    'unset and return an undefined value': function(){
+    'unset a property, which should be an undefined value': function(){
         var test = this.mockModelWithData.get('age');
         assert.equals(test, 29);
 
         test = this.mockModelWithData.unset('age').get('age');
         refute.defined(test);
+    },
+
+    'unset multiple properties, which should be an undefined values': function(){
+        var model = this.mockModelWithData,
+            test = model.get('age', 'firstName');
+
+        assert.equals(test, {age: 29, firstName: "Garrick"});
+
+        test = model.unset(['age', 'firstName']).get('age', 'firstName');
+        assert.equals(test, {age: undefined, firstName: undefined});
+    },
+
+    // 'clear the data by unsetting all properties': function(){
+    //     var model = this.mockModelWithData.clear(),
+    //         result = model.values().every(function(val){ return val === void 0; });
+
+    //     assert(result);
+    // },
+
+    'reset the model by setting it back to options.defaults': function(){
+        var model = this.mockModelWithData.reset(),
+            test = JSON.encode(model.options.defaults),
+            result = JSON.encode(model);
+
+        assert.equals(test, result);
+    },
+
+    'reset property of the model back to what it is in options.defaults': function(){
+        var model = this.mockModelWithData.reset('age'),
+            test = model.get('age'),
+            result = 0;
+
+        assert.equals(test, result);
+    },
+
+    'reset properties of the model back to what they are in options.defaults': function(){
+        var model = this.mockModelWithData.reset(['age', 'firstName']),
+            test = model.get('age', 'firstName'),
+            result = {'age':0, 'firstName': ''};
+
+        assert.equals(test, result);
     },
 
     'getData should return all data': function(){
@@ -150,7 +200,7 @@ buster.testCase('Neuro Model', {
         var test = JSON.encode(this.mockModelWithData),
             result = '{"firstName":"Garrick","lastName":"Cheung","fullName":"Garrick Cheung","age":29}';
 
-        assert.same(test, result);
+        assert.equals(test, result);
     },
 
     'should trigger a change event attached to the model': function(){

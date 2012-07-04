@@ -1,6 +1,6 @@
 // (function(context){
 
-var Is = require('../lib/util/Is').Is,
+var Is = require('neuro-is').Is,
     Silence = require('../mixins/silence');
 
 var createGetter = function(type){
@@ -68,7 +68,10 @@ var Model = new Class({
         this.setOptions(options);
 
         // Set the _data defaults
-        this._data = this.options.defaults;
+        this.__set(this.options.defaults);
+
+        // Need to reset changed because __set will flag changed and changed properties
+        this._resetChanged();
 
         this.setAccessor(this.options.accessors);
 
@@ -80,6 +83,22 @@ var Model = new Class({
 
         return this;
     },
+
+    __set: function(prop, val){
+        var accessor = this.getAccessor(prop),
+            setter = accessor && accessor.set,
+            setterVal;
+
+        if (setter) {
+            setterVal = setter.apply(this, arguments);
+        }
+
+        this._changed = true;
+
+        this._data[prop] = this._changedProperties[prop] = setter && setterVal !== null ? setterVal : val;
+
+        return this;
+    }.overloadSetter(),
 
     /**
      * Store the key/value pair in the Model instance
@@ -113,18 +132,7 @@ var Model = new Class({
              * Otherwise, set the property in the regular fashion.
              * Setter must return a value that is NOT null in order to mark the model as changed
              */
-            if (setter) {
-                setterVal = setter.apply(this, arguments);
-                if (setterVal !== null) {
-                    this._changed = true;
-
-                    this._data[prop] = this._changedProperties[prop] = setterVal;
-                }
-            } else {
-                this._changed = true;
-
-                this._data[prop] = this._changedProperties[prop] = val;
-            }
+            this.__set(prop, val);
         }
 
         return this;
@@ -157,12 +165,36 @@ var Model = new Class({
     /**
      * Unset a data property. It can not be erased so it will be set to undefined
      *
-     * @param  {[type]} prop Property name to be unset
+     * @param  {String|Array} prop Property name/names to be unset
      * @return {Class} The Model instance
      */
     unset: function(prop){
+        var props = {};
+
+        Array.from(prop).each(function(item){
+            props[item] = void 0;
+        });
+
         // void 0 is used because 'undefined' is a var that can be changed in some browsers
-        this.set(prop, void 0);
+        this.set(props);
+
+        return this;
+    },
+
+    reset: function(prop){
+        var props = {};
+        
+        if (prop) {
+            Array.from(prop).each(function(item){
+                props[item] = this.options.defaults[item];
+            }.bind(this));
+        } else {
+            props = this.options.defaults;
+        }
+
+        this.set(props);
+
+        this.signalReset();
 
         return this;
     },
@@ -257,6 +289,11 @@ var Model = new Class({
     
     signalDestroy: function(){
         !this.isSilent() && this.fireEvent('destroy');
+        return this;
+    },
+
+    signalReset: function(){
+        !this.isSilent() && this.fireEvent('reset');
         return this;
     },
 
