@@ -23,6 +23,8 @@ var createGetter = function(type){
 var Model = new Class({
     Implements: [Events, Options, Silence],
 
+    primaryKey: undefined,
+
     _data: {},
 
     _changed: false,
@@ -51,6 +53,7 @@ var Model = new Class({
         // onChange: function(){},
         // 'onChange:key': function(){},
         // onDestroy: function(){},
+        primaryKey: undefined,
         accessors: {},
         defaults: {},
         silent: false
@@ -66,6 +69,8 @@ var Model = new Class({
 
     setup: function(data, options){
         this.setOptions(options);
+
+        this.primaryKey = this.options.primaryKey;
 
         // Set the _data defaults
         this.__set(this.options.defaults);
@@ -147,17 +152,19 @@ var Model = new Class({
      * @return {Class} The Model instance
      */
     set: function(prop, val){
-        // store the previously changed properties
-        this._setPreviousData();
+        if (prop) {
+            // store the previously changed properties
+            this._setPreviousData();
 
-        this._set(prop, val);
-        
-        this.changeProperty(this._changedProperties);
+            this._set(prop, val);
+            
+            this.changeProperty(this._changedProperties);
 
-        this.change();
-        
-        // reset changed and changed properties
-        this._resetChanged();
+            this.change();
+            
+            // reset changed and changed properties
+            this._resetChanged();
+        }
 
         return this;
     },
@@ -169,11 +176,15 @@ var Model = new Class({
      * @return {Class} The Model instance
      */
     unset: function(prop){
-        var props = {};
+        var props = {},
+            len, i = 0, item;
 
-        Array.from(prop).each(function(item){
-            props[item] = void 0;
-        });
+        prop = Array.from(prop);
+        len = prop.length;
+        
+        while(len--){
+            props[prop[i++]] = void 0;
+        }
 
         // void 0 is used because 'undefined' is a var that can be changed in some browsers
         this.set(props);
@@ -182,12 +193,17 @@ var Model = new Class({
     },
 
     reset: function(prop){
-        var props = {};
+        var props = {},
+            len, i = 0, item;
         
         if (prop) {
-            Array.from(prop).each(function(item){
+            prop = Array.from(prop);
+            len = prop.length;
+            
+            while(len--){
+                item = prop[i++];
                 props[item] = this.options.defaults[item];
-            }.bind(this));
+            }
         } else {
             props = this.options.defaults;
         }
