@@ -12,10 +12,13 @@ var Collection = new Class({
 
     _Model: Model,
 
+    primaryKey: undefined,
+
     options: {
         // onAdd: function(){},
         // onRemove: function(){},
         // onEmpty: function(){},
+        primaryKey: undefined,
         Model: undefined,
         // Model Options
         modelOptions: undefined,
@@ -33,6 +36,8 @@ var Collection = new Class({
             remove: this.remove.bind(this)
         };
 
+        this.primaryKey = this.options.primaryKey;
+
         if (this.options.Model) {
             this._Model = this.options.Model;
         }
@@ -48,7 +53,23 @@ var Collection = new Class({
     },
 
     hasModel: function(model){
-        return this._models.contains(model);
+        var pk = this.primaryKey,
+            has, modelId;
+
+        has = this._models.contains(model);
+
+        // Check via primaryKey if the model exists in the collection
+        if (pk && !has) {
+            // Check if it's a Model instance to use get method, or check on the object iself for the existence of the pk
+            modelId = instanceOf(model, Model) ? model.get(pk) : model[pk];
+            
+            // the some method will return true if at least one item matches against the comparator
+            has = this.some(function(item){
+                return modelId === item.get(pk);
+            });
+        }
+
+        return !!has;
     },
 
     /**

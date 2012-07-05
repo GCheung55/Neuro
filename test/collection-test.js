@@ -37,6 +37,17 @@ buster.testCase('Neuro Collection', {
         assert.equals(model.getData(), this.mockCollection.get(0).getData());
     },
 
+    'should check the primaryKey, if defined, to decide whether a model instance can be added': function(){
+        var model = new Neuro.Model(this.mockData),
+            collection = new Neuro.Collection([this.mockData], {primaryKey: 'a'});
+
+        assert.same(collection._models.length, 1);
+
+        collection.add(model);
+
+        assert.same(collection._models.length, 1);
+    },
+
     'should get a Model instance / instances by index number': function(){
         var model, models;
 
