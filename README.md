@@ -3,7 +3,7 @@ Neuro
 
 A MooTools client-side MVC.
 
-### Version: 0.1.6 (Alpha)
+### Version: 0.1.7 (Alpha)
 
 ### Influences:
 
@@ -128,3 +128,8 @@ ToDo
 ----
 * Add a Router mechanism
 * Add a basic View Class
+
+Extensions
+----
+* [Neuro-Sync](gcheung55/neuro-sync) - Extends Neuro with a CRUD API
+* [Neuro-Company](gcheung55/neuro-company) - Extends Neuro with an Observer API
