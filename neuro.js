@@ -18,7 +18,7 @@
     },
     "1": function(require, module, exports, global) {
         var Neuro = {
-            version: "0.1.6"
+            version: "0.1.7"
         };
         exports = module.exports = Neuro;
     },
@@ -33,12 +33,14 @@
         };
         var Model = new Class({
             Implements: [ Events, Options, Silence ],
+            primaryKey: undefined,
             _data: {},
             _changed: false,
             _changedProperties: {},
             _previousData: {},
             _accessors: {},
             options: {
+                primaryKey: undefined,
                 accessors: {},
                 defaults: {},
                 silent: false
@@ -51,7 +53,9 @@
             },
             setup: function(data, options) {
                 this.setOptions(options);
-                this._data = this.options.defaults;
+                this.primaryKey = this.options.primaryKey;
+                this.__set(this.options.defaults);
+                this._resetChanged();
                 this.setAccessor(this.options.accessors);
                 this.silence(this.options.silent);
                 if (data) {
@@ -59,6 +63,15 @@
                 }
                 return this;
             },
+            __set: function(prop, val) {
+                var accessor = this.getAccessor(prop), setter = accessor && accessor.set, setterVal;
+                if (setter) {
+                    setterVal = setter.apply(this, arguments);
+                }
+                this._changed = true;
+                this._data[prop] = this._changedProperties[prop] = setter && setterVal !== null ? setterVal : val;
+                return this;
+            }.overloadSetter(),
             _set: function(prop, val) {
                 var old = this._data[prop], accessor = this.getAccessor(prop), setter = accessor && accessor.set, setterVal;
                 switch (typeOf(val)) {
@@ -72,29 +85,44 @@
                     break;
                 }
                 if (!Is.Equal(old, val)) {
-                    if (setter) {
-                        setterVal = setter.apply(this, arguments);
-                        if (setterVal !== null) {
-                            this._changed = true;
-                            this._data[prop] = this._changedProperties[prop] = setterVal;
-                        }
-                    } else {
-                        this._changed = true;
-                        this._data[prop] = this._changedProperties[prop] = val;
-                    }
+                    this.__set(prop, val);
                 }
                 return this;
             }.overloadSetter(),
             set: function(prop, val) {
-                this._setPreviousData();
-                this._set(prop, val);
-                this.changeProperty(this._changedProperties);
-                this.change();
-                this._resetChanged();
+                if (prop) {
+                    this._setPreviousData();
+                    this._set(prop, val);
+                    this.changeProperty(this._changedProperties);
+                    this.change();
+                    this._resetChanged();
+                }
                 return this;
             },
             unset: function(prop) {
-                this.set(prop, void 0);
+                var props = {}, len, i = 0, item;
+                prop = Array.from(prop);
+                len = prop.length;
+                while (len--) {
+                    props[prop[i++]] = void 0;
+                }
+                this.set(props);
+                return this;
+            },
+            reset: function(prop) {
+                var props = {}, len, i = 0, item;
+                if (prop) {
+                    prop = Array.from(prop);
+                    len = prop.length;
+                    while (len--) {
+                        item = prop[i++];
+                        props[item] = this.options.defaults[item];
+                    }
+                } else {
+                    props = this.options.defaults;
+                }
+                this.set(props);
+                this.signalReset();
                 return this;
             },
             get: createGetter("_data"),
@@ -142,6 +170,10 @@
             },
             signalDestroy: function() {
                 !this.isSilent() && this.fireEvent("destroy");
+                return this;
+            },
+            signalReset: function() {
+                !this.isSilent() && this.fireEvent("reset");
                 return this;
             },
             toJSON: function() {
@@ -297,7 +329,9 @@
             _models: [],
             _bound: {},
             _Model: Model,
+            primaryKey: undefined,
             options: {
+                primaryKey: undefined,
                 Model: undefined,
                 modelOptions: undefined,
                 silent: false
@@ -310,6 +344,7 @@
                 this._bound = {
                     remove: this.remove.bind(this)
                 };
+                this.primaryKey = this.options.primaryKey;
                 if (this.options.Model) {
                     this._Model = this.options.Model;
                 }
@@ -320,7 +355,15 @@
                 return this;
             },
             hasModel: function(model) {
-                return this._models.contains(model);
+                var pk = this.primaryKey, has, modelId;
+                has = this._models.contains(model);
+                if (pk && !has) {
+                    modelId = instanceOf(model, Model) ? model.get(pk) : model[pk];
+                    has = this.some(function(item) {
+                        return modelId === item.get(pk);
+                    });
+                }
+                return !!has;
             },
             _add: function(model) {
                 model = new this._Model(model, this.options.modelOptions);

@@ -1,7 +1,7 @@
 {
     "name": "Neuro",
     "description": "A MVC written with MooTools.",
-    "version": "0.1.6",
+    "version": "0.1.7",
     "license": "MIT (http://mootools.net/license.txt)",
     "main": "src/main.js",
     "keywords": [
@@ -14,5 +14,8 @@
     "repository": {
         "type": "git",
         "url": "https://github.com/gcheung55/neuro.git"
+    },
+    "dependencies": {
+        "neuro-is": "*"
     }
 }
