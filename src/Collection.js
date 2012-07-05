@@ -12,6 +12,8 @@ var Collection = new Class({
 
     _Model: Model,
 
+    length: 0,
+
     primaryKey: undefined,
 
     options: {
@@ -87,6 +89,8 @@ var Collection = new Class({
 
             this._models.push(model);
 
+            this.length = this._models.length;
+
             this.signalAdd(model);
         }
 
@@ -149,6 +153,8 @@ var Collection = new Class({
         model.removeEvent('destroy', this._bound.remove);
 
         this._models.erase(model);
+
+        this.length = this._models.length;
         
         this.signalRemove(model);
 
@@ -208,6 +214,22 @@ var Collection = new Class({
         return this;
     },
 
+    sort: function(fnc){
+        this._models.sort(fnc);
+
+        this.signalSort();
+
+        return this;
+    },
+
+    reverse: function(){
+        this._models.reverse();
+
+        this.signalSort();
+
+        return this;
+    },
+
     empty: function(){
         this.remove(this._models);
 
@@ -228,6 +250,11 @@ var Collection = new Class({
     
     signalEmpty: function(){
         !this.isSilent() && this.fireEvent('empty');
+        return this;
+    },
+
+    signalSort: function(){
+        !this.isSilent() && this.fireEvent('sort');
         return this;
     },
 
