@@ -20,6 +20,11 @@ A MooTools client-side MVC.
 * uncoupled coding but allow for a coupled organization if necessary
 * provide base for applications
 
+Extensions
+----
+* [Neuro-Sync](gcheung55/neuro-sync) - Extends Neuro with a CRUD API
+* [Neuro-Company](gcheung55/neuro-company) - Extends Neuro with an Observer API
+
 Usage
 -----
 
@@ -128,8 +133,3 @@ ToDo
 ----
 * Add a Router mechanism
 * Add a basic View Class
-
-Extensions
-----
-* [Neuro-Sync](gcheung55/neuro-sync) - Extends Neuro with a CRUD API
-* [Neuro-Company](gcheung55/neuro-company) - Extends Neuro with an Observer API
