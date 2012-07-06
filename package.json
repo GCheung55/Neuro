@@ -20,5 +20,8 @@
     },
     "devDependencies": {
         "buster": "*"
+    },
+    "scripts" : {
+        "test" : "node_modules/.bin/buster-test"
     }
 }
