@@ -5,6 +5,8 @@ A MooTools client-side MVC.
 
 ### Version: 0.1.7 (Alpha)
 
+[![Build Status](https://secure.travis-ci.org/GCheung55/Neuro.png)](http://travis-ci.org/GCheung55/Neuro)
+
 ### Influences:
 
 * [Backbone](documentcloud/backbone)
