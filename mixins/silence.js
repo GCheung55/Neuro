@@ -1,8 +1,13 @@
+/**
+ * Silent mixin. Inspired by Shipyard.
+ */
 var Silence = new Class({
-    _silent: false,
+    _silent: 0,
 
-    silence: function(silent){
-        this._silent = !!silent;
+    silence: function(fnc){
+        this._silent++;
+        fnc();
+        this._silent--;
 
         return this;
     },

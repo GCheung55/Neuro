@@ -23,8 +23,7 @@ var Collection = new Class({
         primaryKey: undefined,
         Model: undefined,
         // Model Options
-        modelOptions: undefined,
-        silent: false
+        modelOptions: undefined
     },
 
     initialize: function(models, options){
@@ -43,9 +42,6 @@ var Collection = new Class({
         if (this.options.Model) {
             this._Model = this.options.Model;
         }
-
-        // Silent property determines whether model will excute signals
-        this.silence(this.options.silent);
 
         if (models) {
             this.add(models);

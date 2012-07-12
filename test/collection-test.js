@@ -174,9 +174,9 @@ buster.testCase('Neuro Collection', {
 
         collection.add(model1);
 
-        collection.silence(true);
-
-        collection.add(model2);
+        collection.silence(function(){
+            collection.add(model2);
+        });
 
         assert.equals(collection._models.length, 2);
 

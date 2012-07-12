@@ -55,8 +55,7 @@ var Model = new Class({
         // onDestroy: function(){},
         primaryKey: undefined,
         accessors: {},
-        defaults: {},
-        silent: false
+        defaults: {}
     },
 
     initialize: function(data, options){
@@ -72,16 +71,13 @@ var Model = new Class({
 
         this.primaryKey = this.options.primaryKey;
 
+        this.setAccessor(this.options.accessors);
+
         // Set the _data defaults
         this.__set(this.options.defaults);
 
         // Need to reset changed because __set will flag changed and changed properties
         this._resetChanged();
-
-        this.setAccessor(this.options.accessors);
-
-        // Silent property determines whether model will excute signals
-        this.silence(this.options.silent);
 
         // Just set the data instead of Object merging. This will skip cloning Class instances.
         if (data) { this.set(data); }
@@ -229,7 +225,25 @@ var Model = new Class({
      * @return {Object}
      */
     getData: function(){
-        return Object.clone(this._data);
+        var props = this.keys(),
+            obj = {};
+
+        props.each(function(prop){
+            var val = this.get(prop);
+            switch(typeOf(val)){
+                case 'array':
+                    val = val.slice(); break;
+                case 'object':
+                    if (!val.$constructor || (val.$constructor && !instanceOf(val.$constructor, Class))){
+                        val = Object.clone(val);
+                    }
+                    break;
+            }
+
+            obj[prop] = val;
+        }.bind(this));
+
+        return obj;
     },
     
     _setPreviousData: function(){
@@ -276,7 +290,7 @@ var Model = new Class({
      */
     changeProperty: function(prop, val){
         if (this._changed) {
-            this.signalChangeProperty(prop, val);
+            this.signalChangeProperty(prop, val, this.getPrevious(prop));
         }
 
         return this;
@@ -298,8 +312,8 @@ var Model = new Class({
         return this;
     },
     
-    signalChangeProperty: function(prop, val){
-        !this.isSilent() && this.fireEvent('change:' + prop, [prop, val]);
+    signalChangeProperty: function(prop, newVal, oldVal){
+        !this.isSilent() && this.fireEvent('change:' + prop, [prop, newVal, oldVal]);
         return this;
     },
     
@@ -332,7 +346,35 @@ var Model = new Class({
         this._accessors[key] = undefined;
 
         return this;
-    }
+    },
+
+    /**
+     * Add a listener to the property change
+     * @param  {String|Object}  prop    String or object of string/function pairs
+     * @param  {Function}   callback    Function that is executed upon event firing
+     * @return {Class}  Class instance
+     */
+    spy: function(prop, callback){
+        if ( (typeOf(prop) == 'string' && prop in this._data) && typeOf(callback) == 'function' ) {
+            this.addEvent('change:' + prop, callback);
+        }
+
+        return this;
+    }.overloadSetter(),
+
+    /**
+     * Remove a listener to the property change
+     * @param  {String|Object}  prop    String or object of string/function pairs
+     * @param  {Function}   callback    Function that is executed upon event firing.
+     * @return {Class}  Class instance
+     */
+    unspy: function(prop, callback){
+        if ( (typeOf(prop) == 'string' && prop in this._data)) {
+            this.addEvent('change:' + prop, callback);
+        }
+
+        return this;
+    }.overloadSetter()
 });
 
 ['subset', 'map', 'filter', 'every', 'some', 'keys', 'values', 'getLength', 'keyOf', 'contains', 'toQueryString'].each(function(method){

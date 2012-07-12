@@ -220,7 +220,7 @@ buster.testCase('Neuro Model', {
         model.set('age', 30);
 
         assert.called(spy);
-        assert.calledWith(spy, 'age', 30);
+        assert.calledWith(spy, 'age', 30, 29);
     },
 
     'should trigger an event when the model is destroyed': function(){
@@ -241,9 +241,9 @@ buster.testCase('Neuro Model', {
 
         model.set('a', 'rts');
 
-        model.silence(true);
-
-        model.set('b', {});
+        model.silence(function(){
+            model.set('b', {});
+        });
 
         assert.equals(model.get('a'), 'rts');
         assert.equals(model.get('b'), {});
