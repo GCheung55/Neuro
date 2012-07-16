@@ -1,7 +1,8 @@
 // (function(context){
 
 var Is = require('neuro-is').Is,
-    Silence = require('../mixins/silence');
+    Silence = require('../mixins/silence'),
+    Connector = require('../mixins/connector');
 
 var createGetter = function(type){
     /**
@@ -21,7 +22,7 @@ var createGetter = function(type){
 };
 
 var Model = new Class({
-    Implements: [Events, Options, Silence],
+    Implements: [Connector, Events, Options, Silence],
 
     primaryKey: undefined,
 

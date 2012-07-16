@@ -1,10 +1,11 @@
 // (function(context){
 
 var Model = require('./Model'),
-    Silence = require('../mixins/silence');
+    Silence = require('../mixins/silence'),
+    Connector = require('../mixins/connector');
 
 var Collection = new Class({
-    Implements: [Events, Options, Silence],
+    Implements: [Connector, Events, Options, Silence],
 
     _models: [],
 
