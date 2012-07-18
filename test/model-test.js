@@ -251,6 +251,196 @@ buster.testCase('Neuro Model', {
         assert.calledOnceWith(spy);
     },
 
+    'Connector': {
+        setUp: function(){
+            var testModel = new Class({
+                Extends: Neuro.Model,
+                testStr: function(){
+                    this.fireEvent('testStr', 'str')
+                },
+                testFunc: function(){
+                    this.fireEvent('testFunc', 'fnc');
+                },
+                testKeyVal: function(){
+                    this.fireEvent('testKeyVal', arguments);
+                }
+            }), connectorTestFunc = function(){
+                this.testFunc();
+            };
+
+            this.connectorModel = new testModel;
+            this.connectorTestFunc = connectorTestFunc;
+        },
+        
+        'connect method': {
+            'should process options.connector object where key is an event and value is': {
+                'a string, which refers to target objects methods to be attached': function(){
+                    var spy = this.spy(),
+                        target = this.connectorModel,
+                        reference = new Neuro.Model(undefined, {
+                            connector: {
+                                'change': 'testStr'
+                            }
+                        });
+
+                    target.addEvent('testStr', spy);
+                    reference.connect(target);
+
+                    reference.set('a', 'string');
+
+                    assert.calledWith(spy, 'str');
+                },
+                'a functions, which just needs to be attached': function(){
+                    var spy = this.spy(),
+                        target = this.connectorModel,
+                        reference = new Neuro.Model(undefined, {
+                            connector: {
+                                'change': this.connectorTestFunc.bind(target)
+                            }
+                        });
+
+                    target.addEvent('testFunc', spy);
+                    reference.connect(target);
+
+                    reference.set('a', 'function');
+
+                    assert.calledWith(spy, 'fnc');
+                },
+                'an array of strings and/or functions, which just needs to be attached': function(){
+                    var spy = this.spy(),
+                        target = this.connectorModel,
+                        reference = new Neuro.Model(undefined, {
+                            connector: {
+                                'change': [target.testStr.bind(target), 'testFunc']
+                            }
+                        });
+
+                    target.addEvent('testStr', spy);
+                    target.addEvent('testFunc', spy);
+                    reference.connect(target);
+
+                    reference.set('a', 'string');
+
+                    assert.calledWith(spy, 'str');
+                    assert.calledWith(spy, 'fnc');
+                },
+                'an objects.': {
+                    '* key should act as the parent event and values can be a': {
+                        'string': function(){
+                            var spy = this.spy(),
+                                target = this.connectorModel,
+                                reference = new Neuro.Model(undefined, {
+                                connector: {
+                                    'change': {
+                                        '*': 'testStr'
+                                    }
+                                }
+                            });
+
+                            target.addEvent('testStr', spy);
+                            reference.connect(target);
+
+                            reference.set('a', 'string');
+
+                            assert.calledWith(spy, 'str');
+                        },
+                        'function': function(){
+                            var spy = this.spy(),
+                                target = this.connectorModel,
+                                reference = new Neuro.Model(undefined, {
+                                    connector: {
+                                        'change': this.connectorTestFunc.bind(target)
+                                    }
+                                });
+
+                            target.addEvent('testFunc', spy);
+                            reference.connect(target);
+
+                            reference.set('a', 'function');
+
+                            assert.calledWith(spy, 'fnc');
+                        },
+                        'array of strings and/or functions': function(){
+                            var spy = this.spy(),
+                                target = this.connectorModel,
+                                reference = new Neuro.Model(undefined, {
+                                    connector: {
+                                        'change': [target.testStr.bind(target), 'testFunc']
+                                    }
+                                });
+
+                            target.addEvent('testStr', spy);
+                            target.addEvent('testFunc', spy);
+                            reference.connect(target);
+
+                            reference.set('a', 'string');
+
+                            assert.calledWith(spy, 'str');
+                            assert.calledWith(spy, 'fnc');
+                        }
+                    },
+                    'All other keys should be subEvents (parent:subevent), and values can be a': {
+                        'string': function(){
+                            var spy = this.spy(),
+                                target = this.connectorModel,
+                                reference = new Neuro.Model(undefined, {
+                                connector: {
+                                    'change': {
+                                        'a': 'testKeyVal'
+                                    }
+                                }
+                            });
+
+                            target.addEvent('testKeyVal', spy);
+                            reference.connect(target);
+
+                            reference.set('a', 'string');
+
+                            assert.calledWith(spy, 'a', 'string', undefined);
+                        },
+                        'function': function(){
+                            var spy = this.spy(),
+                                target = this.connectorModel,
+                                reference = new Neuro.Model(undefined, {
+                                    connector: {
+                                        'change': {
+                                            'a': target.testKeyVal.bind(target)
+                                        }
+                                    }
+                                });
+
+                            target.addEvent('testKeyVal', spy);
+                            reference.connect(target);
+
+                            reference.set('a', 'function');
+
+                            assert.calledWith(spy, 'a', 'function', undefined);
+                        },
+                        'array of strings and/or functions': function(){
+                            var spy = this.spy(),
+                                target = this.connectorModel,
+                                reference = new Neuro.Model(undefined, {
+                                    connector: {
+                                        'change': {
+                                            'a': ['testKeyVal', target.testKeyVal.bind(target)]
+                                        }
+                                    }
+                                });
+
+                            target.addEvent('testKeyVal', spy);
+                            reference.connect(target);
+
+                            reference.set('a', 'keyVal');
+
+                            assert.calledTwice(spy);
+                            assert.calledWith(spy, 'a', 'keyVal', undefined);
+                        }
+                    }
+                }
+            }
+        }
+    },
+
     'Object Methods': {
         setUp: function(){
             this.mockComparatorData = {
