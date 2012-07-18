@@ -19,7 +19,7 @@ var getBoundFn = function(fn){
     return fn[$boundFnStr];
 };
 
-var processBind = function(type, evt, fn, obj){
+var processFn = function(type, evt, fn, obj){
     if (type == 'string') {
         fn = obj[fn];
 
@@ -69,7 +69,7 @@ var process = function(methodStr, map, obj){
                     break;
                 case 'string':
                 case 'function':
-                    method = processBind.call(this, type, evt, method, obj);
+                    method = processFn.call(this, type, evt, method, obj);
 
                     method && this[methodStr](evt, method);
                     break;
@@ -123,4 +123,4 @@ var Connector = new Class({
     disconnect: curryConnection('disconnect')
 });
 
-module.exports = Connector;
+exports.Connector = Connector;

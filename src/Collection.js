@@ -1,8 +1,8 @@
 // (function(context){
 
-var Model = require('./Model'),
-    Silence = require('../mixins/silence'),
-    Connector = require('../mixins/connector');
+var Model = require('./Model').Model,
+    Silence = require('../mixins/silence').Silence,
+    Connector = require('../mixins/connector').Connector;
 
 var Collection = new Class({
     Implements: [Connector, Events, Options, Silence],
@@ -268,5 +268,5 @@ var Collection = new Class({
     });
 });
 
-module.exports = Collection;
+exports.Collection = Collection;
 // }(typeof exports != 'undefined' ? exports : window));

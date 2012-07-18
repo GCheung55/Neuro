@@ -17,4 +17,4 @@ var Silence = new Class({
     },
 });
 
-exports = module.exports = Silence;
+exports.Silence = Silence;

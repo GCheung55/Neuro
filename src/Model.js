@@ -1,8 +1,8 @@
 // (function(context){
 
 var Is = require('neuro-is').Is,
-    Silence = require('../mixins/silence'),
-    Connector = require('../mixins/connector');
+    Silence = require('../mixins/silence').Silence,
+    Connector = require('../mixins/connector').Connector;
 
 var createGetter = function(type){
     /**
@@ -384,5 +384,5 @@ var Model = new Class({
     });
 });
 
-module.exports = Model;
+exports.Model = Model;
 // }(typeof exports != 'undefined' ? exports : window));
