@@ -1,3 +1,10 @@
+/**
+ * Connector: the event binder. By setting connector options in the Class,
+ * Classes that implement Connector will be able to bind their events with a target Classes
+ * methods and vice versa.
+ * @type {Class}
+ */
+
 // Make the $boundFn unique
 var uid = String.uniqueID(),
     $boundFnStr = uid + '_$boundFn';
