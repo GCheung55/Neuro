@@ -1,3 +1,5 @@
+require('../lib/class-extras/Source/Class.Binds.js');
+
 /**
  * Connector: the event binder. By setting connector options in the Class,
  * Classes that implement Connector will be able to bind their events with a target Classes
@@ -6,37 +8,9 @@
  */
 
 // Make the $boundFn unique
-var uid = String.uniqueID(),
-    $boundFnStr = uid + '_$boundFn';
-
-var isBound = function(fn){
-    return fn && typeOf(fn[$boundFnStr]) == 'function';
-};
-
-var bindFn = function(fn, to){
-    // make sure fn hasn't been bound yet
-    if (!isBound(fn) && typeOf(fn) == 'function') {
-        fn[$boundFnStr] = fn.bind(to);
-    }
-
-    return fn;
-};
-
-var getBoundFn = function(fn){
-    return fn[$boundFnStr];
-};
-
 var processFn = function(type, evt, fn, obj){
     if (type == 'string') {
-        fn = obj[fn];
-
-        if (typeOf(fn) == 'function') {
-            if (!isBound(fn)) {
-                bindFn(fn, obj);
-            }
-
-            fn = getBoundFn(fn);
-        }
+        fn = obj[fn] ? obj.bound(fn) : undefined;
     }
     
     return fn;
@@ -88,7 +62,7 @@ var process = function(methodStr, map, obj){
 var curryConnection = function(str){
     var methodStr = str == 'connect' ? 'addEvent' : 'removeEvent';
 
-    return function(obj, hasConnected){
+    return function(obj, oneWay){
         if (obj && typeOf(obj[str]) == 'function') {
             var map = this.options.connector;
 
@@ -98,7 +72,7 @@ var curryConnection = function(str){
             // will first connect/disconnect 'this' with obj's methods. Next
             // it will attempt to connect/disconnect obj with 'this' methods
             // hasConnected will prevent a loop.
-            !hasConnected && obj[str](this, true);
+            !oneWay && obj[str](this, true);
         }
 
         return this;
@@ -106,6 +80,8 @@ var curryConnection = function(str){
 };
 
 var Connector = new Class({
+    Implements: [Class.Binds],
+
     // options: {
     //     connector: {
     //         'thisEvent': 'otherObjMethod',
