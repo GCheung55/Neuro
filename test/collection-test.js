@@ -12,13 +12,14 @@ buster.testCase('Neuro Collection', {
     },
 
     'should add data by creating a new Model instance to the Collection instance': function(){
-        var models = this.mockCollection._models;
+        var collection = this.mockCollection,
+            models = collection._models;
 
-        assert.same(models.length, 0);
+        assert.same(collection.length, 0);
 
-        this.mockCollection.add(this.mockData);
+        collection.add(this.mockData);
 
-        assert.same(models.length, 1);
+        assert.same(collection.length, 1);
 
         assert(instanceOf(models[0], Neuro.Model));
 
@@ -26,83 +27,87 @@ buster.testCase('Neuro Collection', {
     },
 
     'should add a model instance if it does not exist in the Collection instance': function(){
-        var model = new Neuro.Model(this.mockData);
+        var collection = this.mockCollection,
+            model = new Neuro.Model(this.mockData);
 
-        this.mockCollection.add([model, model]);
+        collection.add([model, model]);
 
-        assert.same(this.mockCollection._models.length, 1);
+        assert.same(collection.length, 1);
 
-        assert.equals(model, this.mockCollection.get(0));
+        assert.equals(model, collection.get(0));
 
-        assert.equals(model.getData(), this.mockCollection.get(0).getData());
+        assert.equals(model.getData(), collection.get(0).getData());
     },
 
     'should check the primaryKey, if defined, to decide whether a model instance can be added': function(){
         var model = new Neuro.Model(this.mockData),
             collection = new Neuro.Collection([this.mockData], {primaryKey: 'a'});
 
-        assert.same(collection._models.length, 1);
+        assert.same(collection.length, 1);
 
         collection.add(model);
 
-        assert.same(collection._models.length, 1);
+        assert.same(collection.length, 1);
     },
 
     'should get a Model instance / instances by index number': function(){
-        var model, models;
+        var collection = this.mockCollection,
+            model, models;
 
-        this.mockCollection.add([this.mockData, this.mockData, this.mockData]);
+        collection.add([this.mockData, this.mockData, this.mockData]);
 
-        model = this.mockCollection.get(0);
+        model = collection.get(0);
 
-        models = this.mockCollection.get(0, 2);
+        models = collection.get(0, 2);
 
-        assert.same(model, this.mockCollection._models[0]);
-        assert.equals(models, [this.mockCollection._models[0], this.mockCollection._models[2]])
+        assert.same(model, collection._models[0]);
+        assert.equals(models, [collection._models[0], collection._models[2]])
     },
 
     'should remove a Model instance by model object': function(){
-        var model, models = this.mockCollection._models;
+        var collection = this.mockCollection,
+            model, models = collection._models;
 
-        this.mockCollection.add([this.mockData, this.mockData]);
+        collection.add([this.mockData, this.mockData]);
 
-        model = this.mockCollection.get(0);
+        model = collection.get(0);
 
-        assert.same(models.length, 2);
+        assert.same(collection.length, 2);
 
-        this.mockCollection.remove(model);
+        collection.remove(model);
 
-        assert.same(models.length, 1)
+        assert.same(collection.length, 1)
     },
 
     'should replace an existing model with a new one': function(){
-        var oldModel, test = {e: false};
+        var collection = this.mockCollection,
+            oldModel, test = {e: false};
 
-        this.mockCollection.add([this.mockData, {d: true}]);
+        collection.add([this.mockData, {d: true}]);
 
-        oldModel = this.mockCollection.get(0);
+        oldModel = collection.get(0);
 
-        this.mockCollection.replace(oldModel, test);
+        collection.replace(oldModel, test);
 
-        assert.equals(test, this.mockCollection.get(0).getData());
+        assert.equals(test, collection.get(0).getData());
     },
 
     'should empty the Collection instance of all models': function(){
-        var models = this.mockCollection._models;
+        var collection = this.mockCollection;
 
-        this.mockCollection.add([this.mockData, this.mockData]);
+        collection.add([this.mockData, this.mockData]);
 
-        assert.same(models.length, 2);
+        assert.same(collection.length, 2);
 
-        this.mockCollection.empty();
+        collection.empty();
 
-        refute(models.length);
+        refute(collection.length);
     },
 
     'should return a JSON string of all models': function(){
-        this.mockCollection.add([this.mockData, this.mockData]);
+        var collection = this.mockCollection.add([this.mockData, this.mockData]);
 
-        assert.same(JSON.encode(this.mockCollection), '[{"a":"str","b":[],"c":{}},{"a":"str","b":[],"c":{}}]');
+        assert.same(JSON.encode(collection), '[{"a":"str","b":[],"c":{}},{"a":"str","b":[],"c":{}}]');
     },
 
     'should trigger a function that has been attached to the add event': function(){
@@ -112,7 +117,7 @@ buster.testCase('Neuro Collection', {
         collection.add(this.mockData);
 
         assert.called(spy);
-        assert.calledWith(spy, collection.get(0));
+        assert.calledWith(spy, collection, collection.get(0));
     },
 
     'should trigger a function that has been attached to the remove event': function(){
@@ -127,7 +132,7 @@ buster.testCase('Neuro Collection', {
         collection.remove( model );
 
         assert.called(spy);
-        assert.calledWith(spy, model);
+        assert.calledWith(spy, collection, model);
     },
 
     'should trigger a function that has been attached to the empty event': function(){
@@ -139,8 +144,8 @@ buster.testCase('Neuro Collection', {
         collection.empty();
 
         assert.called(spy);
-        assert.calledWith(spy);
-        assert.equals(collection._models.length, 0);
+        assert.calledWith(spy), collection;
+        assert.equals(collection.length, 0);
     },
 
     'should trigger add and remove events during replace if signaled to': function(){
@@ -158,10 +163,10 @@ buster.testCase('Neuro Collection', {
         collection.replace(oldModel, newModel, true);
 
         assert.called(addSpy);
-        assert.calledWith(addSpy, newModel);
+        assert.calledWith(addSpy, collection, newModel);
 
         assert.called(removeSpy);
-        assert.calledWith(removeSpy, oldModel);
+        assert.calledWith(removeSpy, collection, oldModel);
     },
 
     'should enable/disable signal execution with the silence method': function(){
@@ -178,11 +183,11 @@ buster.testCase('Neuro Collection', {
             collection.add(model2);
         });
 
-        assert.equals(collection._models.length, 2);
+        assert.equals(collection.length, 2);
 
-        assert.calledWith(spy, model1);
+        assert.calledWith(spy, collection, model1);
 
-        refute.calledWith(spy, model2);
+        refute.calledWith(spy, collection, model2);
     },
 
     'Array Methods': {

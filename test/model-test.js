@@ -6,7 +6,6 @@ buster.testCase('Neuro Model', {
                 defaults: {
                     'firstName': '',
                     'lastName': '',
-                    'fullName': '',
                     'age': 0
                 }
             },
@@ -25,9 +24,9 @@ buster.testCase('Neuro Model', {
                         return val;
                     },
                     get: function(isPrevious){
-                        var data = isPrevious ? this._previousData : this._data;
+                        var method = isPrevious ? 'getPrevious' : 'get';
 
-                        return data['fullName'];
+                        return this[method]('firstName') + ' ' + this[method]('lastName');
                     }
                 }
             }
@@ -38,7 +37,6 @@ buster.testCase('Neuro Model', {
         this.mockData = {
             'firstName': 'Garrick',
             'lastName': 'Cheung',
-            'fullName': 'Garrick Cheung',
             'age': 29
         };
 
@@ -144,16 +142,17 @@ buster.testCase('Neuro Model', {
     },
 
     'getPrevious should return a previously changed value': function(){
-        this.mockModelWithData.set('age', 30);
-        var test = this.mockModelWithData.getPrevious('age'),
+        var model = this.mockModelWithData.set('age', 30),
+            test = this.mockModelWithData.getPrevious('age'),
             result = 29;
 
         assert.equals(test, result);
     },
 
     'getPreviousData should return the previously changed dataset': function(){
-        var test = this.mockModelWithData.set('age', 30).getPreviousData(),
-            result = this.mockData;
+        var model = this.mockModelWithData,
+            result = model.getData();
+            test = model.set('age', 30).getPreviousData();
 
         assert.equals(test, result);
 
@@ -162,7 +161,8 @@ buster.testCase('Neuro Model', {
     },
 
     'custom accessors should be used to set/get property': function(){
-        var test = this.mockModelWithData.set('fullName', 'Mark Obcena').get('fullName'),
+        var model = this.mockModelWithData,
+            test = model.set('fullName', 'Mark Obcena').get('fullName'),
             result = 'Mark Obcena';
 
         assert.equals(test, result);
@@ -198,7 +198,7 @@ buster.testCase('Neuro Model', {
 
     'JSON encode/stringify should return a json string of the data': function(){
         var test = JSON.encode(this.mockModelWithData),
-            result = '{"firstName":"Garrick","lastName":"Cheung","fullName":"Garrick Cheung","age":29}';
+            result = '{"firstName":"Garrick","lastName":"Cheung","age":29}';
 
         assert.equals(test, result);
     },
@@ -210,7 +210,7 @@ buster.testCase('Neuro Model', {
         model.set('age', 30);
 
         assert.called(spy);
-        assert.calledWith(spy);
+        assert.calledWith(spy, model);
     },
 
     'should trigger a change event that notifies what property and value was changed': function(){
@@ -220,7 +220,7 @@ buster.testCase('Neuro Model', {
         model.set('age', 30);
 
         assert.called(spy);
-        assert.calledWith(spy, 'age', 30, 29);
+        assert.calledWith(spy, model, 'age', 30, 29);
     },
 
     'should trigger an event when the model is destroyed': function(){
@@ -230,7 +230,7 @@ buster.testCase('Neuro Model', {
         model.destroy();
 
         assert.called(spy);
-        assert.calledWith(spy);
+        assert.calledWith(spy, model);
     },
 
     'should enable/disable signal execution with the silence method': function(){
@@ -248,7 +248,7 @@ buster.testCase('Neuro Model', {
         assert.equals(model.get('a'), 'rts');
         assert.equals(model.get('b'), {});
 
-        assert.calledOnceWith(spy);
+        assert.calledOnceWith(spy, model);
     },
 
     'Connector': {
@@ -396,7 +396,7 @@ buster.testCase('Neuro Model', {
 
                             reference.set('a', 'string');
 
-                            assert.calledWith(spy, 'a', 'string', undefined);
+                            assert.calledWith(spy, reference, 'a', 'string', undefined);
                         },
                         'function': function(){
                             var spy = this.spy(),
@@ -414,7 +414,7 @@ buster.testCase('Neuro Model', {
 
                             reference.set('a', 'function');
 
-                            assert.calledWith(spy, 'a', 'function', undefined);
+                            assert.calledWith(spy, reference, 'a', 'function', undefined);
                         },
                         'array of strings and/or functions': function(){
                             var spy = this.spy(),
@@ -433,7 +433,7 @@ buster.testCase('Neuro Model', {
                             reference.set('a', 'keyVal');
 
                             assert.calledTwice(spy);
-                            assert.calledWith(spy, 'a', 'keyVal', undefined);
+                            assert.calledWith(spy, reference, 'a', 'keyVal', undefined);
                         }
                     }
                 }
