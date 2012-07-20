@@ -9,8 +9,6 @@ var Collection = new Class({
 
     _models: [],
 
-    _bound: {},
-
     _Model: Model,
 
     length: 0,
@@ -21,6 +19,7 @@ var Collection = new Class({
         // onAdd: function(){},
         // onRemove: function(){},
         // onEmpty: function(){},
+        // onSort: function(){},
         primaryKey: undefined,
         Model: undefined,
         // Model Options
@@ -33,10 +32,6 @@ var Collection = new Class({
 
     setup: function(models, options){
         this.setOptions(options);
-
-        this._bound = {
-            remove: this.remove.bind(this)
-        };
 
         this.primaryKey = this.options.primaryKey;
 
@@ -76,15 +71,18 @@ var Collection = new Class({
      * @param  {Class} model A Model instance
      * @return {Class} Collection Instance
      */
-    _add: function(model){
+    _add: function(model, at){
         model = new this._Model(model, this.options.modelOptions);
 
         if (!this.hasModel(model)) {
-
             // Remove the model if it destroys itself.
-            model.addEvent('destroy', this._bound.remove);
+            model.addEvent('destroy', this.bound('remove'));
 
-            this._models.push(model);
+            if (at != undefined) {
+                this._models.splice(at, 0, model);
+            } else {
+                this._models.push(model);
+            }
 
             this.length = this._models.length;
 
@@ -103,7 +101,7 @@ var Collection = new Class({
      * collectionInstance.add(model);
      * collectionInstance.add([model, model]);
      */
-    add: function(models){
+    add: function(models, at){
         models = Array.from(models);
 
         var len = models.length,
@@ -147,7 +145,7 @@ var Collection = new Class({
      */
     _remove: function(model){
         // Clean up when removing so that it doesn't try removing itself from the collection
-        model.removeEvent('destroy', this._bound.remove);
+        model.removeEvent('destroy', this.bound('remove'));
 
         this._models.erase(model);
 
@@ -236,22 +234,22 @@ var Collection = new Class({
     },
     
     signalAdd: function(model){
-        !this.isSilent() && this.fireEvent('add', model);
+        !this.isSilent() && this.fireEvent('add', [this, model]);
         return this;
     },
     
     signalRemove: function(model){
-        !this.isSilent() && this.fireEvent('remove', model);
+        !this.isSilent() && this.fireEvent('remove', [this, model]);
         return this;
     },
     
     signalEmpty: function(){
-        !this.isSilent() && this.fireEvent('empty');
+        !this.isSilent() && this.fireEvent('empty', this);
         return this;
     },
 
     signalSort: function(){
-        !this.isSilent() && this.fireEvent('sort');
+        !this.isSilent() && this.fireEvent('sort', this);
         return this;
     },
 
