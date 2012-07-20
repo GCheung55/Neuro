@@ -67,4 +67,7 @@ var dom = require('jsdom'),
 request.get(compile, function() {
 	// give it some time to generate
 	setTimeout(writeDocs, 2000);
+}).on('error', function() {
+	console.log('Failed to recompile docs.');
+	process.exit(1);
 });
