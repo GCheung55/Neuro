@@ -2,9 +2,10 @@
 
 var Is = require('neuro-is').Is,
     Silence = require('../mixins/silence').Silence,
-    Connector = require('../mixins/connector').Connector;
+    Connector = require('../mixins/connector').Connector,
+    CustomAccessor = require('../mixins/customAccessor').CustomAccessor;
 
-var createGetter = function(type){
+var curryGetter = function(type){
     /**
      * isPrevious is a parameter to be passed into custom getter accessors.
      * This will allow the getter to know whether it should be retrieving from _data or _previousData.
@@ -13,20 +14,44 @@ var createGetter = function(type){
     var isPrevious = type == '_previousData' || void 0;
 
     return function(prop){
-        var val = this[type][prop],
-            accessor = this.getAccessor(prop),
-            getter = accessor && accessor.get;
+        var accessor = this.getAccessor(prop, 'get');
 
-        return getter ? getter.call(this, isPrevious) : val;
+        return accessor ? accessor.call(this, isPrevious) : this[type][prop];
     }.overloadGetter();
 };
 
+var curryGetData = function(type){
+    return function(){
+        var props = this.keys(),
+            obj = {};
+
+        props.each(function(prop){
+            var val = this[type](prop);
+            switch(typeOf(val)){
+                case 'array':
+                    val = val.slice(); break;
+                case 'object':
+                    if (!val.$constructor || (val.$constructor && !instanceOf(val.$constructor, Class))){
+                        val = Object.clone(val);
+                    }
+                    break;
+            }
+
+            obj[prop] = val;
+        }.bind(this));
+
+        return obj;
+    };
+};
+
 var Model = new Class({
-    Implements: [Connector, Events, Options, Silence],
+    Implements: [Connector, CustomAccessor, Events, Options, Silence],
 
     primaryKey: undefined,
 
     _data: {},
+
+    _defaults: {},
 
     _changed: false,
 
@@ -54,6 +79,7 @@ var Model = new Class({
         // onChange: function(){},
         // 'onChange:key': function(){},
         // onDestroy: function(){},
+        // onReset: function(){},
         primaryKey: undefined,
         accessors: {},
         defaults: {}
@@ -72,35 +98,21 @@ var Model = new Class({
 
         this.primaryKey = this.options.primaryKey;
 
-        this.setAccessor(this.options.accessors);
+        this.setupAccessors();
 
-        // Set the _data defaults
-        this.__set(this.options.defaults);
+        // properly set the defaults object
+        Object.merge(this._defaults, this.options.defaults);
 
-        // Need to reset changed because __set will flag changed and changed properties
-        this._resetChanged();
+        // Set the _data defaults silently because listeners shouldn't need to know that the defaults have been defined
+        this.silence(function(){
+            this.set(this._defaults);
+        }.bind(this));
 
         // Just set the data instead of Object merging. This will skip cloning Class instances.
         if (data) { this.set(data); }
 
         return this;
     },
-
-    __set: function(prop, val){
-        var accessor = this.getAccessor(prop),
-            setter = accessor && accessor.set,
-            setterVal;
-
-        if (setter) {
-            setterVal = setter.apply(this, arguments);
-        }
-
-        this._changed = true;
-
-        this._data[prop] = this._changedProperties[prop] = setter && setterVal !== null ? setterVal : val;
-
-        return this;
-    }.overloadSetter(),
 
     /**
      * Store the key/value pair in the Model instance
@@ -111,11 +123,8 @@ var Model = new Class({
      * @return {Class} The Model instance
      */
     _set: function(prop, val){
-        // Store the older pr
-        var old = this._data[prop],
-            accessor = this.getAccessor(prop),
-            setter = accessor && accessor.set,
-            setterVal;
+        // Store the older prop
+        var old = this.get(prop);
 
         switch(typeOf(val)){
             // Dereference the new val if it's an Array
@@ -129,12 +138,11 @@ var Model = new Class({
         }
 
         if (!Is.Equal(old, val)) {
-            /**
-             * Use the custom setter accessor if it exists.
-             * Otherwise, set the property in the regular fashion.
-             * Setter must return a value that is NOT null in order to mark the model as changed
-             */
-            this.__set(prop, val);
+            this._changed = true;
+
+            this._data[prop] = this._changedProperties[prop] = val;
+
+            return this;
         }
 
         return this;
@@ -150,17 +158,30 @@ var Model = new Class({
      */
     set: function(prop, val){
         if (prop) {
-            // store the previously changed properties
-            this._setPreviousData();
+            /**
+             * Use the custom setter accessor if it exists.
+             * Otherwise, set the property in the regular fashion.
+             */
+            var accessor = this.getAccessor(prop, 'set');
 
-            this._set(prop, val);
-            
-            this.changeProperty(this._changedProperties);
+            /**
+             * If the accessor is true, then run it, and return false
+             * to the if statement to prevent it from continuing to 
+             * run through the code block
+             */
+            if (!accessor || (accessor.apply(this, arguments), false) ) {
+                // store the previously changed property
+                this._setPrevious(this.getData());
 
-            this.change();
-            
-            // reset changed and changed properties
-            this._resetChanged();
+                this._set(prop, val);
+                
+                this.changeProperty(this._changedProperties);
+
+                this.change();
+                
+                // reset changed and changed properties
+                this._resetChanged();
+            }
         }
 
         return this;
@@ -199,10 +220,10 @@ var Model = new Class({
             
             while(len--){
                 item = prop[i++];
-                props[item] = this.options.defaults[item];
+                props[item] = this._defaults[item];
             }
         } else {
-            props = this.options.defaults;
+            props = this._defaults;
         }
 
         this.set(props);
@@ -218,46 +239,23 @@ var Model = new Class({
      * @param  {String} prop Property name to retrieve
      * @return Value referenced by prop param
      */
-    get: createGetter('_data'),
+    get: curryGetter('_data'),
 
     /**
      * Retrieve entire data object in Model instance
      *
      * @return {Object}
      */
-    getData: function(){
-        var props = this.keys(),
-            obj = {};
-
-        props.each(function(prop){
-            var val = this.get(prop);
-            switch(typeOf(val)){
-                case 'array':
-                    val = val.slice(); break;
-                case 'object':
-                    if (!val.$constructor || (val.$constructor && !instanceOf(val.$constructor, Class))){
-                        val = Object.clone(val);
-                    }
-                    break;
-            }
-
-            obj[prop] = val;
-        }.bind(this));
-
-        return obj;
-    },
+    getData: curryGetData('get'),
     
-    _setPreviousData: function(){
-        this._previousData = Object.clone(this._data);
-        
+    _setPrevious: function(prop, val){
+        this._previousData[prop] = val;
         return this;
-    },
+    }.overloadSetter(),
     
-    getPrevious: createGetter('_previousData'),
+    getPrevious: curryGetter('_previousData'),
     
-    getPreviousData: function(){
-        return Object.clone(this._previousData);
-    },
+    getPreviousData: curryGetData('getPrevious'),
     
     _resetChanged: function(){
         if (this._changed) {
@@ -309,44 +307,27 @@ var Model = new Class({
     },
     
     signalChange: function(){
-        !this.isSilent() && this.fireEvent('change');
+        !this.isSilent() && this.fireEvent('change', this);
         return this;
     },
     
     signalChangeProperty: function(prop, newVal, oldVal){
-        !this.isSilent() && this.fireEvent('change:' + prop, [prop, newVal, oldVal]);
+        !this.isSilent() && this.fireEvent('change:' + prop, [this, prop, newVal, oldVal]);
         return this;
     },
     
     signalDestroy: function(){
-        !this.isSilent() && this.fireEvent('destroy');
+        !this.isSilent() && this.fireEvent('destroy', this);
         return this;
     },
 
     signalReset: function(){
-        !this.isSilent() && this.fireEvent('reset');
+        !this.isSilent() && this.fireEvent('reset', this);
         return this;
     },
 
     toJSON: function(){
         return this.getData();
-    },
-
-    setAccessor: function(key, val){
-        this._accessors[key] = val;
-
-        return this;
-    }.overloadSetter(),
-
-    getAccessor: function(key){
-        return this._accessors[key];
-    }.overloadGetter(),
-
-    unsetAccessor: function(key){
-        delete this._accessors[key];
-        this._accessors[key] = undefined;
-
-        return this;
     },
 
     /**
@@ -356,7 +337,7 @@ var Model = new Class({
      * @return {Class}  Class instance
      */
     spy: function(prop, callback){
-        if ( (typeOf(prop) == 'string' && prop in this._data) && typeOf(callback) == 'function' ) {
+        if ((typeOf(prop) == 'string' && prop in this._data) && typeOf(callback) == 'function' ) {
             this.addEvent('change:' + prop, callback);
         }
 
@@ -370,8 +351,8 @@ var Model = new Class({
      * @return {Class}  Class instance
      */
     unspy: function(prop, callback){
-        if ( (typeOf(prop) == 'string' && prop in this._data)) {
-            this.addEvent('change:' + prop, callback);
+        if ((typeOf(prop) == 'string' && prop in this._data)) {
+            this.removeEvents('change:' + prop, callback);
         }
 
         return this;
