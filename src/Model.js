@@ -14,9 +14,9 @@ var curryGetter = function(type){
     var isPrevious = type == '_previousData' || void 0;
 
     return function(prop){
-        var accessor = this.getAccessor(prop, 'get');
+        var accessor = this.getAccessor(prop, isPrevious ? 'getPrevious' : 'get');
 
-        return accessor ? accessor.call(this, isPrevious) : this[type][prop];
+        return accessor ? accessor() : this[type][prop];
     }.overloadGetter();
 };
 
@@ -59,11 +59,16 @@ var Model = new Class({
 
     _previousData: {},
 
+    _setting: 0,
+
     _accessors: {
         /*
         key: {
-            // Must return a value that is NOT null in order to mark this model changed by this property change
-            set: function(prop, val){return val;},
+            // The buck stops here for this custom set method.
+            // Any returned value goes into the ether because
+            // the original set code block is ignored when this is invoked
+
+            set: function(prop, val){},
 
             // isPrevious flag lets you choose whether to pull data from this._data or this._previousData
             get: function(isPrevious){
@@ -71,6 +76,8 @@ var Model = new Class({
                 var data = isPrevious ? this._data : this._previousData;
                 return data['somekey'];
             },
+
+            getPrevious: function(){}
         }
         */
     },
@@ -122,22 +129,36 @@ var Model = new Class({
      * @param  {Array|Function|Number|Object|String} val Property value to be stored
      * @return {Class} The Model instance
      */
-    _set: function(prop, val){
+    __set: function(prop, val){
+        /**
+         * Use the custom setter accessor if it exists.
+         * Otherwise, set the property in the regular fashion.
+         */
+        var accessor = this.getAccessor(prop, 'set');
+        /**
+         * If the accessor is true, then run it, and return false
+         * to the if statement to prevent it from continuing to 
+         * run through the code block
+         */
+        if (accessor) {
+            return accessor.apply(this, arguments);
+        }
+
         // Store the older prop
         var old = this.get(prop);
 
-        switch(typeOf(val)){
-            // Dereference the new val if it's an Array
-            case 'array': val = val.slice(); break;
-            // Or an Object but not an instance of Class
-            case 'object':
-                if (!val.$constructor || (val.$constructor && !instanceOf(val.$constructor, Class))){
-                    val = Object.clone(val);
-                }
-                break;
-        }
-
         if (!Is.Equal(old, val)) {
+            switch(typeOf(val)){
+                // Dereference the new val if it's an Array
+                case 'array': val = val.slice(); break;
+                // Or an Object but not an instance of Class
+                case 'object':
+                    if (!val.$constructor || (val.$constructor && !instanceOf(val.$constructor, Class))){
+                        val = Object.clone(val);
+                    }
+                    break;
+            }
+
             this._changed = true;
 
             this._data[prop] = this._changedProperties[prop] = val;
@@ -148,6 +169,21 @@ var Model = new Class({
         return this;
     }.overloadSetter(),
 
+    _set: function(prop, val){
+        /**
+         * Increment/decrement _setting value so that calls to set method in
+         * custom setters won't trigger change and setPrevious. Doing so during
+         * setting would cause discrepancies in previously stored data.
+         */
+        this._setting++;
+
+        this.__set(prop, val);
+
+        this._setting--;
+
+        return this;
+    },
+
     /**
      * Store the key/value pair in the Model instance
      *
@@ -157,26 +193,22 @@ var Model = new Class({
      * @return {Class} The Model instance
      */
     set: function(prop, val){
+        var isSetting;
+
         if (prop) {
-            /**
-             * Use the custom setter accessor if it exists.
-             * Otherwise, set the property in the regular fashion.
-             */
-            var accessor = this.getAccessor(prop, 'set');
 
-            /**
-             * If the accessor is true, then run it, and return false
-             * to the if statement to prevent it from continuing to 
-             * run through the code block
-             */
-            if (!accessor || (accessor.apply(this, arguments), false) ) {
-                // store the previously changed property
-                this._setPrevious(this.getData());
+            isSetting = this.isSetting();
 
-                this._set(prop, val);
-                
+            // store the previously changed property
+            !isSetting && this._setPrevious(this.getData());
+
+            this._set(prop, val);
+
+            if (!isSetting) {
+                // Signal any changed properties
                 this.changeProperty(this._changedProperties);
 
+                // Signal change
                 this.change();
                 
                 // reset changed and changed properties
@@ -185,6 +217,10 @@ var Model = new Class({
         }
 
         return this;
+    },
+
+    isSetting: function(){
+        return !! this._setting;
     },
 
     /**
