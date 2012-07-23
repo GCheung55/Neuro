@@ -160,6 +160,38 @@ buster.testCase('Neuro Model', {
         refute.equals(test, result);
     },
 
+    'setAccessor/getAccessor should set/get accessors that are used to set/get properties': function(){
+        var accessor = {
+                set: function(key, val){
+                    if (val) {
+                        // Make this backwards to differentiate from the original
+                        var name = val.split(' '),
+                            first = name[1],
+                            last = name[0];
+
+                        this.set('firstName', first);
+                        this.set('lastName', last);
+                    }
+                },
+                get: this.mockModelWithData.getAccessor('fullName', 'get')
+            },
+            model = this.mockModelWithData;
+
+        model.setAccessor('fullName', accessor);
+
+        model.set('fullName', 'Garrick Cheung');
+
+        assert.equals('Cheung', model.get('firstName'));
+        assert.equals('Garrick', model.get('lastName'));
+    },
+
+    'unsetAccessor should unset accessor by key': function(){
+        var test = this.mockModelWithData.unsetAccessor('fullName').set('fullName', 'something').get('firstName'),
+            result = 'Garrick';
+
+        assert.equals(test, result);
+    },
+
     'custom accessors should be used to set/get property': function(){
         var model = this.mockModelWithData,
             test = model.set('fullName', 'Mark Obcena').get('fullName'),
@@ -168,32 +200,23 @@ buster.testCase('Neuro Model', {
         assert.equals(test, result);
     },
 
-    'setAccessor/getAccessor should set/get accessors that are used to set/get properties': function(){
-        var accessor = {
-            set: function(key, val){
-                if (val) {
-                    var name = val.split(' '),
-                        first = val[1],
-                        last = val[0];
+    'custom setter accessor triggered during setting should not trigger setPrevious and change': function(){
+        var spy = this.spy(),
+            model = this.mockModelWithData,
+            test = model.getData(),
+            result;
 
-                    this.set('firstName', first);
-                    this.set('lastName', last);
-                    this._data['fullName'] = first + ' ' + last;
-                }
-            },
-            get: this.mockModelWithData.getAccessor('fullName').get
-        }
+        model.addEvent('change', spy);
 
-        this.mockModelWithData.setAccessor('fullName', accessor);
+        model.set({
+            age: 30,
+            fullName: 'Mark Obcena'
+        });
 
-        assert.equals(accessor, this.mockModelWithData.getAccessor('fullName'));
-    },
-
-    'unsetAccessor should unset accessor by key': function(){
-        var test = this.mockModelWithData.unsetAccessor('fullName').set('fullName', 'something').get('firstName'),
-            result = 'Garrick';
+        result = model.getPreviousData();
 
         assert.equals(test, result);
+        assert.calledOnce(spy);
     },
 
     'JSON encode/stringify should return a json string of the data': function(){
