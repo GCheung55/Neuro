@@ -14,11 +14,12 @@
         var Neuro = require("1");
         Neuro.Model = require("2").Model;
         Neuro.Collection = require("8").Collection;
+        Neuro.View = require("9").View;
         exports = module.exports = Neuro;
     },
     "1": function(require, module, exports, global) {
         var Neuro = {
-            version: "0.1.8"
+            version: "0.1.9"
         };
         exports = module.exports = Neuro;
     },
@@ -27,8 +28,8 @@
         var curryGetter = function(type) {
             var isPrevious = type == "_previousData" || void 0;
             return function(prop) {
-                var accessor = this.getAccessor(prop, "get");
-                return accessor ? accessor.call(this, isPrevious) : this[type][prop];
+                var accessor = this.getAccessor(prop, isPrevious ? "getPrevious" : "get");
+                return accessor ? accessor() : this[type][prop];
             }.overloadGetter();
         };
         var curryGetData = function(type) {
@@ -59,6 +60,7 @@
             _changed: false,
             _changedProperties: {},
             _previousData: {},
+            _setting: 0,
             _accessors: {},
             options: {
                 primaryKey: undefined,
@@ -84,37 +86,51 @@
                 }
                 return this;
             },
-            _set: function(prop, val) {
-                var old = this.get(prop);
-                switch (typeOf(val)) {
-                  case "array":
-                    val = val.slice();
-                    break;
-                  case "object":
-                    if (!val.$constructor || val.$constructor && !instanceOf(val.$constructor, Class)) {
-                        val = Object.clone(val);
-                    }
-                    break;
+            __set: function(prop, val) {
+                var accessor = this.getAccessor(prop, "set");
+                if (accessor) {
+                    return accessor.apply(this, arguments);
                 }
+                var old = this.get(prop);
                 if (!Is.Equal(old, val)) {
+                    switch (typeOf(val)) {
+                      case "array":
+                        val = val.slice();
+                        break;
+                      case "object":
+                        if (!val.$constructor || val.$constructor && !instanceOf(val.$constructor, Class)) {
+                            val = Object.clone(val);
+                        }
+                        break;
+                    }
                     this._changed = true;
                     this._data[prop] = this._changedProperties[prop] = val;
                     return this;
                 }
                 return this;
             }.overloadSetter(),
+            _set: function(prop, val) {
+                this._setting++;
+                this.__set(prop, val);
+                this._setting--;
+                return this;
+            },
             set: function(prop, val) {
+                var isSetting;
                 if (prop) {
-                    var accessor = this.getAccessor(prop, "set");
-                    if (!accessor || (accessor.apply(this, arguments), false)) {
-                        this._setPrevious(this.getData());
-                        this._set(prop, val);
+                    isSetting = this.isSetting();
+                    !isSetting && this._setPrevious(this.getData());
+                    this._set(prop, val);
+                    if (!isSetting) {
                         this.changeProperty(this._changedProperties);
                         this.change();
                         this._resetChanged();
                     }
                 }
                 return this;
+            },
+            isSetting: function() {
+                return !!this._setting;
             },
             unset: function(prop) {
                 var props = {}, len, i = 0, item;
@@ -404,16 +420,34 @@
         });
     },
     "7": function(require, module, exports, global) {
+        var accessTypes = [ "set", "get", "getPrevious" ], getMap = {
+            get: false,
+            getPrevious: true
+        };
         var CustomAccessor = new Class({
+            _accessors: {},
             options: {
                 accessors: {}
             },
             setupAccessors: function() {
-                this.setAccessor(this.options.accessors);
+                this.setAccessor(Object.merge({}, this._accessors, this.options.accessors));
                 return this;
             },
             setAccessor: function(name, val) {
-                this._accessors[name] = val;
+                var accessors = {}, cont = Object.keys(val).some(accessTypes.contains, accessTypes);
+                if (cont) {
+                    if (val.get && !val.getPrevious) {
+                        accessors.getPrevious = val.get.bind(this, true);
+                        accessors.get = val.get.bind(this, false);
+                    }
+                    val.set && (accessors.set = val.set.bind(this));
+                    Object.each(getMap, function(bool, type) {
+                        if (val[type] && !accessors[type]) {
+                            accessors[type] = val[type].bind(this, bool);
+                        }
+                    }, this);
+                    this._accessors[name] = accessors;
+                }
                 return this;
             }.overloadSetter(),
             getAccessor: function(name, type) {
@@ -579,5 +613,92 @@
             });
         });
         exports.Collection = Collection;
+    },
+    "9": function(require, module, exports, global) {
+        var Connector = require("5").Connector;
+        var eventHandler = function(handler) {
+            return function() {
+                var events = this.options.events, element = this.element;
+                if (element && events) {
+                    Object.each(events, function(val, key) {
+                        var methods = Array.from(val), len = methods.length, i = 0, method;
+                        while (len--) {
+                            method = methods[i++];
+                            this.element[handler](key, typeOf(method) == "function" ? method : this.bound(method));
+                        }
+                    }, this);
+                }
+                return this;
+            };
+        };
+        var View = new Class({
+            Implements: [ Connector, Events, Options ],
+            options: {
+                dataObjects: [],
+                events: {}
+            },
+            initialize: function(element, options) {
+                this.setup(element, options);
+            },
+            setup: function(element, options) {
+                element = this.element = document.id(element);
+                this.setOptions(options);
+                if (element) {
+                    this.attachEvents();
+                    this.connectObjects();
+                }
+                return this;
+            },
+            attachEvents: eventHandler("addEvent"),
+            detachEvents: eventHandler("removeEvent"),
+            connectObjects: function() {
+                Array.from(this.options.dataObjects).each(this.connect.bind(this));
+                return this;
+            },
+            disconnectObjects: function() {
+                Array.from(this.options.dataObjects).each(this.disconnect.bind(this));
+                return this;
+            },
+            create: function() {
+                return this;
+            },
+            render: function() {
+                this.signalRender();
+                return this;
+            },
+            inject: function(reference, where) {
+                this.element.inject(reference, where);
+                this.signalInject();
+                return this;
+            },
+            dispose: function() {
+                this.element.dispose();
+                this.signalDispose();
+                return this;
+            },
+            destroy: function() {
+                var element = this.element;
+                element && (this.detachEvents(), this.disconnectObjects(), element.destroy(), this.element = undefined);
+                this.signalDestroy();
+                return this;
+            },
+            signalRender: function() {
+                this.fireEvent("render");
+                return this;
+            },
+            signalInject: function() {
+                this.fireEvent("inject");
+                return this;
+            },
+            signalDispose: function() {
+                this.fireEvent("dispose");
+                return this;
+            },
+            signalDestroy: function() {
+                this.fireEvent("destroy");
+                return this;
+            }
+        });
+        exports.View = View;
     }
 });
