@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html style="" slick-uniqueid="3">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neuro</title>
+    
+    <link rel="stylesheet" type="text/css" href="http://documentup.com/stylesheets/screen.css" />
+    
+    
+
+    
+
+    <!-- Typekit -->
+    
+      <script type="text/javascript">
+        (function() {
+          var config = {
+            kitId: 'hjp0pft',
+            scriptTimeout: 3000
+          };
+          var h=document.getElementsByTagName("html")[0];h.className+=" wf-loading";var t=setTimeout(function(){h.className=h.className.replace(/( |^)wf-loading( |$)/g,"");h.className+=" wf-inactive"},config.scriptTimeout);var tk=document.createElement("script");tk.src='//use.typekit.net/'+config.kitId+'.js';tk.type="text/javascript";tk.async="true";tk.onload=tk.onreadystatechange=function(){var a=this.readyState;if(a&&a!="complete"&&a!="loaded")return;clearTimeout(t);try{Typekit.load(config)}catch(b){}};var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(tk,s)
+        })();
+      </script>
+    
+  <link href="css/docs.css" type="text/css" rel="stylesheet" /><script src="http://ajax.googleapis.com/ajax/libs/mootools/1.4.5/mootools-yui-compressed.js"></script><script src="js/moostrap-scrollspy.js"></script><script src="js/docs.js"></script></head>
+  <body style=""><div id="container">
+  <div id="nav">
+    
+      <div id="header">
+        <a href="#" id="logo">Neuro</a>
+      </div>
+    
+    <ul id="sections">
+      
+        <li>
+          <a href="#extensions">Extensions</a>
+          
+        </li>
+      
+        <li>
+          <a href="#usage">Usage</a>
+          
+            <ul>
+              
+                <li>
+                  <a href="#usage/model">Model</a>
+                </li>
+              
+                <li>
+                  <a href="#usage/collection">Collection</a>
+                </li>
+              
+            </ul>
+          
+        </li>
+      
+        <li>
+          <a href="#todo">ToDo</a>
+          
+        </li>
+      
+    </ul>
+    
+      <div class="extra" id="github">
+        <a href="https://github.com/GCheung55/Neuro">Source on Github</a>
+      </div>
+      
+        <div class="extra" id="github-issues">
+          <a href="https://github.com/GCheung55/Neuro/issues">Issues</a>
+        </div>
+      
+      
+    
+    
+  </div>
+  <div id="content">
+    
+      <a href="https://github.com/GCheung55/Neuro" id="github-ribbon"><img src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+    
+    <h1>Neuro</h1>
+<p>A MooTools client-side MVC.
+
+</p>
+<h3 id="null/version-0-1-9-alpha">Version: 0.1.9 (Alpha)</h3>
+<p><a href="http://travis-ci.org/GCheung55/Neuro"><img src="https://secure.travis-ci.org/GCheung55/Neuro.png" alt="Build Status" /></a>
+
+</p>
+<h3 id="null/influences">Influences:</h3>
+<ul>
+<li><a href="documentcloud/backbone">Backbone</a></li>
+<li><a href="seanmonstar/Shipyard">Shipyard</a></li>
+</ul>
+<h3 id="null/dependencies">Dependencies:</h3>
+<ul>
+<li><a href="mootools/mootools-core">MooTools-Core 1.x</a></li>
+<li><a href="gcheung55/is.js">Is.js</a></li>
+</ul>
+<h3 id="null/focus">Focus:</h3>
+<ul>
+<li>uncoupled coding but allow for a coupled organization if necessary</li>
+<li>provide base for applications</li>
+</ul>
+<h2 id="extensions">Extensions</h2>
+<ul>
+<li><a href="gcheung55/neuro-sync">Neuro-Sync</a> - Extends Neuro with a CRUD API</li>
+<li><a href="gcheung55/neuro-company">Neuro-Company</a> - Extends Neuro with an Observer API</li>
+</ul>
+<h2 id="usage">Usage</h2>
+<h3 id="usage/model">Model</h3>
+<p>Subclass Model with MooTools Class.
+
+</p>
+<pre><code class="javascript"><span class="keyword">var</span> HumanModel = <span class="keyword">new</span> Class({
+    Extends: Neuro.Model
+    <span class="comment">// Set the default data</span>
+    ,options: {
+        defaults: {
+            firstName: <span class="string">''</span>
+            ,lastName: <span class="string">''</span>
+            ,hp: <span class="number">10</span>
+            ,max: <span class="number">100</span>
+            ,lvl: <span class="number">1</span>
+            <span class="comment">// You can set a function as a custom getter. "this" will be _data, not the model itself.</span>
+            ,name:<span class="string">''</span>
+        }
+        <span class="comment">// Custom setters and getters go here.</span>
+        <span class="comment">// Return a null not trigger change.</span>
+        ,accessors: {
+            name: {
+                <span class="comment">// isPrevious is a flag set when using the getPrevious method, to help you know what data to look for</span>
+                get: <span class="function"><span class="keyword">function</span><span class="params">(isPrevious)</span>{</span>
+                    <span class="comment">// Just an example. You can also go directly to the data because "this" is exposed, which will allow you to bypass other custom getters.</span>
+                    <span class="keyword">var</span> getMethod = <span class="string">'get'</span>;
+                    isPrevious &amp;&amp; (method += <span class="string">'Previous'</span>);
+
+                    <span class="keyword">return</span> <span class="keyword">this</span>[getMethod](<span class="string">'firstName'</span>) + <span class="string">' '</span> + <span class="keyword">this</span>[getMethod](<span class="string">'lastName'</span>);
+                }
+            }
+        }
+    }
+});</code></pre>
+<p>Create a model instance
+
+</p>
+<pre><code class="javascript"><span class="keyword">var</span> bruceLee = <span class="keyword">new</span> HumanModel({
+    firstName: <span class="string">'Bruce'</span>
+    ,lastName: <span class="string">'Lee'</span>
+    ,hp: <span class="number">1000</span>
+    ,lvl: <span class="number">99</span>
+});
+
+bruceLee.get(<span class="string">'name'</span>); <span class="comment">// 'Bruce Lee'</span>
+bruceLee.get(<span class="string">'lvl'</span>); <span class="comment">// 99</span>
+bruceLee.set(<span class="string">'lvl'</span>, <span class="number">100</span>).get(<span class="string">'lvl'</span>); <span class="comment">// 100</span></code></pre>
+<h3 id="usage/collection">Collection</h3>
+<p>Subclass Collection with MooTools Class.
+
+</p>
+<pre><code class="javascript"><span class="keyword">var</span> Humans = <span class="keyword">new</span> Class({
+    Extends: Neuro.Collection
+
+    ,Model: HumanModel
+});</code></pre>
+<p>Add data to the collection
+
+</p>
+<pre><code class="javascript"><span class="comment">// Add one dataset to the collection</span>
+Humans.add({
+    firstName: <span class="string">'Chuck'</span>
+    ,lastName: <span class="string">'Norris'</span>
+    ,hp: <span class="number">1000</span>
+});
+
+<span class="comment">// Add multiple datasets to the collection, must be an Array</span>
+Humans.add([{
+    firstName: <span class="string">'Kareem Abdul'</span>
+    ,lastName: <span class="string">'Jabbar'</span>
+    ,hp: <span class="number">1000</span>
+    ,lvl: <span class="number">80</span>
+}, {
+    firstName: <span class="string">'Gary'</span>
+    ,lastName: <span class="string">'Elms'</span>
+    ,hp: <span class="number">800</span>
+    ,lvl: <span class="number">81</span>
+}]);
+
+<span class="comment">// Add a model instance</span>
+Humans.add(bruceLee);</code></pre>
+<p>Get a model from the collection by index
+
+</p>
+<pre><code class="javascript">Humans.get(<span class="number">4</span>); <span class="comment">// bruceLee model</span></code></pre>
+<p>Remove a model from the collection
+</p>
+<pre><code class="javascript"><span class="keyword">var</span> garyElms = Humans.get(<span class="number">3</span>); <span class="comment">// Gary Elms model</span>
+Humans.remove(garyElms);
+
+<span class="comment">// Check if the removed model still exists in the collection</span>
+Humans.hasModel(garyElms); <span class="comment">// false</span></code></pre>
+<h2 id="todo">ToDo</h2>
+<ul>
+<li>Add a Router mechanism</li>
+<li>Add a basic View Class</li>
+</ul>
+
+  </div>
+</div></body>
+</html>
