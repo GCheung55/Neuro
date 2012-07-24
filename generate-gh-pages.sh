@@ -13,7 +13,7 @@ NO_COLOUR="\033[0m"
 
 LINE="$GRAY--------------------------------------------------------------------------------$NO_COLOUR"
 
-echo -e "$GRAY-------------------------------------------[$CYAN epitome gh-pages generator$YELLOW 0.0.2$GRAY ]-"
+echo -e "$GRAY-------------------------------------------[$CYAN neuro gh-pages generator$YELLOW 0.0.2$GRAY ]-"
 echo -e ""
 echo -e "                                                             $YELLOW($BLUE'$MAGENTA.$BLUE'$YELLOW)"
 echo -e "                                                              $YELLOW<$WHITE))$YELLOW=$ "
