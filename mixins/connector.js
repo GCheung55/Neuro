@@ -20,14 +20,11 @@ var mapSubEvents = function(obj, baseEvt){
     var map = {};
 
     Object.each(obj, function(val, key){
-        // it's the parent event
-        if (key == '*') {
-            key = baseEvt;
-        // Model sub event: 'change:key'
-        // Sync sub event: 'sync:complete'
-        } else {
-            key = baseEvt  + ':' + key;
-        }
+        /**
+         * Set the key as baseEvent if the key is "*",
+         * otherwise it will be baseEvent:key
+         */
+        key = key == '*' ? baseEvt : baseEvt + ':' + key;
 
         map[key] = val;
     });
@@ -62,7 +59,7 @@ var process = function(methodStr, map, obj){
 var curryConnection = function(str){
     var methodStr = str == 'connect' ? 'addEvent' : 'removeEvent';
 
-    return function(obj, oneWay){
+    return function(obj, twoWay){
         if (obj && typeOf(obj[str]) == 'function') {
             var map = this.options.connector;
 
@@ -72,7 +69,7 @@ var curryConnection = function(str){
             // will first connect/disconnect 'this' with obj's methods. Next
             // it will attempt to connect/disconnect obj with 'this' methods
             // hasConnected will prevent a loop.
-            !oneWay && obj[str](this, true);
+            twoWay && obj[str](this, false);
         }
 
         return this;
