@@ -2,7 +2,7 @@
 var dom = require('jsdom'),
 	request = require('http'),
 	fs = require('fs'),
-	repo = 'GCheung55/Neuro',
+	repo = '/GCheung55/Neuro',
 	build = {
 		host: 'documentup.com',
 		path: repo
@@ -68,6 +68,7 @@ request.get(compile, function() {
 	// give it some time to generate
 	setTimeout(writeDocs, 2000);
 }).on('error', function() {
+console.log(compile);
 	console.log('Failed to recompile docs.');
 	process.exit(1);
 });
