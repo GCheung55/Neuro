@@ -169,6 +169,7 @@
 
 </p>
 <h3 id="neuro-model/constructor-initialize">constructor (initialize)</h3>
+<hr />
 <h4>Syntax:</h4>
 <pre><code class="javascript"><span class="keyword">var</span> model = <span class="keyword">new</span> Neuro.Model(data [, options]);</code></pre>
 <h4>Arguments:</h4>
@@ -197,6 +198,7 @@
 <li>Method names prefixed with <code>_</code> is considered private and should not be used.</li>
 </ul>
 <h3 id="neuro-model/issetting">isSetting</h3>
+<hr />
 <p>Use to check if data is currently being handled by the model to assign values to properties the model has.
 
 </p>
@@ -204,6 +206,7 @@
 <pre><code class="javascript">model.isSetting();</code></pre>
 <h4>Returns: Boolean (true/false).</h4>
 <h3 id="neuro-model/set">set</h3>
+<hr />
 <p>The way to assign values to properties the model has. <strong>Do not</strong> use direct assignment else events will not be triggered or custom setters will not be used.
 
 </p>
@@ -230,6 +233,7 @@ model.set(object);</code></pre>
 <li><code>change</code></li>
 </ul>
 <h3 id="neuro-model/unset">unset</h3>
+<hr />
 <p>Unset data properties the model has. Data properties can not be erased so they will be set to <code>undefined</code>.
 
 </p>
@@ -248,6 +252,7 @@ model.unset([property1, property2]);</code></pre>
 <li><code>change</code></li>
 </ul>
 <h3 id="neuro-model/reset">reset</h3>
+<hr />
 <p>Reset data properties to their default values the model had.
 
 </p>
@@ -267,6 +272,7 @@ model.reset([property1, property2]);</code></pre>
 <li><code>reset</code></li>
 </ul>
 <h3 id="neuro-model/get">get</h3>
+<hr />
 <p>Retrieve a property value the model has.
 
 </p>
@@ -297,6 +303,7 @@ model.set(property1, property2);</code></pre>
 </li>
 </ul>
 <h3 id="neuro-model/getdata">getData</h3>
+<hr />
 <p>Retrieve all properties/values the model has. The returned object is a clone (dereferenced) of the data the model has.
 
 </p>
@@ -304,6 +311,7 @@ model.set(property1, property2);</code></pre>
 <pre><code class="javascript">model.getData();</code></pre>
 <h4>Returns: Object containing the data the model has.</h4>
 <h3 id="neuro-model/getprevious">getPrevious</h3>
+<hr />
 <p>Retrieve the previous property value he model had. Model only retains one record of previous data.
 
 </p>
@@ -334,6 +342,7 @@ model.getPrevious(property1, property2);</code></pre>
 </li>
 </ul>
 <h3 id="neuro-model/getpreviousdata">getPreviousData</h3>
+<hr />
 <p>Retrieve all previous properties/values the model had. THe returned object is a clone (dereferenced) of the previous data the model had.
 
 </p>
@@ -341,6 +350,7 @@ model.getPrevious(property1, property2);</code></pre>
 <pre><code class="javascript">model.getPreviousData();</code></pre>
 <h4>Returns: Object containing the previous data the model had.</h4>
 <h3 id="neuro-model/change">change</h3>
+<hr />
 <p>Checks if data is changed before triggering <code>change</code> event. Not likely to be called outside of <code>set</code>.
 
 </p>
@@ -351,6 +361,7 @@ model.getPrevious(property1, property2);</code></pre>
 <li><code>change</code></li>
 </ul>
 <h3 id="neuro-model/changeproperty">changeProperty</h3>
+<hr />
 <p>Checks if data is changed before triggering <code>change:key</code> event. Not likely to be called outside of <code>set</code>.
 
 </p>
@@ -375,6 +386,7 @@ model.changeProperty(object);</code></pre>
 <li><code>change:key</code></li>
 </ul>
 <h3 id="neuro-model/destroy">destroy</h3>
+<hr />
 <p>Triggers the <code>destroy</code> event. This should be overriden in a Class that extends from Model to do additional things. If overriden, remember to call <code>this.parent();</code> to trigger the <code>destroy</code> method, or execute <code>signalDestroy</code> manually.
 
 </p>
@@ -386,6 +398,7 @@ model.changeProperty(object);</code></pre>
 <li><code>destroy</code></li>
 </ul>
 <h3 id="neuro-model/tojson">toJSON</h3>
+<hr />
 <p>Returns a copy of data the model has. Can be used for persistence, serialization, or augmentation before passing over to another object. <code>JSON.stringify</code> uses this to to create a JSON string, though the method itself does not return a String.
 
 </p>
@@ -393,6 +406,7 @@ model.changeProperty(object);</code></pre>
 <pre><code class="javascript">model.toJSON();</code></pre>
 <h4>Returns: Object containing the data the model has.</h4>
 <h3 id="neuro-model/mootools-core-object-methods">MooTools-Core Object Methods</h3>
+<hr />
 <p>The following methods have been implemented from MooTools-Core Object onto Neuro Model. They take the same arguments as their Object counterparts with the exception of having to pass the model as the object to be acted upon.
 
 </p>
