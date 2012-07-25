@@ -65,7 +65,7 @@ var model = new Neuro.Model(data [, options]);
 #### Notes:
 * Method names prefixed with `_` is considered private and should not be used.
 
-### Method: isSetting
+### isSetting
 Use to check if data is currently being handled by the model to assign values to properties the model has.
 
 #### Syntax:
