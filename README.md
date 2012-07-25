@@ -38,6 +38,7 @@ __Implements:__
 * Silence
 
 ### constructor (initialize)
+---
 
 #### Syntax:
 ```javascript
@@ -66,6 +67,7 @@ var model = new Neuro.Model(data [, options]);
 * Method names prefixed with `_` is considered private and should not be used.
 
 ### isSetting
+---
 Use to check if data is currently being handled by the model to assign values to properties the model has.
 
 #### Syntax:
@@ -76,6 +78,7 @@ model.isSetting();
 #### Returns: Boolean (true/false).
 
 ### set
+---
 The way to assign values to properties the model has. __Do not__ use direct assignment else events will not be triggered or custom setters will not be used.
 
 #### Syntax:
@@ -99,6 +102,7 @@ model.set(object);
 * `change`
 
 ### unset
+---
 Unset data properties the model has. Data properties can not be erased so they will be set to `undefined`.
 
 #### Syntax:
@@ -118,6 +122,7 @@ model.unset([property1, property2]);
 * `change`
 
 ### reset
+---
 Reset data properties to their default values the model had.
 
 #### Syntax:
@@ -137,6 +142,7 @@ model.reset([property1, property2]);
 * `reset`
 
 ### get
+---
 Retrieve a property value the model has.
 
 #### Syntax:
@@ -159,6 +165,7 @@ model.set(property1, property2);
     * (String) Value corresponding to the property that the model has.
 
 ### getData
+---
 Retrieve all properties/values the model has. The returned object is a clone (dereferenced) of the data the model has.
 
 #### Syntax:
@@ -169,6 +176,7 @@ model.getData();
 #### Returns: Object containing the data the model has.
 
 ### getPrevious
+---
 Retrieve the previous property value he model had. Model only retains one record of previous data.
 
 #### Syntax:
@@ -191,6 +199,7 @@ model.getPrevious(property1, property2);
     * (String) Value corresponding to the previous property that the model had.
 
 ### getPreviousData
+---
 Retrieve all previous properties/values the model had. THe returned object is a clone (dereferenced) of the previous data the model had.
 
 #### Syntax:
@@ -201,6 +210,7 @@ model.getPreviousData();
 #### Returns: Object containing the previous data the model had.
 
 ### change
+---
 Checks if data is changed before triggering `change` event. Not likely to be called outside of `set`.
 
 ```javascript
@@ -213,6 +223,7 @@ model.change();
 * `change`
 
 ### changeProperty
+---
 Checks if data is changed before triggering `change:key` event. Not likely to be called outside of `set`.
 
 ```javascript
@@ -234,6 +245,7 @@ model.changeProperty(object);
 * `change:key`
 
 ### destroy
+---
 Triggers the `destroy` event. This should be overriden in a Class that extends from Model to do additional things. If overriden, remember to call `this.parent();` to trigger the `destroy` method, or execute `signalDestroy` manually.
 
 #### Syntax:
@@ -247,6 +259,7 @@ model.destroy();
 * `destroy`
 
 ### toJSON
+---
 Returns a copy of data the model has. Can be used for persistence, serialization, or augmentation before passing over to another object. `JSON.stringify` uses this to to create a JSON string, though the method itself does not return a String.
 
 #### Syntax:
@@ -257,6 +270,7 @@ model.toJSON();
 #### Returns: Object containing the data the model has.
 
 ### MooTools-Core Object Methods
+---
 The following methods have been implemented from MooTools-Core Object onto Neuro Model. They take the same arguments as their Object counterparts with the exception of having to pass the model as the object to be acted upon.
 
 * `each`
