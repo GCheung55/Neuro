@@ -36,29 +36,67 @@
     <ul id="sections">
       
         <li>
-          <a href="#extensions">Extensions</a>
-          
-        </li>
-      
-        <li>
-          <a href="#usage">Usage</a>
+          <a href="#neuro-model">Neuro Model</a>
           
             <ul>
               
                 <li>
-                  <a href="#usage/model">Model</a>
+                  <a href="#neuro-model/constructor-initialize">constructor (initialize)</a>
                 </li>
               
                 <li>
-                  <a href="#usage/collection">Collection</a>
+                  <a href="#neuro-model/method-issetting">Method: isSetting</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/set">set</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/unset">unset</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/reset">reset</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/get">get</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/getdata">getData</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/getprevious">getPrevious</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/getpreviousdata">getPreviousData</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/change">change</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/changeproperty">changeProperty</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/destroy">Destroy</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/tojson">toJSON</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/mootools-core-object-methods">MooTools-Core Object Methods:</a>
                 </li>
               
             </ul>
-          
-        </li>
-      
-        <li>
-          <a href="#todo">ToDo</a>
           
         </li>
       
@@ -84,125 +122,306 @@
 <p>A MooTools client-side MVC.
 
 </p>
-<h3 id="null/version-0-2-0-alpha">Version: 0.2.0 (Alpha)</h3>
+<p><strong>Version: 0.2.0 (Alpha)</strong>
+
+</p>
 <p><a href="http://travis-ci.org/GCheung55/Neuro"><img src="https://secure.travis-ci.org/GCheung55/Neuro.png" alt="Build Status" /></a>
 
 </p>
-<h3 id="null/influences">Influences:</h3>
+<p><strong>Influences:</strong>
+
+</p>
 <ul>
 <li><a href="http://github.com/documentcloud/backbone">Backbone</a></li>
 <li><a href="http://github.com/seanmonstar/Shipyard">Shipyard</a></li>
 </ul>
-<h3 id="null/dependencies">Dependencies:</h3>
+<p><strong>Dependencies:</strong>
+
+</p>
 <ul>
 <li><a href="http://github.com/mootools/mootools-core">MooTools-Core 1.x</a></li>
 <li><a href="http://github.com/gcheung55/is.js">Is.js</a></li>
 </ul>
-<h3 id="null/focus">Focus:</h3>
+<p><strong>Focus:</strong>
+
+</p>
 <ul>
 <li>uncoupled coding but allow for a coupled organization if necessary</li>
 <li>provide base for applications</li>
 </ul>
-<h2 id="extensions">Extensions</h2>
+<p><strong>Extensions:</strong>
+
+</p>
 <ul>
 <li><a href="http://github.com/gcheung55/neuro-sync">Neuro-Sync</a> - Extends Neuro with a CRUD API</li>
 <li><a href="http://github.com/gcheung55/neuro-company">Neuro-Company</a> - Extends Neuro with an Observer API</li>
 </ul>
-<h2 id="usage">Usage</h2>
-<h3 id="usage/model">Model</h3>
-<p>Subclass Model with MooTools Class.
+<h2 id="neuro-model">Neuro Model</h2>
+<p>The <strong>Model</strong> is a MooTools Class object that provides a basic API to interact with data. You can use Model by itself or extend other Class objects with it.
 
 </p>
-<pre><code class="javascript"><span class="keyword">var</span> HumanModel = <span class="keyword">new</span> Class({
-    Extends: Neuro.Model,
-    <span class="comment">// Set the default data</span>
-    options: {
-        defaults: {
-            firstName: <span class="string">''</span>,
-            lastName: <span class="string">''</span>,
-            hp: <span class="number">10</span>,
-            max: <span class="number">100</span>,
-            lvl: <span class="number">1</span>,
-            name:<span class="string">''</span>
-        },
-        <span class="comment">// Custom setters and getters go here.</span>
-        <span class="comment">// Return a null not trigger change.</span>
-        accessors: {
-            name: {
-                <span class="comment">// isPrevious is a flag set when using the getPrevious method, to help you know what data to look for</span>
-                get: <span class="function"><span class="keyword">function</span><span class="params">(isPrevious)</span>{</span>
-                    <span class="comment">// Just an example. You can also go directly to the data because "this" is exposed, which will allow you to bypass other custom getters.</span>
-                    <span class="keyword">var</span> getMethod = <span class="string">'get'</span>;
-                    isPrevious &amp;&amp; (method += <span class="string">'Previous'</span>);
-
-                    <span class="keyword">return</span> <span class="keyword">this</span>[getMethod](<span class="string">'firstName'</span>) + <span class="string">' '</span> + <span class="keyword">this</span>[getMethod](<span class="string">'lastName'</span>);
-                }
-            }
-        }
-    }
-});</code></pre>
-<p>Create a model instance
+<p><strong>Implements:</strong>
+<em> Connector
+</em> CustomAccessor
+<em> Events
+</em> Options
+* Silence
 
 </p>
-<pre><code class="javascript"><span class="keyword">var</span> bruceLee = <span class="keyword">new</span> HumanModel({
-    firstName: <span class="string">'Bruce'</span>,
-    lastName: <span class="string">'Lee'</span>,
-    hp: <span class="number">1000</span>,
-    lvl: <span class="number">99</span>
-});
-
-bruceLee.get(<span class="string">'name'</span>); <span class="comment">// 'Bruce Lee'</span>
-bruceLee.get(<span class="string">'lvl'</span>); <span class="comment">// 99</span>
-bruceLee.set(<span class="string">'lvl'</span>, <span class="number">100</span>).get(<span class="string">'lvl'</span>); <span class="comment">// 100</span></code></pre>
-<h3 id="usage/collection">Collection</h3>
-<p>Subclass Collection with MooTools Class.
-
-</p>
-<pre><code class="javascript"><span class="keyword">var</span> Humans = <span class="keyword">new</span> Class({
-    Extends: Neuro.Collection,
-
-    Model: HumanModel
-});</code></pre>
-<p>Add data to the collection
-
-</p>
-<pre><code class="javascript"><span class="comment">// Add one dataset to the collection</span>
-Humans.add({
-    firstName: <span class="string">'Chuck'</span>,
-    lastName: <span class="string">'Norris'</span>,
-    hp: <span class="number">1000</span>
-});
-
-<span class="comment">// Add multiple datasets to the collection, must be an Array</span>
-Humans.add([{
-    firstName: <span class="string">'Kareem Abdul'</span>,
-    lastName: <span class="string">'Jabbar'</span>,
-    hp: <span class="number">1000</span>,
-    lvl: <span class="number">80</span>
-}, {
-    firstName: <span class="string">'Gary'</span>,
-    lastName: <span class="string">'Elms'</span>,
-    hp: <span class="number">800</span>,
-    lvl: <span class="number">81</span>
-}]);
-
-<span class="comment">// Add a model instance</span>
-Humans.add(bruceLee);</code></pre>
-<p>Get a model from the collection by index
-
-</p>
-<pre><code class="javascript">Humans.get(<span class="number">4</span>); <span class="comment">// bruceLee model</span></code></pre>
-<p>Remove a model from the collection
-</p>
-<pre><code class="javascript"><span class="keyword">var</span> garyElms = Humans.get(<span class="number">3</span>); <span class="comment">// Gary Elms model</span>
-Humans.remove(garyElms);
-
-<span class="comment">// Check if the removed model still exists in the collection</span>
-Humans.hasModel(garyElms); <span class="comment">// false</span></code></pre>
-<h2 id="todo">ToDo</h2>
-<ul>
-<li>Add a Router mechanism</li>
+<h3 id="neuro-model/constructor-initialize">constructor (initialize)</h3>
+<h4>Syntax:</h4>
+<pre><code class="javascript"><span class="keyword">var</span> model = <span class="keyword">new</span> Neuro.Model(data [, options]);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li><code>data</code> - (Object) An object containing key/value pairs</li>
+<li><code>options</code> - (Object, optional) The Model options<ul>
+<li>primaryKey - (String) Define to uniquely identify a model in a collection</li>
+<li>defaults - (Object) Contains the default key/value pair defaults for the Model.</li>
 </ul>
+</li>
+</ol>
+<h4>Returns: Model instance.</h4>
+<h4>Events:</h4>
+<ul>
+<li><code>change</code> - Triggered when a change to the model's data has occurred
+  <code>function(model){}</code></li>
+<li><code>change:key</code> - Triggered when a specific model data property change has occurred. The <code>key</code> refers to the specific property. All <code>change:key</code> events will be triggered before <code>change</code> is triggered.
+  <code>function(model, key, value, oldValue){}</code></li>
+<li><code>destroy</code> - Triggered when the model is destroyed.
+  <code>function(model){}</code></li>
+<li><code>reset</code> - Triggered when the model is reset to its default values.
+  <code>function(model){}</code></li>
+</ul>
+<h4>Notes:</h4>
+<ul>
+<li>Method names prefixed with <code>_</code> is considered private and should not be used.</li>
+</ul>
+<h3 id="neuro-model/method-issetting">Method: isSetting</h3>
+<p>Use to check if data is currently being handled by the model to assign values to properties the model has.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">model.isSetting();</code></pre>
+<h4>Returns: Boolean (true/false).</h4>
+<h3 id="neuro-model/set">set</h3>
+<p>The way to assign values to properties the model has. <strong>Do not</strong> use direct assignment else events will not be triggered or custom setters will not be used.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">model.set(property, value);
+
+model.set(object);</code></pre>
+<h4>Arguments:</h4>
+<ul>
+<li>Two Arguments (property, value)<ol>
+<li>property - (String) A key used to define a property the model has.</li>
+<li>value - (String | Array | Number | Object | Function | Class) A value of the corresponding property.</li>
+</ol>
+</li>
+<li>One Argument (object)<ol>
+<li>object (Object) An object containing sets of property/value pairs</li>
+</ol>
+</li>
+</ul>
+<h4>Returns: Model instance.</h4>
+<h4>Triggered Events:</h4>
+<ul>
+<li><code>change:key</code></li>
+<li><code>change</code></li>
+</ul>
+<h3 id="neuro-model/unset">unset</h3>
+<p>Unset data properties the model has. Data properties can not be erased so they will be set to <code>undefined</code>.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">model.unset(property);
+
+model.unset([property1, property2]);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>property - (String | Array) The property to be unset that the model has. Multiple properties can be unset if they are encapsulated in an Array.</li>
+</ol>
+<h4>Returns: Model instance.</h4>
+<h4>Triggered Events:</h4>
+<ul>
+<li><code>change:key</code></li>
+<li><code>change</code></li>
+</ul>
+<h3 id="neuro-model/reset">reset</h3>
+<p>Reset data properties to their default values the model had.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">model.reset(property);
+
+model.reset([property1, property2]);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>property - (String | Array) The property to be reset that the model has. Multiple properties can be reset if they are encapsulated in an Array.</li>
+</ol>
+<h4>Returns: Model instance.</h4>
+<h4>Triggered Events:</h4>
+<ul>
+<li><code>change:key</code></li>
+<li><code>change</code></li>
+<li><code>reset</code></li>
+</ul>
+<h3 id="neuro-model/get">get</h3>
+<p>Retrieve a property value the model has.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">model.get(property);
+
+model.set(property1, property2);</code></pre>
+<h4>Arguments:</h4>
+<ul>
+<li>More than One Consecutive Argument<ol>
+<li>property1, property2... - (String) The properties used to retrieve corresponding values that the model has.</li>
+</ol>
+</li>
+<li>One Argument<ol>
+<li>property - (String) The property used to retrieve the corresponding value that the model has.</li>
+</ol>
+</li>
+</ul>
+<h4>Returns:</h4>
+<ul>
+<li>More than One Consecutive Argument<ul>
+<li>(Object) Key/value pairs of data that the model has. Keys correspond to the arguments.</li>
+</ul>
+</li>
+<li>One Argument<ul>
+<li>(String) Value corresponding to the property that the model has.</li>
+</ul>
+</li>
+</ul>
+<h3 id="neuro-model/getdata">getData</h3>
+<p>Retrieve all properties/values the model has. The returned object is a clone (dereferenced) of the data the model has.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">model.getData();</code></pre>
+<h4>Returns: Object containing the data the model has.</h4>
+<h3 id="neuro-model/getprevious">getPrevious</h3>
+<p>Retrieve the previous property value he model had. Model only retains one record of previous data.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">model.getPrevious(property);
+
+model.getPrevious(property1, property2);</code></pre>
+<h4>Arguments:</h4>
+<ul>
+<li>More than One Consecutive Argument<ol>
+<li>property1, property2... - (String) The properties used to retrieve corresponding previous values that the model had.</li>
+</ol>
+</li>
+<li>One Argument<ol>
+<li>property - (String) The property used to retrieve the corresponding previous value that the model had.</li>
+</ol>
+</li>
+</ul>
+<h4>Returns:</h4>
+<ul>
+<li>More than One Consecutive Argument<ul>
+<li>(Object) Key/value pairs of previous data that the model had. Keys correspond to the arguments.</li>
+</ul>
+</li>
+<li>One Argument<ul>
+<li>(String) Value corresponding to the previous property that the model had.</li>
+</ul>
+</li>
+</ul>
+<h3 id="neuro-model/getpreviousdata">getPreviousData</h3>
+<p>Retrieve all previous properties/values the model had. THe returned object is a clone (dereferenced) of the previous data the model had.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">model.getPreviousData();</code></pre>
+<h4>Returns: Object containing the previous data the model had.</h4>
+<h3 id="neuro-model/change">change</h3>
+<p>Checks if data is changed before triggering <code>change</code> event. Not likely to be called outside of <code>set</code>.
+
+</p>
+<pre><code class="javascript">model.change();</code></pre>
+<h4>Returns: Model instance.</h4>
+<h4>Triggered Events: (only if there is a change in the model data)</h4>
+<ul>
+<li><code>change</code></li>
+</ul>
+<h3 id="neuro-model/changeproperty">changeProperty</h3>
+<p>Checks if data is changed before triggering <code>change:key</code> event. Not likely to be called outside of <code>set</code>.
+
+</p>
+<pre><code class="javascript">model.changeProperty(property, value);
+
+model.changeProperty(object);</code></pre>
+<h4>Arguments:</h4>
+<ul>
+<li>Two Arguments (property, value)<ol>
+<li>property - (String) A key corresponding to the changed property the model has.</li>
+<li>value - (String | Array | Number | Object | Function | Class) A value of the corresponding property that was changed.</li>
+</ol>
+</li>
+<li>One Argument (object)<ol>
+<li>object (Object) An object containing sets of property/value pairs</li>
+</ol>
+</li>
+</ul>
+<h4>Returns: Model instance.</h4>
+<h4>Triggered Events: (only if there is a change in the model data)</h4>
+<ul>
+<li><code>change:key</code></li>
+</ul>
+<h3 id="neuro-model/destroy">Destroy</h3>
+<p>Triggers the <code>destroy</code> event. This should be overriden in a Class that extends from Model to do additional things. If overriden, remember to call <code>this.parent();</code> to trigger the <code>destroy</code> method, or execute <code>signalDestroy</code> manually.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">model.destroy();</code></pre>
+<h4>Returns: Model instance.</h4>
+<h4>Triggered Events:</h4>
+<ul>
+<li><code>destroy</code></li>
+</ul>
+<h3 id="neuro-model/tojson">toJSON</h3>
+<p>Returns a copy of data the model has. Can be used for persistence, serialization, or augmentation before passing over to another object. <code>JSON.stringify</code> uses this to to create a JSON string, though the method itself does not return a String.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">model.toJSON();</code></pre>
+<h4>Returns: Object containing the data the model has.</h4>
+<h3 id="neuro-model/mootools-core-object-methods">MooTools-Core Object Methods:</h3>
+<p>The following methods have been implemented from MooTools-Core Object onto Neuro Model. They take the same arguments as their Object counterparts with the exception of having to pass the model as the object to be acted upon.
+
+</p>
+<ul>
+<li><code>each</code></li>
+<li><code>subset</code></li>
+<li><code>map</code></li>
+<li><code>filter</code></li>
+<li><code>every</code></li>
+<li><code>some</code></li>
+<li><code>keys</code></li>
+<li><code>values</code></li>
+<li><code>getLength</code></li>
+<li><code>keyOf</code></li>
+<li><code>contains</code></li>
+<li><code>toQueryString</code></li>
+</ul>
+<pre><code class="javascript">model.each(function[, bind]);
+model.subset(keys);
+model.map(function[, bind]);
+model.filter(function[, bind]);
+model.every(function[, bind]);
+model.some(function[, bind]);
+model.keys();
+model.values();
+model.getLength();
+model.keyOf(property);
+model.contains(value);
+model.toQueryString();</code></pre>
 
   </div>
 </div></body>
