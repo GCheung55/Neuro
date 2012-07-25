@@ -173,7 +173,7 @@ buster.testCase('Neuro Model', {
                         this.set('lastName', last);
                     }
                 },
-                get: this.mockModelWithData.getAccessor('fullName', 'get')
+                get: this.mockModelWithData.getAccessor('fullName', 'get')._orig
             },
             model = this.mockModelWithData;
 
@@ -198,6 +198,22 @@ buster.testCase('Neuro Model', {
             result = 'Mark Obcena';
 
         assert.equals(test, result);
+    },
+
+    'custom accessors should not recursively fire itself when calling in the setter': function(){
+        var model = this.mockModel.setAccessor('price', {
+            set: function(prop, val){
+                this.set(prop, '$' + val.toString());
+            },
+
+            get: function(){
+                var val = this.get('price');
+                return val && val.replace('$', '').toInt();
+            }
+        });
+
+        assert.equals(model.set({'price': 100})._data['price'], '$100');
+        assert.equals(model.get('price'), 100);
     },
 
     'custom setter accessor triggered during setting should not trigger setPrevious and change': function(){
@@ -291,6 +307,7 @@ buster.testCase('Neuro Model', {
                 this.testFunc();
             };
 
+            this.connectorTestModel = testModel;
             this.connectorModel = new testModel;
             this.connectorTestFunc = connectorTestFunc;
         },
@@ -460,6 +477,78 @@ buster.testCase('Neuro Model', {
                         }
                     }
                 }
+            },
+
+            'should optionally connect both objects': function(){
+                var model1, model2,
+                    destroySpy = this.spy(),
+                    setSpy = this.spy()
+                    twoWayConnect = true;
+
+                model1 = model1 = new this.connectorTestModel({id: 1}, {
+                    connector: {
+                        'change': {
+                            'name': function(model, prop, val){
+                                model2.set(prop, val);
+                            }
+                        }
+                    }
+                });
+
+                model2 = new this.connectorTestModel({id: 2}, {
+                    connector: {
+                        'destroy': 'destroy'
+                    }
+                });
+
+                model1.connect(model2, twoWayConnect);
+
+                model1.addEvent('destroy', destroySpy);
+
+                model2.addEvent('change:name', setSpy);
+
+                model1.set('name', 'Garrick');
+                model2.destroy();
+
+                assert.calledOnceWith(destroySpy, model1);
+                assert.calledOnceWith(setSpy, model2, 'name', 'Garrick', undefined);
+            },
+
+            'should optionally disconnect both objects': function(){
+                var model1, model2,
+                    destroySpy = this.spy(),
+                    setSpy = this.spy()
+                    twoWayConnect = true;
+
+                model1 = model1 = new this.connectorTestModel({id: 1}, {
+                    connector: {
+                        'change': {
+                            'name': function(model, prop, val){
+                                model2.set(prop, val);
+                            }
+                        }
+                    }
+                });
+
+                model2 = new this.connectorTestModel({id: 2}, {
+                    connector: {
+                        'destroy': 'destroy'
+                    }
+                });
+
+                model1.connect(model2, twoWayConnect);
+
+                model1.disconnect(model2, twoWayConnect);
+
+                model1.addEvent('destroy', destroySpy);
+
+                model2.addEvent('change:name', setSpy);
+
+                model1.set('name', 'Garrick');
+                model2.destroy();
+
+                refute.called(destroySpy);
+                refute.called(setSpy);
             }
         }
     },
