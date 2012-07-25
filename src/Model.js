@@ -14,9 +14,26 @@ var curryGetter = function(type){
     var isPrevious = type == '_previousData' || void 0;
 
     return function(prop){
-        var accessor = this.getAccessor(prop, isPrevious ? 'getPrevious' : 'get');
+        var accessor = this.getAccessor(prop, isPrevious ? 'getPrevious' : 'get'),
+            // accessing = this.isAccessing(),
+            accessorName = this._accessorName;
 
-        return accessor ? accessor() : this[type][prop];
+        /**
+         * Prevent recursive get calls by checking if it's currently accessing
+         * and if the accessor name is the same as the property arg. If all positive,
+         * then return the value from _data/_previousData, otherwise return from 
+         * the accessor function. Fallback to returning from the _data/_previousData
+         * if an accessor function does not exist.
+         */
+        if (accessor) {
+            if (accessorName != prop) {
+                return accessor();
+            }
+        }
+
+        return this[type][prop];
+
+        // return accessor && accessorName != prop ? accessor() : this[type][prop];
     }.overloadGetter();
 };
 
@@ -140,7 +157,7 @@ var Model = new Class({
          * to the if statement to prevent it from continuing to 
          * run through the code block
          */
-        if (accessor) {
+        if (accessor && this._accessorName != prop) {
             return accessor.apply(this, arguments);
         }
 
@@ -162,8 +179,6 @@ var Model = new Class({
             this._changed = true;
 
             this._data[prop] = this._changedProperties[prop] = val;
-
-            return this;
         }
 
         return this;
@@ -201,6 +216,11 @@ var Model = new Class({
 
             // store the previously changed property
             !isSetting && this._setPrevious(this.getData());
+
+            /**
+             * If the prop arg is a Model, then we should get all the data to set
+             */
+            prop = instanceOf(prop, Model) ? prop.getData() : prop;
 
             this._set(prop, val);
 
