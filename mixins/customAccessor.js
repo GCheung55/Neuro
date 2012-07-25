@@ -5,7 +5,26 @@ var accessTypes = ['set', 'get', 'getPrevious'],
     };
 
 var CustomAccessor = new Class({
-    _accessors: {},
+    _accessors: {
+        /*
+        key: {
+            // The buck stops here for this custom set method.
+            // Any returned value goes into the ether because
+            // the original set code block is ignored when this is invoked
+
+            set: function(prop, val){},
+
+            // isPrevious flag lets you choose whether to pull data from this._data or this._previousData
+            get: function(isPrevious){
+                //Example
+                var data = isPrevious ? this._data : this._previousData;
+                return data['somekey'];
+            },
+
+            getPrevious: function(){}
+        }
+        */
+    },
 
     _accessorName: undefined,
 
