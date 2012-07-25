@@ -84,19 +84,19 @@
 <p>A MooTools client-side MVC.
 
 </p>
-<h3 id="null/version-0-1-9-alpha">Version: 0.1.9 (Alpha)</h3>
+<h3 id="null/version-0-2-0-alpha">Version: 0.2.0 (Alpha)</h3>
 <p><a href="http://travis-ci.org/GCheung55/Neuro"><img src="https://secure.travis-ci.org/GCheung55/Neuro.png" alt="Build Status" /></a>
 
 </p>
 <h3 id="null/influences">Influences:</h3>
 <ul>
-<li><a href="documentcloud/backbone">Backbone</a></li>
-<li><a href="seanmonstar/Shipyard">Shipyard</a></li>
+<li><a href="http://github.com/documentcloud/backbone">Backbone</a></li>
+<li><a href="http://github.com/seanmonstar/Shipyard">Shipyard</a></li>
 </ul>
 <h3 id="null/dependencies">Dependencies:</h3>
 <ul>
-<li><a href="mootools/mootools-core">MooTools-Core 1.x</a></li>
-<li><a href="gcheung55/is.js">Is.js</a></li>
+<li><a href="http://github.com/mootools/mootools-core">MooTools-Core 1.x</a></li>
+<li><a href="http://github.com/gcheung55/is.js">Is.js</a></li>
 </ul>
 <h3 id="null/focus">Focus:</h3>
 <ul>
@@ -105,8 +105,8 @@
 </ul>
 <h2 id="extensions">Extensions</h2>
 <ul>
-<li><a href="gcheung55/neuro-sync">Neuro-Sync</a> - Extends Neuro with a CRUD API</li>
-<li><a href="gcheung55/neuro-company">Neuro-Company</a> - Extends Neuro with an Observer API</li>
+<li><a href="http://github.com/gcheung55/neuro-sync">Neuro-Sync</a> - Extends Neuro with a CRUD API</li>
+<li><a href="http://github.com/gcheung55/neuro-company">Neuro-Company</a> - Extends Neuro with an Observer API</li>
 </ul>
 <h2 id="usage">Usage</h2>
 <h3 id="usage/model">Model</h3>
@@ -114,21 +114,20 @@
 
 </p>
 <pre><code class="javascript"><span class="keyword">var</span> HumanModel = <span class="keyword">new</span> Class({
-    Extends: Neuro.Model
+    Extends: Neuro.Model,
     <span class="comment">// Set the default data</span>
-    ,options: {
+    options: {
         defaults: {
-            firstName: <span class="string">''</span>
-            ,lastName: <span class="string">''</span>
-            ,hp: <span class="number">10</span>
-            ,max: <span class="number">100</span>
-            ,lvl: <span class="number">1</span>
-            <span class="comment">// You can set a function as a custom getter. "this" will be _data, not the model itself.</span>
-            ,name:<span class="string">''</span>
-        }
+            firstName: <span class="string">''</span>,
+            lastName: <span class="string">''</span>,
+            hp: <span class="number">10</span>,
+            max: <span class="number">100</span>,
+            lvl: <span class="number">1</span>,
+            name:<span class="string">''</span>
+        },
         <span class="comment">// Custom setters and getters go here.</span>
         <span class="comment">// Return a null not trigger change.</span>
-        ,accessors: {
+        accessors: {
             name: {
                 <span class="comment">// isPrevious is a flag set when using the getPrevious method, to help you know what data to look for</span>
                 get: <span class="function"><span class="keyword">function</span><span class="params">(isPrevious)</span>{</span>
@@ -146,10 +145,10 @@
 
 </p>
 <pre><code class="javascript"><span class="keyword">var</span> bruceLee = <span class="keyword">new</span> HumanModel({
-    firstName: <span class="string">'Bruce'</span>
-    ,lastName: <span class="string">'Lee'</span>
-    ,hp: <span class="number">1000</span>
-    ,lvl: <span class="number">99</span>
+    firstName: <span class="string">'Bruce'</span>,
+    lastName: <span class="string">'Lee'</span>,
+    hp: <span class="number">1000</span>,
+    lvl: <span class="number">99</span>
 });
 
 bruceLee.get(<span class="string">'name'</span>); <span class="comment">// 'Bruce Lee'</span>
@@ -160,31 +159,31 @@ bruceLee.set(<span class="string">'lvl'</span>, <span class="number">100</span>)
 
 </p>
 <pre><code class="javascript"><span class="keyword">var</span> Humans = <span class="keyword">new</span> Class({
-    Extends: Neuro.Collection
+    Extends: Neuro.Collection,
 
-    ,Model: HumanModel
+    Model: HumanModel
 });</code></pre>
 <p>Add data to the collection
 
 </p>
 <pre><code class="javascript"><span class="comment">// Add one dataset to the collection</span>
 Humans.add({
-    firstName: <span class="string">'Chuck'</span>
-    ,lastName: <span class="string">'Norris'</span>
-    ,hp: <span class="number">1000</span>
+    firstName: <span class="string">'Chuck'</span>,
+    lastName: <span class="string">'Norris'</span>,
+    hp: <span class="number">1000</span>
 });
 
 <span class="comment">// Add multiple datasets to the collection, must be an Array</span>
 Humans.add([{
-    firstName: <span class="string">'Kareem Abdul'</span>
-    ,lastName: <span class="string">'Jabbar'</span>
-    ,hp: <span class="number">1000</span>
-    ,lvl: <span class="number">80</span>
+    firstName: <span class="string">'Kareem Abdul'</span>,
+    lastName: <span class="string">'Jabbar'</span>,
+    hp: <span class="number">1000</span>,
+    lvl: <span class="number">80</span>
 }, {
-    firstName: <span class="string">'Gary'</span>
-    ,lastName: <span class="string">'Elms'</span>
-    ,hp: <span class="number">800</span>
-    ,lvl: <span class="number">81</span>
+    firstName: <span class="string">'Gary'</span>,
+    lastName: <span class="string">'Elms'</span>,
+    hp: <span class="number">800</span>,
+    lvl: <span class="number">81</span>
 }]);
 
 <span class="comment">// Add a model instance</span>
@@ -203,7 +202,6 @@ Humans.hasModel(garyElms); <span class="comment">// false</span></code></pre>
 <h2 id="todo">ToDo</h2>
 <ul>
 <li>Add a Router mechanism</li>
-<li>Add a basic View Class</li>
 </ul>
 
   </div>
