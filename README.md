@@ -233,7 +233,7 @@ model.changeProperty(object);
 #### Triggered Events: (only if there is a change in the model data)
 * `change:key`
 
-### Destroy
+### destroy
 Triggers the `destroy` event. This should be overriden in a Class that extends from Model to do additional things. If overriden, remember to call `this.parent();` to trigger the `destroy` method, or execute `signalDestroy` manually.
 
 #### Syntax:
@@ -256,7 +256,7 @@ model.toJSON();
 
 #### Returns: Object containing the data the model has.
 
-### MooTools-Core Object Methods:
+### MooTools-Core Object Methods
 The following methods have been implemented from MooTools-Core Object onto Neuro Model. They take the same arguments as their Object counterparts with the exception of having to pass the model as the object to be acted upon.
 
 * `each`
