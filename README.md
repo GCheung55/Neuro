@@ -36,21 +36,20 @@ Subclass Model with MooTools Class.
 
 ```javascript
 var HumanModel = new Class({
-    Extends: Neuro.Model
+    Extends: Neuro.Model,
     // Set the default data
-    ,options: {
+    options: {
         defaults: {
-            firstName: ''
-            ,lastName: ''
-            ,hp: 10
-            ,max: 100
-            ,lvl: 1
-            // You can set a function as a custom getter. "this" will be _data, not the model itself.
-            ,name:''
-        }
+            firstName: '',
+            lastName: '',
+            hp: 10,
+            max: 100,
+            lvl: 1,
+            name:''
+        },
         // Custom setters and getters go here.
         // Return a null not trigger change.
-        ,accessors: {
+        accessors: {
             name: {
                 // isPrevious is a flag set when using the getPrevious method, to help you know what data to look for
                 get: function(isPrevious){
@@ -69,10 +68,10 @@ Create a model instance
 
 ```javascript
 var bruceLee = new HumanModel({
-    firstName: 'Bruce'
-    ,lastName: 'Lee'
-    ,hp: 1000
-    ,lvl: 99
+    firstName: 'Bruce',
+    lastName: 'Lee',
+    hp: 1000,
+    lvl: 99
 });
 
 bruceLee.get('name'); // 'Bruce Lee'
@@ -86,9 +85,9 @@ Subclass Collection with MooTools Class.
 
 ```javascript
 var Humans = new Class({
-    Extends: Neuro.Collection
+    Extends: Neuro.Collection,
 
-    ,Model: HumanModel
+    Model: HumanModel
 });
 ```
 Add data to the collection
@@ -96,22 +95,22 @@ Add data to the collection
 ```javascript
 // Add one dataset to the collection
 Humans.add({
-    firstName: 'Chuck'
-    ,lastName: 'Norris'
-    ,hp: 1000
+    firstName: 'Chuck',
+    lastName: 'Norris',
+    hp: 1000
 });
 
 // Add multiple datasets to the collection, must be an Array
 Humans.add([{
-    firstName: 'Kareem Abdul'
-    ,lastName: 'Jabbar'
-    ,hp: 1000
-    ,lvl: 80
+    firstName: 'Kareem Abdul',
+    lastName: 'Jabbar',
+    hp: 1000,
+    lvl: 80
 }, {
-    firstName: 'Gary'
-    ,lastName: 'Elms'
-    ,hp: 800
-    ,lvl: 81
+    firstName: 'Gary',
+    lastName: 'Elms',
+    hp: 800,
+    lvl: 81
 }]);
 
 // Add a model instance
@@ -134,4 +133,3 @@ Humans.hasModel(garyElms); // false
 ToDo
 ----
 * Add a Router mechanism
-* Add a basic View Class
