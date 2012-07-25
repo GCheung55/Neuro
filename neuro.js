@@ -19,7 +19,7 @@
     },
     "1": function(require, module, exports, global) {
         var Neuro = {
-            version: "0.1.9"
+            version: "0.2.0"
         };
         exports = module.exports = Neuro;
     },
@@ -66,10 +66,8 @@
             _changedProperties: {},
             _previousData: {},
             _setting: 0,
-            _accessors: {},
             options: {
                 primaryKey: undefined,
-                accessors: {},
                 defaults: {}
             },
             initialize: function(data, options) {
@@ -226,7 +224,7 @@
                 return this;
             }.overloadSetter()
         });
-        [ "subset", "map", "filter", "every", "some", "keys", "values", "getLength", "keyOf", "contains", "toQueryString" ].each(function(method) {
+        [ "each", "subset", "map", "filter", "every", "some", "keys", "values", "getLength", "keyOf", "contains", "toQueryString" ].each(function(method) {
             Model.implement(method, function() {
                 return Object[method].apply(Object, [ this._data ].append(Array.from(arguments)));
             });
