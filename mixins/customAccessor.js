@@ -7,6 +7,8 @@ var accessTypes = ['set', 'get', 'getPrevious'],
 var CustomAccessor = new Class({
     _accessors: {},
 
+    _accessorName: undefined,
+
     options: {
         accessors: {}
     },
@@ -17,11 +19,36 @@ var CustomAccessor = new Class({
         return this;
     },
 
+    isAccessing: function(){
+        return !!this._accessorName;
+    },
+
+    /**
+     * Accessor functions pass through to trigger flags
+     * to signify that an accessor is being used.
+     */
+    _processAccess: function(name, fnc){
+        var value = undefined;
+
+        if (name) {
+            // this._accessing++;
+            this._accessorName = name;
+
+            value = fnc();
+
+            // this._accessing--;
+            this._accessorName = undefined;
+        }
+
+        return value;
+    },
+
     setAccessor: function(name, val){
         var accessors = {},
             cont = Object.keys(val).some(accessTypes.contains, accessTypes);
 
-        if (cont) {
+        if (!!name && cont) {
+
             /**
              * Create a getPrevious method that is the get method,
              * but passed a true arg to signify it should access _previousData
@@ -29,11 +56,16 @@ var CustomAccessor = new Class({
              * should access _data.
              */
             if (val.get && !val.getPrevious) {
-                accessors.getPrevious = val.get.bind(this, true);
-                accessors.get = val.get.bind(this, false);
+                val.getPrevious = val.get;
             }
 
-            val.set && (accessors.set = val.set.bind(this));
+            if (val.set) {
+                accessors.set = function(a, b){
+                    return this._processAccess(name, val.set.bind(this, a, b));
+                }.bind(this);
+
+                accessors.set._orig = val.set;
+            }
 
             /**
              * Loop through the 'get' types to define accessors functions if
@@ -44,7 +76,11 @@ var CustomAccessor = new Class({
              */
             Object.each(getMap, function(bool, type) {
                 if (val[type] && !accessors[type]) {
-                    accessors[type] = val[type].bind(this, bool);
+                    accessors[type] = function(){
+                        return this._processAccess(name, val[type].bind(this, bool));
+                    }.bind(this);
+
+                    accessors[type]._orig = val[type];
                 }
             }, this);
 
@@ -57,8 +93,8 @@ var CustomAccessor = new Class({
     getAccessor: function(name, type){
         var accessors = this._accessors[name];
 
-        if (type && accessors && accessors[type]) {
-            accessors = accessors[type]
+        if (type) {
+            return accessors && accessors[type] ? accessors[type] : undefined;
         }
 
         return accessors;
