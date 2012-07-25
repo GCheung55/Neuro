@@ -9,13 +9,13 @@ A MooTools client-side MVC.
 
 ### Influences:
 
-* [Backbone](documentcloud/backbone)
-* [Shipyard](seanmonstar/Shipyard)
+* [Backbone](http://github.com/documentcloud/backbone)
+* [Shipyard](http://github.com/seanmonstar/Shipyard)
 
 ### Dependencies:
 
-* [MooTools-Core 1.x](mootools/mootools-core)
-* [Is.js](gcheung55/is.js)
+* [MooTools-Core 1.x](http://github.com/mootools/mootools-core)
+* [Is.js](http://github.com/gcheung55/is.js)
 
 ### Focus:
 
@@ -24,8 +24,8 @@ A MooTools client-side MVC.
 
 Extensions
 ----
-* [Neuro-Sync](gcheung55/neuro-sync) - Extends Neuro with a CRUD API
-* [Neuro-Company](gcheung55/neuro-company) - Extends Neuro with an Observer API
+* [Neuro-Sync](http://github.com/gcheung55/neuro-sync) - Extends Neuro with a CRUD API
+* [Neuro-Company](http://github.com/gcheung55/neuro-company) - Extends Neuro with an Observer API
 
 Usage
 -----
