@@ -9,8 +9,8 @@ config["Neuro"] = {
     ],
     tests: [
         // "test/*-test.js"
-        // "test/view-test.js",
         "test/model-test.js",
-        "test/collection-test.js"
+        "test/collection-test.js",
+        "test/view-test.js"
     ]
 };

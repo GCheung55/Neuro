@@ -1,103 +1,193 @@
-require: '../utilities/Is';
+var Connector = require('../mixins/connector').Connector;
 
-exports: View
+/**
+ * Events are attached/detached with the returned function
+ * options.events is a map that contains a mix of functions
+ * or strings of methods names on the view instance. The strings
+ * are used to retrieve bound methods from the view instance while
+ * the functions are stored on options.events
+ */
+var eventHandler = function(handler){
+    return function(){
+        var events = this.options.events,
+            element = this.element;
 
-// (function(context){
-    var Unit = require('company').Unit;
-    //var Is =  require('is')
-    
-    // creates functions to subscribe/unsubscribe based on handlers
-    var subCurry = function(bindType){
-        return function(){
-            var prefix = this.getPrefix();
-
-            // Prepare the prefix to prepend to the keys for subscribe/unsubscribing
-            prefix && (prefix += '.');
-
-            Object.each(this.subscriberMap, function(val, key){
+        if (element && events) {
+            Object.each(events, function(val, key){
                 var methods = Array.from(val),
                     len = methods.length,
                     i = 0, method;
 
-                // Create the object with all the methods
                 while(len--){
-                    // get the method name, or function
                     method = methods[i++];
-
-                    // Subscribe/unsubscribe function or the bound method
-                    this[bindType](prefix + key, Is.Function(method) ? method : this.bound(method));
+                    this.element[handler](key, typeOf(method) == 'function' ? method : this.bound(method));
                 }
-                
             }, this);
-
-            return this;
         }
-    };
 
-    var View = new Class({
-        Implements: [Class.Binds, Options, Unit],
+        return this;
+    }
+};
 
-        // Model publishers / View methods mapping
-        subscribeMap: undefined,
+var View = new Class({
+    Implements: [Connector, Events, Options],
 
-        element: undefined,
+    /**
+     * Root element - contains all the elements that is to be created
+     */
+    element: undefined,
 
-        options: {
-            subscribeMap: {
-                'change': ['render']
-                ,'destroy': 'destroy'
-                // ,'change:id': function(){}
-            }
-        },
+    options: {
+        // onReady: function(){},
+        // onRender: function(){},
+        // onInject: function(){},
+        // onDispose: function(){},
+        // onDestroy: function(){},
+        events: {
+            // 'click': 'nameOfMethod',
+            // 'focus': function(){},
+            // 'click:relay(a)': ['nameOfMethod', 'nameOfOtherMethod'],
+            // 'click:relay(b)': [function(){}, 'nameOfOtherMethod'],
+        }
+    },
 
-        initialize: function(data, options){
-            this.setup(data, options);
-        },
+    initialize: function(options){
+        this.setup(options);
+    },
 
-        setup: function(data, options){
-            this.setOptions(options);
+    setup: function(options){
+        this.setOptions(options);
 
-            this.subscribeMap = this.options.subscribeMap;
+        if (this.options.element) {
+            this.setElement(this.options.element);
+        }
 
-            this.setPrefix(this.options.Prefix);
+        this.signalReady();
 
-            this.setupUnit();
+        return this;
+    },
 
-            this.bindModel();
+    toElement: function(){
+        return this.element;
+    },
 
-            this.render(data);
+    setElement: function(element){
+        this.element && this.destroy();
 
-            return this;
-        },
-
-        attachEvents: function(){ return this; },
-
-        detachEvents: function(){ return this; },
-
-        bindModel: subCurry('subscribe'),
-
-        unbindModel: subCurry('unsubscribe'),
-        
-        create: function(){
-            return this;
-        },
-
-        render: function(data){
-            this.create();
-            
+        element = this.element = document.id(element);
+        if (element) {
             this.attachEvents();
-
-            return this;
-        },
-
-        destroy: function(){
-            var element = this.element;
-
-            this.detachEvents();
-
-            this.element = (element && element.destroy(), undefined);
-
-            return this;
         }
-    });
-// })(typeof exports != 'undefined' ? exports : window);
+
+        return this;
+    },
+
+    /**
+     * Attaches the events found in options.events
+     */
+    attachEvents: eventHandler('addEvent'),
+
+    /**
+     * Detaches the events found in options.events
+     */
+    detachEvents: eventHandler('removeEvent'),
+
+    /**
+     * Override this function with another when extending View
+     */
+    create: function(){
+        return this;
+    },
+
+    /**
+     * Override this function with another when extending View
+     */
+    render: function(){
+        this.signalRender();
+        return this;
+    },
+
+    /**
+     * Inject an element or View instance. document.id will resolve the element from the View instance
+     * @param  {Element | View} reference Element or View instance
+     * @param  {String} where Defaults to Element.inject 'bottom' value
+     * @return {Class} View instance
+     */
+    inject: function(reference, where){
+        if (instanceOf(reference, View)) {
+            reference = document.id(reference);
+        }
+
+        where = where || 'bottom';
+
+        this.element.inject(reference, where);
+        this.signalInject(reference, where);
+        return this;
+    },
+
+    /**
+     * Dispose the element and signal dipose event
+     */
+    dispose: function(){
+        this.element.dispose();
+        this.signalDispose();
+        return this;
+    },
+
+    /**
+     * Detach the events, destroy the element from DOM and remove the reference to the element
+     * before signaling destroy event
+     */
+    destroy: function(){
+        var element = this.element;
+        element && (this.detachEvents(), element.destroy(), this.element = undefined);
+        
+        this.signalDestroy();
+        return this;
+    },
+
+    /**
+     * Triggered when the instance's setup method has finished
+     */
+    signalReady: function(){
+        this.fireEvent('ready', this);
+        return this;
+    },
+
+    /**
+     * Triggered when the render method is finished
+     */
+    signalRender: function(){
+        this.fireEvent('render', this);
+        return this;
+    },
+
+    /**
+     * Triggered when the instance's inject method is finished
+     */
+    signalInject: function(reference, where){
+        this.fireEvent('inject', [this, reference, where]);
+        return this;
+    },
+
+    /**
+     * Triggered when the instance's dispose method is finished
+     * @return {[type]} [description]
+     */
+    signalDispose: function(){
+        this.fireEvent('dispose', this);
+        return this;
+    },
+
+    /**
+     * Triggered when the instance's destroy method is finished
+     * @return {[type]} [description]
+     */
+    signalDestroy: function(){
+        this.fireEvent('destroy', this);
+        return this;
+    }
+
+});
+
+exports.View = View;
