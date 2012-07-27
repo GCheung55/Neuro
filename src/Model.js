@@ -5,6 +5,21 @@ var Is = require('neuro-is').Is,
     Connector = require('../mixins/connector').Connector,
     CustomAccessor = require('../mixins/customAccessor').CustomAccessor;
 
+var cloneVal = function(val){
+    switch(typeOf(val)){
+        // Dereference the new val if it's an Array
+        case 'array': val = val.slice(); break;
+        // Or an Object but not an instance of Class
+        case 'object':
+            if (!val.$constructor || (val.$constructor && !instanceOf(val.$constructor, Class))){
+                val = Object.clone(val);
+            }
+            break;
+    }
+
+    return val;
+};
+
 var curryGetter = function(type){
     /**
      * isPrevious is a parameter to be passed into custom getter accessors.
@@ -43,18 +58,8 @@ var curryGetData = function(type){
             obj = {};
 
         props.each(function(prop){
-            var val = this[type](prop);
-            switch(typeOf(val)){
-                case 'array':
-                    val = val.slice(); break;
-                case 'object':
-                    if (!val.$constructor || (val.$constructor && !instanceOf(val.$constructor, Class))){
-                        val = Object.clone(val);
-                    }
-                    break;
-            }
-
-            obj[prop] = val;
+            // cloneVal will return a cloned of an Array or Object that is not a Class or the val itself
+            obj[prop] = cloneVal(this[type](prop));
         }.bind(this));
 
         return obj;
@@ -68,7 +73,7 @@ var Model = new Class({
 
     _data: {},
 
-    _defaults: {},
+    // _defaults: {},
 
     _changed: false,
 
@@ -103,11 +108,11 @@ var Model = new Class({
         this.setupAccessors();
 
         // properly set the defaults object
-        Object.merge(this._defaults, this.options.defaults);
+        // Object.merge(this._defaults, this.options.defaults);
 
         // Set the _data defaults silently because listeners shouldn't need to know that the defaults have been defined
         this.silence(function(){
-            this.set(this._defaults);
+            this.set(this.options.defaults);
         }.bind(this));
 
         // Just set the data instead of Object merging. This will skip cloning Class instances.
@@ -143,20 +148,10 @@ var Model = new Class({
         var old = this.get(prop);
 
         if (!Is.Equal(old, val)) {
-            switch(typeOf(val)){
-                // Dereference the new val if it's an Array
-                case 'array': val = val.slice(); break;
-                // Or an Object but not an instance of Class
-                case 'object':
-                    if (!val.$constructor || (val.$constructor && !instanceOf(val.$constructor, Class))){
-                        val = Object.clone(val);
-                    }
-                    break;
-            }
-
             this._changed = true;
 
-            this._data[prop] = this._changedProperties[prop] = val;
+            // cloneVal will return a cloned of an Array or Object that is not a Class or the val itself
+            this._data[prop] = this._changedProperties[prop] = cloneVal(val);
         }
 
         return this;
@@ -246,6 +241,7 @@ var Model = new Class({
 
     reset: function(prop){
         var props = {},
+            defaults = this.options.defaults,
             len, i = 0, item;
         
         if (prop) {
@@ -254,10 +250,10 @@ var Model = new Class({
             
             while(len--){
                 item = prop[i++];
-                props[item] = this._defaults[item];
+                props[item] = defaults[item];
             }
         } else {
-            props = this._defaults;
+            props = defaults;
         }
 
         this.set(props);
@@ -371,7 +367,7 @@ var Model = new Class({
      * @return {Class}  Class instance
      */
     spy: function(prop, callback){
-        if ((typeOf(prop) == 'string' && prop in this._data) && typeOf(callback) == 'function' ) {
+        if ((Type.isString(prop) && prop in this._data) && Type.isFunction(callback)) {
             this.addEvent('change:' + prop, callback);
         }
 
@@ -385,7 +381,7 @@ var Model = new Class({
      * @return {Class}  Class instance
      */
     unspy: function(prop, callback){
-        if ((typeOf(prop) == 'string' && prop in this._data)) {
+        if ((Type.isString(prop) && prop in this._data)) {
             this.removeEvents('change:' + prop, callback);
         }
 
