@@ -31,11 +31,11 @@ __Extensions:__
 The __Model__ is a MooTools Class object that provides a basic API to interact with data. You can use Model by itself or extend other Class objects with it.
 
 __Implements:__
-* Connector
-* CustomAccessor
-* Events
-* Options
-* Silence
+* [Mixin: Connector](#mixin-connector)
+* [Mixin: CustomAccessor](#mixin-customaccessor)
+* [Mixin: Events](#mixin-events)
+* [Mixin: Options](#mixin-options)
+* [Mixin: Silence](#mixin-silence)
 
 ### constructor (initialize)
 ---
@@ -667,7 +667,8 @@ myWidget.show(); // fires the event and alerts 'Lets show it!'
 A Utility Class. It allows automatic attachment/detachment of event listeners between two classes.
 
 ### options.connector
-An key/value object to map events to functions or method names on the target class that will be connected with. The value can also be an object that contains more key/value pairs. This allows to attach sub-events, such as `change:key`. __Note:__ An asterisk (*) as the sub-event refers to the parent event only.
+---
+A key/value object to map events to functions or method names on the target class that will be connected with. The value can also be an object that contains more key/value pairs. This allows to attach sub-events, such as `change:key`. __Note:__ An asterisk (*) as the sub-event refers to the parent event only.
 
 #### Syntax: key/value pairs
 ```javascript
@@ -681,8 +682,6 @@ event: method
     * Function - The function will be bound to the current class and attached as the event handler
     * Array - Can contain a mix of `String` (name of method to retrieve said method from target class) or `Function` to be attached as the event handler
     * Object - Contains key/value pairs where `key` will refer to the sub-event and value refers to `String`, `Function`, or `Array` to attach as event handlers. The sub-event will be prepended by the `event` with a `:`.
-
-#### Returns: Class instance.
 
 #### Examples
 The following will show what key/value pairs will look like and what they look like when attached manually instead of with connector.
@@ -757,13 +756,160 @@ currentClass.connect(targetClass[, oneWay]);
 
 ## Mixin: CustomAccessor
 ---
+A Utility Class. It provides a way to define custom setters/getters on a Class.
+### options.accessors
+---
+A key/value object where the key is the name of the setter and value is an object containing overriding set/get methods.
+
+#### Syntax: key/value pairs
+```javascript
+name: {
+    set: function,
+    get: function
+}
+```
+
+#### Arguments
+1. name - (String) Name of the set/get method that will get overriden
+2. object - (Object) Contains set, get method overrides.
+    * set - (Function) The overriding set function. The function will be bound to the current class.
+    * get - (Function) The overriding get function. The function will be bound to the current class. 
+
+### setupAccessors
+---
+Existing accessors in `_accessors` need to be decorated so they are merged with `options.accessors` before being sent to `setAccessor`.
+
+#### Syntax:
+```javascript
+currentClass.setupAccessors();
+```
+
+#### Returns: Class instance.
+
 ### isAccessing
 ---
+Check whether an accessor is being used by checking if `_accessorName` has been defined. This will allow a class to bypass recursive calls to the same custom setter/getter.
+
+#### Syntax:
+```javascript
+currentClass.isAccessing();
+```
+
+#### Returns: Boolean
+
 ### setAccessor
 ---
+A method to decorate custom setters/getters that will allow the use of `isAccessing` to prevent recursive calls to the same custom setter/getter.
+
+#### Syntax:
+```javascript
+currentClass.setAccessor(name, obj);
+
+currentClass.setAccessor(obj);
+```
+
+#### Arguments:
+* Two Arguments
+    1. name - (String) Name of the accessor setter/getter object.
+    2. obj - (Object) Key/value pairs where the `key` is `set` or `get` and `value` is the function. Any key/value pair is optional. A `set` can exists without a `get`, and a `get` can exist without a `set`.
+
+#### Returns: Class instance.
+
+#### Note: The original undecorated function is stored on the decorated function in the `_orig` attribute.
+
+#### Example:
+```javascript
+var klass = new Class({
+    Implements: CustomAccessor,
+
+    options: {
+        accessors: {
+            fullName: {
+                set: function(){}
+            }
+        }
+    }
+});
+
+var currentClass = new klass();
+
+var fullNameAccessor = currentClass.getAccessor('fullName');
+
+fullNameAccessor.set; // returns the decorated set function.
+
+fullNameAccessor.set._orig // is the undecorated original set function.
+```
+
 ### getAccessor
 ---
+A method to retrieve stored accessors by name or by name and type.
+
+#### Syntax:
+```javascript
+currentClass.getAccessor(name[, type]);
+```
+
+#### Arguments:
+1. name - (String) The name of the accessor object to return.
+2. type - (String, optional) The name of the method that exists in the accessor object.
+
+#### Returns:
+1. Object - The object of decoerated key/value pairs containing the accessors that was stored with the name.
+2. Function - The decorated function that is associated with the `type` in the accessor object. The accessor object is retrieved with the `name`.
+
+#### Examples:
+
+__Return an accessor object__
+
+```javascript
+currentClass.setAccessor('fullName', {
+    set: function(){}
+});
+
+var fullNameAccessors =  currentClass.getAccessor('fullName');
+/*
+fullNameAccessors returns and object where the set function is the decorated function
+{
+    set: function(){}
+}
+ */
+```
+
+__Return the decorated function in the accessor object__
+
+```javascript
+// Returns the decorated function that is stored with the set key, in the fullName accessor object.
+var fullNameSetAccessor = currentClass.getAccessor('fullName', 'set');
+```
+
 ### unsetAccessor
+---
+Remove an accessor object or decorated function from the accessor object.
+
+#### Syntax:
+```javascript
+currentClass.unsetAccessor(name[, type]);
+```
+
+#### Arguments:
+1. name - (String) The name of the accessor object to remove.
+2. type - (String, optional) The `key` of the function that should be removed from the accessor object.
+
+#### Returns: Class instance.
+
+#### Example
+
+__Remove an accessor object__
+
+```javascript
+currentClass.unsetAccessor('fullName');
+```
+
+__Remove a function from the accessor object__
+
+```javascript
+currentClass.unsetAccessor('fullName', 'set');
+```
 
 ## Mixin: Silent
 __Silent__ is a MooTools Class object without a constructor. It is used as a mixin for other Class objects, providing a solution to disable before a function executes, and re-enabling afterwards.
@@ -774,7 +920,7 @@ Checks if the Class is currently silent.
 
 #### Syntax:
 ```javascript
-class.isSilent();
+currentClass.isSilent();
 ```
 
 #### Returns: Boolean
@@ -785,7 +931,7 @@ Any method that can trigger an event can be temporarily disabled by passing the 
 
 #### Syntax:
 ```javascript
-class.silence(function);
+currentClass.silence(function);
 ```
 
 #### Arguments:
