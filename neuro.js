@@ -25,6 +25,19 @@
     },
     "2": function(require, module, exports, global) {
         var Is = require("3").Is, Silence = require("4").Silence, Connector = require("5").Connector, CustomAccessor = require("7").CustomAccessor;
+        var cloneVal = function(val) {
+            switch (typeOf(val)) {
+              case "array":
+                val = val.slice();
+                break;
+              case "object":
+                if (!val.$constructor || val.$constructor && !instanceOf(val.$constructor, Class)) {
+                    val = Object.clone(val);
+                }
+                break;
+            }
+            return val;
+        };
         var curryGetter = function(type) {
             var isPrevious = type == "_previousData" || void 0;
             return function(prop) {
@@ -41,18 +54,7 @@
             return function() {
                 var props = this.keys(), obj = {};
                 props.each(function(prop) {
-                    var val = this[type](prop);
-                    switch (typeOf(val)) {
-                      case "array":
-                        val = val.slice();
-                        break;
-                      case "object":
-                        if (!val.$constructor || val.$constructor && !instanceOf(val.$constructor, Class)) {
-                            val = Object.clone(val);
-                        }
-                        break;
-                    }
-                    obj[prop] = val;
+                    obj[prop] = cloneVal(this[type](prop));
                 }.bind(this));
                 return obj;
             };
@@ -61,7 +63,6 @@
             Implements: [ Connector, CustomAccessor, Events, Options, Silence ],
             primaryKey: undefined,
             _data: {},
-            _defaults: {},
             _changed: false,
             _changedProperties: {},
             _previousData: {},
@@ -80,9 +81,8 @@
                 this.setOptions(options);
                 this.primaryKey = this.options.primaryKey;
                 this.setupAccessors();
-                Object.merge(this._defaults, this.options.defaults);
                 this.silence(function() {
-                    this.set(this._defaults);
+                    this.set(this.options.defaults);
                 }.bind(this));
                 if (data) {
                     this.set(data);
@@ -96,18 +96,8 @@
                 }
                 var old = this.get(prop);
                 if (!Is.Equal(old, val)) {
-                    switch (typeOf(val)) {
-                      case "array":
-                        val = val.slice();
-                        break;
-                      case "object":
-                        if (!val.$constructor || val.$constructor && !instanceOf(val.$constructor, Class)) {
-                            val = Object.clone(val);
-                        }
-                        break;
-                    }
                     this._changed = true;
-                    this._data[prop] = this._changedProperties[prop] = val;
+                    this._data[prop] = this._changedProperties[prop] = cloneVal(val);
                 }
                 return this;
             }.overloadSetter(),
@@ -146,16 +136,16 @@
                 return this;
             },
             reset: function(prop) {
-                var props = {}, len, i = 0, item;
+                var props = {}, defaults = this.options.defaults, len, i = 0, item;
                 if (prop) {
                     prop = Array.from(prop);
                     len = prop.length;
                     while (len--) {
                         item = prop[i++];
-                        props[item] = this._defaults[item];
+                        props[item] = defaults[item];
                     }
                 } else {
-                    props = this._defaults;
+                    props = defaults;
                 }
                 this.set(props);
                 this.signalReset();
@@ -212,13 +202,13 @@
                 return this.getData();
             },
             spy: function(prop, callback) {
-                if (typeOf(prop) == "string" && prop in this._data && typeOf(callback) == "function") {
+                if (Type.isString(prop) && prop in this._data && Type.isFunction(callback)) {
                     this.addEvent("change:" + prop, callback);
                 }
                 return this;
             }.overloadSetter(),
             unspy: function(prop, callback) {
-                if (typeOf(prop) == "string" && prop in this._data) {
+                if (Type.isString(prop) && prop in this._data) {
                     this.removeEvents("change:" + prop, callback);
                 }
                 return this;
@@ -346,7 +336,7 @@
             _silent: 0,
             silence: function(fnc) {
                 this._silent++;
-                fnc();
+                fnc && fnc.call(this);
                 this._silent--;
                 return this;
             },
@@ -394,17 +384,20 @@
         };
         var curryConnection = function(str) {
             var methodStr = str == "connect" ? "addEvent" : "removeEvent";
-            return function(obj, twoWay) {
+            return function(obj, oneWay) {
                 if (obj && typeOf(obj[str]) == "function") {
                     var map = this.options.connector;
                     process.call(this, methodStr, map, obj);
-                    twoWay && obj[str](this, false);
+                    !oneWay && obj[str](this, true);
                 }
                 return this;
             };
         };
         var Connector = new Class({
             Implements: [ Class.Binds ],
+            options: {
+                connector: {}
+            },
             connect: curryConnection("connect"),
             disconnect: curryConnection("disconnect")
         });
