@@ -281,7 +281,7 @@ buster.testCase('Neuro Model', {
         model.set('a', 'rts');
 
         model.silence(function(){
-            model.set('b', {});
+            this.set('b', {});
         });
 
         assert.equals(model.get('a'), 'rts');
@@ -479,11 +479,10 @@ buster.testCase('Neuro Model', {
                 }
             },
 
-            'should optionally connect both objects': function(){
+            'should connect both objects by default': function(){
                 var model1, model2,
                     destroySpy = this.spy(),
-                    setSpy = this.spy()
-                    twoWayConnect = true;
+                    setSpy = this.spy();
 
                 model1 = model1 = new this.connectorTestModel({id: 1}, {
                     connector: {
@@ -501,17 +500,56 @@ buster.testCase('Neuro Model', {
                     }
                 });
 
-                model1.connect(model2, twoWayConnect);
+                model1.connect(model2);
 
                 model1.addEvent('destroy', destroySpy);
 
                 model2.addEvent('change:name', setSpy);
 
+                // should trigger model2's set method
                 model1.set('name', 'Garrick');
-                model2.destroy();
-
-                assert.calledOnceWith(destroySpy, model1);
                 assert.calledOnceWith(setSpy, model2, 'name', 'Garrick', undefined);
+
+                // should trigger model1's destroy method
+                model2.destroy();
+                assert.calledOnceWith(destroySpy, model1);
+            },
+
+            'should connect only one object optionally': function(){
+                var model1, model2,
+                    destroySpy = this.spy(),
+                    setSpy = this.spy(),
+                    oneWayConnect = true;
+
+                model1 = model1 = new this.connectorTestModel({id: 1}, {
+                    connector: {
+                        'change': {
+                            'name': function(model, prop, val){
+                                model2.set(prop, val);
+                            }
+                        }
+                    }
+                });
+
+                model2 = new this.connectorTestModel({id: 2}, {
+                    connector: {
+                        'destroy': 'destroy'
+                    }
+                });
+
+                model1.connect(model2, oneWayConnect);
+
+                model1.addEvent('destroy', destroySpy);
+
+                model2.addEvent('change:name', setSpy);
+
+                // should trigger model2's set method
+                model1.set('name', 'Garrick');
+                assert.calledOnceWith(setSpy, model2, 'name', 'Garrick', undefined);
+
+                // should not trigger model1's destroy method
+                model2.destroy();
+                refute.calledOnceWith(destroySpy, model1);
             },
 
             'should optionally disconnect both objects': function(){
