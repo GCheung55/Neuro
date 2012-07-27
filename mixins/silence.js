@@ -6,7 +6,7 @@ var Silence = new Class({
 
     silence: function(fnc){
         this._silent++;
-        fnc();
+        fnc && fnc.call(this);
         this._silent--;
 
         return this;
@@ -14,7 +14,7 @@ var Silence = new Class({
 
     isSilent: function(){
         return !!this._silent;
-    },
+    }
 });
 
 exports.Silence = Silence;
