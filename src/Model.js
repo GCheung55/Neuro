@@ -386,6 +386,28 @@ var Model = new Class({
         }
 
         return this;
+    }.overloadSetter(),
+
+    setAccessor: function(name, val){
+        var set;
+
+        if (name && val) {
+            
+            /**
+             * Create a getPrevious method that is the get method,
+             * but passed a true arg to signify it should access _previousData
+             * while the get method gets passed a false value to signify it
+             * should access _data.
+             */
+            if (val.get && !val.getPrevious) {
+                val.getPrevious = val.get;
+            }
+
+            // Kind of hack because implementing a class only copies the methods.
+            CustomAccessor.prototype.setAccessor.call(this, name, val);
+        }
+
+        return this;
     }.overloadSetter()
 });
 

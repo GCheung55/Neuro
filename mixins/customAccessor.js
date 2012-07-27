@@ -62,44 +62,23 @@ var CustomAccessor = new Class({
         return value;
     },
 
-    setAccessor: function(name, val){
-        var accessors = {},
-            cont = Object.keys(val).some(accessTypes.contains, accessTypes);
+    setAccessor: function(name, obj){
+        var accessors = {};
 
-        if (!!name && cont) {
-
-            /**
-             * Create a getPrevious method that is the get method,
-             * but passed a true arg to signify it should access _previousData
-             * while the get method gets passed a false value to signify it
-             * should access _data.
-             */
-            if (val.get && !val.getPrevious) {
-                val.getPrevious = val.get;
-            }
-
-            if (val.set) {
-                accessors.set = function(a, b){
-                    return this._processAccess(name, val.set.bind(this, a, b));
-                }.bind(this);
-
-                accessors.set._orig = val.set;
-            }
+        if (!!name && Type.isObject(obj)) {
 
             /**
-             * Loop through the 'get' types to define accessors functions if
-             * it doesn't already exist on the accessors object.
-             *
-             * The bool is passed to the method regardless of whether a get or
-             * getPrevious method existed for consistency.
+             * Decorate the functions in obj so that it will be easy to prevent
+             * recursive calls to itself because the decorated function tracks
+             * the name is.
              */
-            Object.each(getMap, function(bool, type) {
-                if (val[type] && !accessors[type]) {
+            Object.each(obj, function(fnc, type) {
+                if (fnc && !accessors[type]) {
                     accessors[type] = function(){
-                        return this._processAccess(name, val[type].bind(this, bool));
+                        return this._processAccess(name, fnc.pass(arguments, this));
                     }.bind(this);
 
-                    accessors[type]._orig = val[type];
+                    accessors[type]._orig = fnc;
                 }
             }, this);
 

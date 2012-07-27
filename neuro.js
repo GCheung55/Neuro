@@ -212,6 +212,16 @@
                     this.removeEvents("change:" + prop, callback);
                 }
                 return this;
+            }.overloadSetter(),
+            setAccessor: function(name, val) {
+                var set;
+                if (name && val) {
+                    if (val.get && !val.getPrevious) {
+                        val.getPrevious = val.get;
+                    }
+                    CustomAccessor.prototype.setAccessor.call(this, name, val);
+                }
+                return this;
             }.overloadSetter()
         });
         [ "each", "subset", "map", "filter", "every", "some", "keys", "values", "getLength", "keyOf", "contains", "toQueryString" ].each(function(method) {
@@ -438,24 +448,15 @@
                 }
                 return value;
             },
-            setAccessor: function(name, val) {
-                var accessors = {}, cont = Object.keys(val).some(accessTypes.contains, accessTypes);
-                if (!!name && cont) {
-                    if (val.get && !val.getPrevious) {
-                        val.getPrevious = val.get;
-                    }
-                    if (val.set) {
-                        accessors.set = function(a, b) {
-                            return this._processAccess(name, val.set.bind(this, a, b));
-                        }.bind(this);
-                        accessors.set._orig = val.set;
-                    }
-                    Object.each(getMap, function(bool, type) {
-                        if (val[type] && !accessors[type]) {
+            setAccessor: function(name, obj) {
+                var accessors = {};
+                if (!!name && Type.isObject(obj)) {
+                    Object.each(obj, function(fnc, type) {
+                        if (fnc && !accessors[type]) {
                             accessors[type] = function() {
-                                return this._processAccess(name, val[type].bind(this, bool));
+                                return this._processAccess(name, fnc.pass(arguments, this));
                             }.bind(this);
-                            accessors[type]._orig = val[type];
+                            accessors[type]._orig = fnc;
                         }
                     }, this);
                     this._accessors[name] = accessors;
