@@ -360,7 +360,7 @@
         require("6");
         var processFn = function(type, evt, fn, obj) {
             if (type == "string") {
-                fn = obj[fn] ? obj.bound(fn) : undefined;
+                fn = obj && obj[fn] ? obj.bound(fn) : undefined;
             }
             return fn;
         };
@@ -395,11 +395,9 @@
         var curryConnection = function(str) {
             var methodStr = str == "connect" ? "addEvent" : "removeEvent";
             return function(obj, oneWay) {
-                if (obj && typeOf(obj[str]) == "function") {
-                    var map = this.options.connector;
-                    process.call(this, methodStr, map, obj);
-                    !oneWay && obj[str](this, true);
-                }
+                var map = this.options.connector;
+                process.call(this, methodStr, map, obj);
+                !oneWay && obj && obj[str](this, true);
                 return this;
             };
         };
@@ -471,11 +469,13 @@
                 return accessors;
             },
             unsetAccessor: function(name, type) {
-                if (name && type) {
-                    delete this._accessors[name][type];
-                } else {
-                    delete this._accessors[name];
-                    this._accessors[name] = undefined;
+                if (name) {
+                    if (type) {
+                        delete this._accessors[name][type];
+                    } else {
+                        delete this._accessors[name];
+                        this._accessors[name] = undefined;
+                    }
                 }
                 return this;
             }
