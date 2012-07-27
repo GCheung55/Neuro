@@ -241,6 +241,14 @@
             <ul>
               
                 <li>
+                  <a href="#mixin-customaccessor/options-accessors">options.accessors</a>
+                </li>
+              
+                <li>
+                  <a href="#mixin-customaccessor/setupaccessors">setupAccessors</a>
+                </li>
+              
+                <li>
                   <a href="#mixin-customaccessor/isaccessing">isAccessing</a>
                 </li>
               
@@ -338,11 +346,11 @@
 
 </p>
 <p><strong>Implements:</strong>
-<em> Connector
-</em> CustomAccessor
-<em> Events
-</em> Options
-* Silence
+<em> <a href="#mixin-connector">Mixin: Connector</a>
+</em> <a href="#mixin-customaccessor">Mixin: CustomAccessor</a>
+<em> <a href="#mixin-events">Mixin: Events</a>
+</em> <a href="#mixin-options">Mixin: Options</a>
+* <a href="#mixin-silence">Mixin: Silence</a>
 
 </p>
 <h3 id="neuro-model/constructor-initialize">constructor (initialize)</h3>
@@ -968,7 +976,8 @@ myWidget.show(); <span class="comment">// fires the event and alerts 'Lets show 
 
 </p>
 <h3 id="mixin-connector/options-connector">options.connector</h3>
-<p>An key/value object to map events to functions or method names on the target class that will be connected with. The value can also be an object that contains more key/value pairs. This allows to attach sub-events, such as <code>change:key</code>. <strong>Note:</strong> An asterisk (*) as the sub-event refers to the parent event only.
+<hr />
+<p>A key/value object to map events to functions or method names on the target class that will be connected with. The value can also be an object that contains more key/value pairs. This allows to attach sub-events, such as <code>change:key</code>. <strong>Note:</strong> An asterisk (*) as the sub-event refers to the parent event only.
 
 </p>
 <h4>Syntax: key/value pairs</h4>
@@ -984,7 +993,6 @@ myWidget.show(); <span class="comment">// fires the event and alerts 'Lets show 
 </ul>
 </li>
 </ol>
-<h4>Returns: Class instance.</h4>
 <h4>Examples</h4>
 <p>The following will show what key/value pairs will look like and what they look like when attached manually instead of with connector.
 
@@ -1037,13 +1045,141 @@ currentClass.addEvent(<span class="string">'age'</span>, <span class="function">
 <hr />
 <h2 id="mixin-customaccessor">Mixin: CustomAccessor</h2>
 <hr />
+<p>A Utility Class. It provides a way to define custom setters/getters on a Class.
+</p>
+<h3 id="mixin-customaccessor/options-accessors">options.accessors</h3>
+<hr />
+<p>A key/value object where the key is the name of the setter and value is an object containing overriding set/get methods.
+
+</p>
+<h4>Syntax: key/value pairs</h4>
+<pre><code class="javascript">name: {
+    set: function,
+    get: function
+}</code></pre>
+<h4>Arguments</h4>
+<ol>
+<li>name - (String) Name of the set/get method that will get overriden</li>
+<li>object - (Object) Contains set, get method overrides.<ul>
+<li>set - (Function) The overriding set function. The function will be bound to the current class.</li>
+<li>get - (Function) The overriding get function. The function will be bound to the current class. </li>
+</ul>
+</li>
+</ol>
+<h3 id="mixin-customaccessor/setupaccessors">setupAccessors</h3>
+<hr />
+<p>Existing accessors in <code>_accessors</code> need to be decorated so they are merged with <code>options.accessors</code> before being sent to <code>setAccessor</code>.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentClass.setupAccessors();</code></pre>
+<h4>Returns: Class instance.</h4>
 <h3 id="mixin-customaccessor/isaccessing">isAccessing</h3>
 <hr />
+<p>Check whether an accessor is being used by checking if <code>_accessorName</code> has been defined. This will allow a class to bypass recursive calls to the same custom setter/getter.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentClass.isAccessing();</code></pre>
+<h4>Returns: Boolean</h4>
 <h3 id="mixin-customaccessor/setaccessor">setAccessor</h3>
 <hr />
+<p>A method to decorate custom setters/getters that will allow the use of <code>isAccessing</code> to prevent recursive calls to the same custom setter/getter.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentClass.setAccessor(name, obj);
+
+currentClass.setAccessor(obj);</code></pre>
+<h4>Arguments:</h4>
+<ul>
+<li>Two Arguments<ol>
+<li>name - (String) Name of the accessor setter/getter object.</li>
+<li>obj - (Object) Key/value pairs where the <code>key</code> is <code>set</code> or <code>get</code> and <code>value</code> is the function. Any key/value pair is optional. A <code>set</code> can exists without a <code>get</code>, and a <code>get</code> can exist without a <code>set</code>.</li>
+</ol>
+</li>
+</ul>
+<h4>Returns: Class instance.</h4>
+<h4>Note: The original undecorated function is stored on the decorated function in the <code>_orig</code> attribute.</h4>
+<h4>Example:</h4>
+<pre><code class="javascript"><span class="keyword">var</span> klass = <span class="keyword">new</span> Class({
+    Implements: CustomAccessor,
+
+    options: {
+        accessors: {
+            fullName: {
+                set: <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>}
+            }
+        }
+    }
+});
+
+<span class="keyword">var</span> currentClass = <span class="keyword">new</span> klass();
+
+<span class="keyword">var</span> fullNameAccessor = currentClass.getAccessor(<span class="string">'fullName'</span>);
+
+fullNameAccessor.set; <span class="comment">// returns the decorated set function.</span>
+
+fullNameAccessor.set._orig <span class="comment">// is the undecorated original set function.</span></code></pre>
 <h3 id="mixin-customaccessor/getaccessor">getAccessor</h3>
 <hr />
+<p>A method to retrieve stored accessors by name or by name and type.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentClass.getAccessor(name[, type]);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>name - (String) The name of the accessor object to return.</li>
+<li>type - (String, optional) The name of the method that exists in the accessor object.</li>
+</ol>
+<h4>Returns:</h4>
+<ol>
+<li>Object - The object of decoerated key/value pairs containing the accessors that was stored with the name.</li>
+<li>Function - The decorated function that is associated with the <code>type</code> in the accessor object. The accessor object is retrieved with the <code>name</code>.</li>
+</ol>
+<h4>Examples:</h4>
+<p><strong>Return an accessor object</strong>
+
+</p>
+<pre><code class="javascript">currentClass.setAccessor(<span class="string">'fullName'</span>, {
+    set: <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>}
+});
+
+<span class="keyword">var</span> fullNameAccessors =  currentClass.getAccessor(<span class="string">'fullName'</span>);
+<span class="comment">/*
+fullNameAccessors returns and object where the set function is the decorated function
+{
+    set: function(){}
+}
+ */</span></code></pre>
+<p><strong>Return the decorated function in the accessor object</strong>
+
+</p>
+<pre><code class="javascript"><span class="comment">// Returns the decorated function that is stored with the set key, in the fullName accessor object.</span>
+<span class="keyword">var</span> fullNameSetAccessor = currentClass.getAccessor(<span class="string">'fullName'</span>, <span class="string">'set'</span>);</code></pre>
 <h3 id="mixin-customaccessor/unsetaccessor">unsetAccessor</h3>
+<hr />
+<p>Remove an accessor object or decorated function from the accessor object.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentClass.unsetAccessor(name[, type]);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>name - (String) The name of the accessor object to remove.</li>
+<li>type - (String, optional) The <code>key</code> of the function that should be removed from the accessor object.</li>
+</ol>
+<h4>Returns: Class instance.</h4>
+<h4>Example</h4>
+<p><strong>Remove an accessor object</strong>
+
+</p>
+<pre><code class="javascript">currentClass.unsetAccessor(<span class="string">'fullName'</span>);</code></pre>
+<p><strong>Remove a function from the accessor object</strong>
+
+</p>
+<pre><code class="javascript">currentClass.unsetAccessor(<span class="string">'fullName'</span>, <span class="string">'set'</span>);</code></pre>
 <h2 id="mixin-silent">Mixin: Silent</h2>
 <p><strong>Silent</strong> is a MooTools Class object without a constructor. It is used as a mixin for other Class objects, providing a solution to disable before a function executes, and re-enabling afterwards.
 
@@ -1054,7 +1190,7 @@ currentClass.addEvent(<span class="string">'age'</span>, <span class="function">
 
 </p>
 <h4>Syntax:</h4>
-<pre><code class="javascript">class.isSilent();</code></pre>
+<pre><code class="javascript">currentClass.isSilent();</code></pre>
 <h4>Returns: Boolean</h4>
 <h3 id="mixin-silent/silence">silence</h3>
 <hr />
@@ -1062,7 +1198,7 @@ currentClass.addEvent(<span class="string">'age'</span>, <span class="function">
 
 </p>
 <h4>Syntax:</h4>
-<pre><code class="javascript">class.silence(function);</code></pre>
+<pre><code class="javascript">currentClass.silence(function);</code></pre>
 <h4>Arguments:</h4>
 <ol>
 <li>function - (Function) The function that will be executed once events have been prevented. The function is bound to the model instance before execution.</li>
