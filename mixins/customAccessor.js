@@ -99,11 +99,13 @@ var CustomAccessor = new Class({
     },
 
     unsetAccessor: function(name, type){
-        if (name && type) {
-            delete this._accessors[name][type];
-        } else {
-            delete this._accessors[name];
-            this._accessors[name] = undefined;
+        if (name) {
+            if (type) {
+                delete this._accessors[name][type];
+            } else {
+                delete this._accessors[name];
+                this._accessors[name] = undefined;
+            }
         }
 
         return this;
