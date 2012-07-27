@@ -59,17 +59,20 @@ var process = function(methodStr, map, obj){
 var curryConnection = function(str){
     var methodStr = str == 'connect' ? 'addEvent' : 'removeEvent';
 
-    return function(obj, twoWay){
+    return function(obj, oneWay){
         if (obj && typeOf(obj[str]) == 'function') {
             var map = this.options.connector;
 
             process.call(this, methodStr, map, obj);
 
-            // Connecting is a two way street. Connect/disconnect
-            // will first connect/disconnect 'this' with obj's methods. Next
-            // it will attempt to connect/disconnect obj with 'this' methods
-            // hasConnected will prevent a loop.
-            twoWay && obj[str](this, false);
+            /**
+             * Connecting is a two way street. Connect/disconnect will
+             * first connect/disconnect 'this' with obj's methods. 
+             * Next it will attempt to connect/disconnect obj with 'this' methods
+             *
+             * oneWay will prevent a loop.
+             */
+            !oneWay && obj[str](this, true);
         }
 
         return this;
@@ -79,27 +82,37 @@ var curryConnection = function(str){
 var Connector = new Class({
     Implements: [Class.Binds],
 
-    // options: {
-    //     connector: {
-    //         'thisEvent': 'otherObjMethod',
-    //         model
-    //         'change': 'someMethodName'
-    //         'change': function(){},
-    //         'change': {
-    //             '*': 'updateAll',
-    //             'name': 'updateName',
-    //             'age': function(){}
-    //         },
-    //         'change': {
-    //              '*': ['someMethod', 'someOtherMethod'],
-    //              'name': ['updateName', 'updateFullName']
-    //         },
-    //         'change': [{'*': ['someMethod']}, {'*': ['someOtherMethod']}],
-    //     }
-    // },
+    options: {
+        connector: {
+            // 'thisEvent': 'otherObjMethod',
+            // model
+            // 'change': 'someMethodName'
+            // 'change': function(){},
+            // 'change': {
+            //     '*': 'updateAll',
+            //     'name': 'updateName',
+            //     'age': function(){}
+            // },
+            // 'change': {
+            //      '*': ['someMethod', 'someOtherMethod'],
+            //      'name': ['updateName', 'updateFullName']
+            // },
+            // 'change': [{'*': ['someMethod']}, {'*': ['someOtherMethod']}],
+        }
+    },
 
+    /**
+     * Connect two objects. Two way connect by default. One way connect optional
+     * @var obj {Class} The Class to connect with.
+     * @var oneWay {Boolean} Optional argument to disable two way connecting.
+     */
     connect: curryConnection('connect'),
 
+    /**
+     * Disconnect two objects. Two way connect by default. One way connect optional
+     * @var obj {Class} The Class to connect with.
+     * @var oneWay {Boolean} Optional argument to disable two way connecting.
+     */
     disconnect: curryConnection('disconnect')
 });
 
