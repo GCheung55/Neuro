@@ -169,6 +169,99 @@
         </li>
       
         <li>
+          <a href="#neuro-collection">Neuro Collection</a>
+          
+            <ul>
+              
+                <li>
+                  <a href="#neuro-collection/constructor-initialize">constructor (initialize)</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/hasmodel">hasModel</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/add">add</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/get">get</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/remove">remove</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/replace">replace</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/sort">sort</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/reverse">reverse</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/empty">empty</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/tojson">toJSON</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/addevent">addEvent</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/addevents">addEvents</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/removeevent">removeEvent</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/removeevents">removeEvents</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/fireevent">fireEvent</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/setoptions">setOptions</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/connect">connect</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/disconnect">disconnect</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/issilent">isSilent</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/silence">silence</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/mootools-core-array-methods">MooTools-Core Array Methods</a>
+                </li>
+              
+            </ul>
+          
+        </li>
+      
+        <li>
           <a href="#mixin-events">Mixin: Events</a>
           
             <ul>
@@ -342,17 +435,17 @@
 <li><a href="http://github.com/gcheung55/neuro-company">Neuro-Company</a> - Extends Neuro with an Observer API</li>
 </ul>
 <h2 id="neuro-model">Neuro Model</h2>
-<p>The <strong>Model</strong> is a MooTools Class object that provides a basic API to interact with data. You can use Model by itself or extend other Class objects with it.
+<p>The <strong>Model</strong> is a Object-like MooTools Class object that provides a basic API to interact with data. You can use Model by itself or extend other Class objects with it. It implements <code>each</code>, <code>filter</code>, and other convenient methods from <code>Object</code>.
 
 </p>
-<p><strong>Implements:</strong>
-<em> <a href="#mixin-connector">Mixin: Connector</a>
-</em> <a href="#mixin-customaccessor">Mixin: CustomAccessor</a>
-<em> <a href="#mixin-events">Mixin: Events</a>
-</em> <a href="#mixin-options">Mixin: Options</a>
-* <a href="#mixin-silence">Mixin: Silence</a>
-
-</p>
+<h4>Implements:</h4>
+<ul>
+<li><a href="#mixin-connector">Mixin: Connector</a></li>
+<li><a href="#mixin-customaccessor">Mixin: CustomAccessor</a></li>
+<li><a href="#mixin-events">Mixin: Events</a></li>
+<li><a href="#mixin-options">Mixin: Options</a></li>
+<li><a href="#mixin-silence">Mixin: Silence</a></li>
+</ul>
 <h3 id="neuro-model/constructor-initialize">constructor (initialize)</h3>
 <hr />
 <h4>Syntax:</h4>
@@ -736,6 +829,299 @@ model.getLength();
 model.keyOf(property);
 model.contains(value);
 model.toQueryString();</code></pre>
+<h2 id="neuro-collection">Neuro Collection</h2>
+<p>The <strong>Collection</strong> is an Array-like MooTools Class object that provides a basic API to interact with multiple <strong>Models</strong>. You can use <strong>Collection</strong> by itself or extend other Class objects with it. It contains a reference to a <strong>Model</strong> Class to create a model instance when adding a data <code>Object</code>. The reference <strong>Model</strong> Class can be optionally replaced by a different Class that extends from <strong>Model</strong>. It implements <code>each</code>, <code>filter</code>, and some other convenient methods from <code>Array</code>.
+
+</p>
+<h4>Implements:</h4>
+<ul>
+<li><a href="#mixin-connector">Mixin: Connector</a></li>
+<li><a href="#mixin-events">Mixin: Events</a></li>
+<li><a href="#mixin-options">Mixin: Options</a></li>
+<li><a href="#mixin-silence">Mixin: Silence</a></li>
+</ul>
+<h3 id="neuro-collection/constructor-initialize">constructor (initialize)</h3>
+<hr />
+<h4>Syntax:</h4>
+<pre><code class="javascript"><span class="keyword">var</span> collection = <span class="keyword">new</span> Neuro.Collection(data [, options]);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li><code>data</code> - (Mixed, optional)<ul>
+<li>Model - A <code>Model</code> instance</li>
+<li>Object - An object of key/value pairs that will be used to create a model instance</li>
+<li>Array - An array of Model instances or object key/value pairs</li>
+</ul>
+</li>
+<li><code>options</code> - (Object, optional) The Model options<ul>
+<li>primaryKey - (String) Define to uniquely identify a model in a collection</li>
+<li>Model - (Model, defaults to undefined) The <code>Model</code> Class used to create model instances from when an <code>Object</code> is passed to <code>add</code>.</li>
+<li>modelOptions - (Object, defaults to undefined) An <code>Object</code> containing options for creating new model instances. See <a href="#neuro-model">Neuro Model</a></li>
+<li>connector - (Object) See <a href="#mixin-connector">Mixin: Connector</a></li>
+</ul>
+</li>
+</ol>
+<h4>Returns: Class instance.</h4>
+<h4>Events:</h4>
+<ul>
+<li><code>add</code> - Triggered when a model is added to the collection.
+  <code>function(collection, model){}</code></li>
+<li><code>remove</code> - Triggered when a specific model is removed from the collection.
+  <code>function(collection, model){}</code></li>
+<li><code>empty</code> - Triggered when the collection is emptied of all models.
+  <code>function(collection){}</code></li>
+<li><code>sort</code> - Triggered when <code>sort</code> or <code>reverse</code> occurs.
+  <code>function(collection){}</code></li>
+</ul>
+<h4>Notes:</h4>
+<ul>
+<li>Method names and properties prefixed with <code>_</code> is considered private and should not be used or directly interacted with.</li>
+<li>A default model is defined in the <code>Collection</code> Class as the <code>_Model</code> property. It can be overriden by <code>options.Model</code> or when a Class extends from <code>Collection</code> and defines a different <code>_Model</code> property.</li>
+<li>Define <code>options.primaryKey</code> to better identify model instances, such as checking if the collection <code>hasModel</code>.</li>
+</ul>
+<h4>Returns: Model instance.</h4>
+<h3 id="neuro-collection/hasmodel">hasModel</h3>
+<hr />
+<p>Checks if the collection instance contains a model by checking if the model exists in the <code>_models</code> array or using <code>options.primaryKey</code> to compare models.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentCollection.hasModel(model);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>model - (Object | Model) An <code>Object</code> or <code>Model</code> instance that is used to compare with existing models in the collection. <code>options.primaryKey</code> will be used to compare against the models if an initial use of <code>Array.contains</code> returns <code>false</code>.</li>
+</ol>
+<h4>Returns: Boolean.</h4>
+<h3 id="neuro-collection/add">add</h3>
+<hr />
+<p>Adding a model to the collection should always go through this method. It appends the model to the internal <code>_model</code> array and triggers the <code>add</code> event if the collection does not already contain the model. If an <code>Object</code> is passed in, the <code>Object</code> will be converted to a model instance before being appended to <code>_model</code>. Adding a model will increase the collections <code>length</code> property. It is possible to insert a model instance into <code>_model</code> at a specific index by passing a second argument to <code>add</code>. A <code>remove</code> method is attached to the models <code>destroy</code> event so that the model can be properly removed if the model <code>destroy</code> event is triggered.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentCollection.add(models, at);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>models - (Object | Model | Array)<ul>
+<li>Object - An <code>Object</code> with key/value pairs of data properties. It will be converted to a <code>Model</code> instance before adding to <code>_model</code>.</li>
+<li>Model - A <code>Model</code> instance.</li>
+<li>Array - An <code>Array</code> that contain a mix of <code>Object</code> and <code>Model</code> instances.</li>
+</ul>
+</li>
+<li>at - (Number, optional) The index to insert the model in the <code>_model</code> array. If the collection is empty, <code>at</code> is ignored and and the model is inserted as the first item in the array.</li>
+</ol>
+<h4>Returns: Class instance.</h4>
+<h4>Triggered Events:</h4>
+<ul>
+<li><code>add</code></li>
+</ul>
+<h4>Examples:</h4>
+<pre><code class="javascript">currentCollection.add({
+    id: <span class="number">1</span>, name: <span class="string">'Bruce Lee'</span>
+}, <span class="number">2</span>);
+
+currentCollection.add( <span class="keyword">new</span> Neuro.Model({id: <span class="number">1</span>, name: <span class="string">'Bruce Lee'</span>}) );
+
+currentCollection.add(
+    [
+        {id: <span class="number">1</span>, name: <span class="string">'Bruce Lee'</span>}, 
+        <span class="keyword">new</span> Neuro.Model({id: <span class="number">1</span>, name: <span class="string">'Chuck Norris'</span>})
+    ]
+);</code></pre>
+<h3 id="neuro-collection/get">get</h3>
+<hr />
+<p>Get the model by index. Multiple indexes can be passed to get to retrieve multiple models.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentCollection.get(index);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>index - (Number) The index number of the model to return.</li>
+</ol>
+<h4>Returns: A model instance corresponding to the index in <code>_model</code>. If multiple indexes are passed to <code>get</code>, an <code>Array</code> of models is returned, where each model corresponds to the index.</h4>
+<h4>Examples:</h4>
+<pre><code class="javascript">currentCollection.get(<span class="number">0</span>); <span class="comment">// returns the model instance that corresponds to the index argument</span>
+
+currentCollection.get(<span class="number">0</span>, <span class="number">2</span>, <span class="number">3</span>); <span class="comment">// returns an array of model instances where each model corresponds to each index argument</span></code></pre>
+<h3 id="neuro-collection/remove">remove</h3>
+<hr />
+<p>Remove a model or models from the collection. It will trigger the <code>remove</code> event for each individual model removed. The collection should remove the model only if it exists on the collection. Removing the model from the collection will also remove the <code>remove</code> method from the models <code>destroy</code> event.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentCollection.remove(model);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>model - (Model | Array) A model or array of models that will be removed from <code>_model</code>.</li>
+</ol>
+<h4>Returns: Class instance.</h4>
+<h4>Triggered Events:</h4>
+<ul>
+<li><code>remove</code></li>
+</ul>
+<h4>Examples:</h4>
+<pre><code class="javascript"><span class="keyword">var</span> model = <span class="keyword">new</span> Neuro.Model({id: <span class="number">1</span>, name: <span class="string">'Garrick'</span>});
+
+currentCollection.add(model);
+
+currentCollection.remove(model);
+
+<span class="comment">//or</span>
+
+currentCollection.remove([model]); <span class="comment">// remove an array of models.</span></code></pre>
+<h3 id="neuro-collection/replace">replace</h3>
+<hr />
+<p>Replace an existing model in the collection with a new one if the old model exists and the new model does not exist in the collection <code>_model</code> array. This will trigger <code>add</code> and <code>remove</code> events.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentCollection.replace(oldModel, newModel);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>oldModel (Model) - The model that will be replaced in the collection.</li>
+<li>newModel (Object | Model) - The new model that will be replacing the old one.</li>
+</ol>
+<h4>Returns: Class instance.</h4>
+<h4>Triggered Events:</h4>
+<ul>
+<li><code>add</code></li>
+<li><code>remove</code></li>
+</ul>
+<h3 id="neuro-collection/sort">sort</h3>
+<hr />
+<p>Sort the collection. Works the same way <code>[Array.sort](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/sort)</code> would work. Triggers <code>sort</code> event.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentCollection.sort(function);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>function - (Function, optional) The function acts as a comparator. Please see <code>[Array.sort](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/sort)</code> for more information.</li>
+</ol>
+<h4>Returns: Class instance.</h4>
+<h4>Triggered Events:</h4>
+<ul>
+<li><code>sort</code></li>
+</ul>
+<h4>Examples:</h4>
+<pre><code class="javascript"><span class="comment">// Sorts models ordered by id, where id is a number.</span>
+<span class="comment">// This function sorts the order from smallest to largest number.</span>
+
+currentCollection.sort(<span class="function"><span class="keyword">function</span><span class="params">(modelA, modelB)</span>{</span>
+    <span class="keyword">return</span> modelA.get(<span class="string">'id'</span>) - modelB.get(<span class="string">'id'</span>);
+});</code></pre>
+<h3 id="neuro-collection/reverse">reverse</h3>
+<hr />
+<p>Reverses the order of the collection. Works the same way <code>[Array.reverse](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/reverse)</code> would work. Triggers <code>sort</code> event.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentCollection.reverse();</code></pre>
+<h4>Returns: Class instance.</h4>
+<h4>Triggered Events:</h4>
+<ul>
+<li><code>sort</code></li>
+</ul>
+<h3 id="neuro-collection/empty">empty</h3>
+<hr />
+<p>Empty the collection of all models. Triggers the <code>empty</code> event and <code>remove</code> event for each model removed.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentCollection.empty();</code></pre>
+<h4>Returns: Class instance.</h4>
+<h4>Triggered Events:</h4>
+<ul>
+<li><code>remove</code> for each model removed</li>
+<li><code>empty</code></li>
+</ul>
+<h3 id="neuro-collection/tojson">toJSON</h3>
+<hr />
+<p>Returns a copy of collection <code>_model</code>. Can be used for persistence, serialization, or augmentation before passing over to another object. <code>JSON.stringify</code> uses this to to create a JSON string, though the method itself does not return a String.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentCollection.toJSON();</code></pre>
+<h4>Returns: Object containing the collection <code>_model</code>.</h4>
+<h3 id="neuro-collection/addevent">addEvent</h3>
+<hr />
+<p>see <a href="#mixin-events">Mixin: Events</a>
+</p>
+<h3 id="neuro-collection/addevents">addEvents</h3>
+<hr />
+<p>see <a href="#mixin-events">Mixin: Events</a>
+</p>
+<h3 id="neuro-collection/removeevent">removeEvent</h3>
+<hr />
+<p>see <a href="#mixin-events">Mixin: Events</a>
+</p>
+<h3 id="neuro-collection/removeevents">removeEvents</h3>
+<hr />
+<p>see <a href="#mixin-events">Mixin: Events</a>
+</p>
+<h3 id="neuro-collection/fireevent">fireEvent</h3>
+<hr />
+<p>see <a href="#mixin-events">Mixin: Events</a>
+</p>
+<h3 id="neuro-collection/setoptions">setOptions</h3>
+<hr />
+<p>see <a href="#mixin-options">Mixin: Options</a>
+</p>
+<h3 id="neuro-collection/connect">connect</h3>
+<hr />
+<p>see <a href="#mixin-connector">Mixin: Connector</a>
+</p>
+<h3 id="neuro-collection/disconnect">disconnect</h3>
+<hr />
+<p>see <a href="#mixin-connector">Mixin: Connector</a>
+</p>
+<h3 id="neuro-collection/issilent">isSilent</h3>
+<hr />
+<p>see <a href="#mixin-silent">Mixin: Silent</a>
+</p>
+<h3 id="neuro-collection/silence">silence</h3>
+<hr />
+<p>see <a href="#mixin-silent">Mixin: Silent</a>
+
+</p>
+<h3 id="neuro-collection/mootools-core-array-methods">MooTools-Core Array Methods</h3>
+<hr />
+<p>The following methods have been implemented from MooTools-Core Array onto Neuro Collection. They take the same arguments as their Object counterparts with the exception of having to pass the collection as the object to be acted upon.
+
+</p>
+<ul>
+<li><code>forEach</code></li>
+<li><code>each</code></li>
+<li><code>invoke</code></li>
+<li><code>every</code></li>
+<li><code>filter</code></li>
+<li><code>clean</code></li>
+<li><code>indexOf</code></li>
+<li><code>map</code></li>
+<li><code>some</code></li>
+<li><code>associate</code></li>
+<li><code>link</code></li>
+<li><code>contains</code></li>
+<li><code>getLast</code></li>
+<li><code>getRandom</code></li>
+<li><code>flatten</code></li>
+<li><code>pick</code></li>
+</ul>
+<pre><code class="javascript">collection.forEach(function[, bind]);
+collection.each(function[, bind]);
+collection.invoke(method[, arg, arg, arg ...]);
+collection.every(function[, bind]);
+collection.filter(function[, bind]);
+collection.clean();
+collection.indexOf(item[, from]);
+collection.map(function[, bind]);
+collection.some(function[, bind]);
+collection.associate(object);
+collection.link(object);
+collection.contains(item[, from]);
+collection.getLast();
+collection.getRandom();
+collection.flatten();
+collection.pick();</code></pre>
 <h2 id="mixin-events">Mixin: Events</h2>
 <hr />
 <p><strong>From MooTools Documentation:</strong>
