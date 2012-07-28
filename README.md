@@ -28,9 +28,9 @@ __Extensions:__
 * [Neuro-Company](http://github.com/gcheung55/neuro-company) - Extends Neuro with an Observer API
 
 ## Neuro Model
-The __Model__ is a MooTools Class object that provides a basic API to interact with data. You can use Model by itself or extend other Class objects with it.
+The __Model__ is a Object-like MooTools Class object that provides a basic API to interact with data. You can use Model by itself or extend other Class objects with it. It implements `each`, `filter`, and other convenient methods from `Object`.
 
-__Implements:__
+#### Implements:
 * [Mixin: Connector](#mixin-connector)
 * [Mixin: CustomAccessor](#mixin-customaccessor)
 * [Mixin: Events](#mixin-events)
@@ -56,14 +56,10 @@ var model = new Neuro.Model(data [, options]);
 #### Returns: Model instance.
 
 #### Events:
-* `change` - Triggered when a change to the model's data has occurred
-    `function(model){}`
-* `change:key` - Triggered when a specific model data property change has occurred. The `key` refers to the specific property. All `change:key` events will be triggered before `change` is triggered.
-    `function(model, key, value, oldValue){}`
-* `destroy` - Triggered when the model is destroyed.
-    `function(model){}`
-* `reset` - Triggered when the model is reset to its default values.
-    `function(model){}`
+* `change: function(model){}` - Triggered when a change to the model's data has occurred
+* `change:key: function(model, key, value, oldValue){}` - Triggered when a specific model data property change has occurred. The `key` refers to the specific property. All `change:key` events will be triggered before `change` is triggered.
+* `destroy: function(model){}` - Triggered when the model is destroyed.
+* `reset: function(model){}` - Triggered when the model is reset to its default values.
 
 #### Notes:
 * Method names and properties prefixed with `_` is considered private and should not be used or directly interacted with.
@@ -392,6 +388,308 @@ model.getLength();
 model.keyOf(property);
 model.contains(value);
 model.toQueryString();
+```
+
+## Neuro Collection
+The __Collection__ is an Array-like MooTools Class object that provides a basic API to interact with multiple __Models__. You can use __Collection__ by itself or extend other Class objects with it. It contains a reference to a __Model__ Class to create a model instance when adding a data `Object`. The reference __Model__ Class can be optionally replaced by a different Class that extends from __Model__. It implements `each`, `filter`, and some other convenient methods from `Array`.
+
+#### Implements:
+* [Mixin: Connector](#mixin-connector)
+* [Mixin: Events](#mixin-events)
+* [Mixin: Options](#mixin-options)
+* [Mixin: Silence](#mixin-silence)
+
+### constructor (initialize)
+---
+
+#### Syntax:
+```javascript
+var collection = new Neuro.Collection(data [, options]);
+```
+
+#### Arguments:
+1. `data` - (Mixed, optional)
+    * Model - A `Model` instance
+    * Object - An object of key/value pairs that will be used to create a model instance
+    * Array - An array of Model instances or object key/value pairs
+2. `options` - (Object, optional) The Model options
+    * primaryKey - (String) Define to uniquely identify a model in a collection
+    * Model - (Model, defaults to undefined) The `Model` Class used to create model instances from when an `Object` is passed to `add`.
+    * modelOptions - (Object, defaults to undefined) An `Object` containing options for creating new model instances. See [Neuro Model](#neuro-model)
+    * connector - (Object) See [Mixin: Connector](#mixin-connector)
+
+#### Returns: Class instance.
+
+#### Events:
+* `add: function(collection, model){}` - Triggered when a model is added to the collection.
+* `remove: function(collection, model){}` - Triggered when a specific model is removed from the collection.
+* `empty: function(collection){}` - Triggered when the collection is emptied of all models.
+* `sort: function(collection){}` - Triggered when `sort` or `reverse` occurs.
+
+#### Notes:
+* Method names and properties prefixed with `_` is considered private and should not be used or directly interacted with.
+* A default model is defined in the `Collection` Class as the `_Model` property. It can be overriden by `options.Model` or when a Class extends from `Collection` and defines a different `_Model` property.
+* Define `options.primaryKey` to better identify model instances, such as checking if the collection `hasModel`.
+
+#### Returns: Model instance.
+
+### hasModel
+---
+Checks if the collection instance contains a model by checking if the model exists in the `_models` array or using `options.primaryKey` to compare models.
+
+#### Syntax:
+```javascript
+currentCollection.hasModel(model);
+```
+
+#### Arguments:
+1. model - (Object | Model) An `Object` or `Model` instance that is used to compare with existing models in the collection. `options.primaryKey` will be used to compare against the models if an initial use of `Array.contains` returns `false`.
+
+#### Returns: Boolean.
+
+### add
+---
+Adding a model to the collection should always go through this method. It appends the model to the internal `_model` array and triggers the `add` event if the collection does not already contain the model. If an `Object` is passed in, the `Object` will be converted to a model instance before being appended to `_model`. Adding a model will increase the collections `length` property. It is possible to insert a model instance into `_model` at a specific index by passing a second argument to `add`. A `remove` method is attached to the models `destroy` event so that the model can be properly removed if the model `destroy` event is triggered.
+
+#### Syntax:
+```javascript
+currentCollection.add(models, at);
+```
+
+#### Arguments:
+1. models - (Object | Model | Array)
+    * Object - An `Object` with key/value pairs of data properties. It will be converted to a `Model` instance before adding to `_model`.
+    * Model - A `Model` instance.
+    * Array - An `Array` that contain a mix of `Object` and `Model` instances.
+2. at - (Number, optional) The index to insert the model in the `_model` array. If the collection is empty, `at` is ignored and and the model is inserted as the first item in the array.
+
+#### Returns: Class instance.
+
+#### Triggered Events:
+* `add`
+
+#### Examples:
+```javascript
+currentCollection.add({
+    id: 1, name: 'Bruce Lee'
+}, 2);
+
+currentCollection.add( new Neuro.Model({id: 1, name: 'Bruce Lee'}) );
+
+currentCollection.add(
+    [
+        {id: 1, name: 'Bruce Lee'}, 
+        new Neuro.Model({id: 1, name: 'Chuck Norris'})
+    ]
+);
+```
+
+### get
+---
+Get the model by index. Multiple indexes can be passed to get to retrieve multiple models.
+
+#### Syntax:
+```javascript
+currentCollection.get(index);
+```
+
+#### Arguments:
+1. index - (Number) The index number of the model to return.
+
+#### Returns: A model instance corresponding to the index in `_model`. If multiple indexes are passed to `get`, an `Array` of models is returned, where each model corresponds to the index.
+
+#### Examples:
+```javascript
+currentCollection.get(0); // returns the model instance that corresponds to the index argument
+
+currentCollection.get(0, 2, 3); // returns an array of model instances where each model corresponds to each index argument
+```
+
+### remove
+---
+Remove a model or models from the collection. It will trigger the `remove` event for each individual model removed. The collection should remove the model only if it exists on the collection. Removing the model from the collection will also remove the `remove` method from the models `destroy` event.
+
+#### Syntax:
+```javascript
+currentCollection.remove(model);
+```
+
+#### Arguments:
+1. model - (Model | Array) A model or array of models that will be removed from `_model`.
+
+#### Returns: Class instance.
+
+#### Triggered Events:
+* `remove`
+
+#### Examples:
+```javascript
+var model = new Neuro.Model({id: 1, name: 'Garrick'});
+
+currentCollection.add(model);
+
+currentCollection.remove(model);
+
+//or
+
+currentCollection.remove([model]); // remove an array of models.
+```
+
+### replace
+---
+Replace an existing model in the collection with a new one if the old model exists and the new model does not exist in the collection `_model` array. This will trigger `add` and `remove` events.
+
+#### Syntax:
+```javascript
+currentCollection.replace(oldModel, newModel);
+```
+
+#### Arguments:
+1. oldModel (Model) - The model that will be replaced in the collection.
+2. newModel (Object | Model) - The new model that will be replacing the old one.
+
+#### Returns: Class instance.
+
+#### Triggered Events:
+* `add`
+* `remove`
+
+### sort
+---
+Sort the collection. Works the same way `[Array.sort](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/sort)` would work. Triggers `sort` event.
+
+#### Syntax:
+```javascript
+currentCollection.sort(function);
+```
+
+#### Arguments:
+1. function - (Function, optional) The function acts as a comparator. Please see `[Array.sort](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/sort)` for more information.
+
+#### Returns: Class instance.
+
+#### Triggered Events:
+* `sort`
+
+#### Examples:
+```javascript
+// Sorts models ordered by id, where id is a number.
+// This function sorts the order from smallest to largest number.
+
+currentCollection.sort(function(modelA, modelB){
+    return modelA.get('id') - modelB.get('id');
+});
+```
+
+### reverse
+---
+Reverses the order of the collection. Works the same way `[Array.reverse](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/reverse)` would work. Triggers `sort` event.
+
+#### Syntax:
+```javascript
+currentCollection.reverse();
+```
+
+#### Returns: Class instance.
+
+#### Triggered Events:
+* `sort`
+
+### empty
+---
+Empty the collection of all models. Triggers the `empty` event and `remove` event for each model removed.
+
+#### Syntax:
+```javascript
+currentCollection.empty();
+```
+
+#### Returns: Class instance.
+
+#### Triggered Events:
+* `remove` for each model removed
+* `empty`
+
+### toJSON
+---
+Returns a copy of collection `_model`. Can be used for persistence, serialization, or augmentation before passing over to another object. `JSON.stringify` uses this to to create a JSON string, though the method itself does not return a String.
+
+#### Syntax:
+```javascript
+currentCollection.toJSON();
+```
+
+#### Returns: Object containing the collection `_model`.
+
+### addEvent
+---
+see [Mixin: Events](#mixin-events)
+### addEvents
+---
+see [Mixin: Events](#mixin-events)
+### removeEvent
+---
+see [Mixin: Events](#mixin-events)
+### removeEvents
+---
+see [Mixin: Events](#mixin-events)
+### fireEvent
+---
+see [Mixin: Events](#mixin-events)
+### setOptions
+---
+see [Mixin: Options](#mixin-options)
+### connect
+---
+see [Mixin: Connector](#mixin-connector)
+### disconnect
+---
+see [Mixin: Connector](#mixin-connector)
+### isSilent
+---
+see [Mixin: Silent](#mixin-silent)
+### silence
+---
+see [Mixin: Silent](#mixin-silent)
+
+### MooTools-Core Array Methods
+---
+The following methods have been implemented from MooTools-Core Array onto Neuro Collection. They take the same arguments as their Object counterparts with the exception of having to pass the collection as the object to be acted upon.
+
+* `forEach`
+* `each`
+* `invoke`
+* `every`
+* `filter`
+* `clean`
+* `indexOf`
+* `map`
+* `some`
+* `associate`
+* `link`
+* `contains`
+* `getLast`
+* `getRandom`
+* `flatten`
+* `pick`
+
+```javascript
+collection.forEach(function[, bind]);
+collection.each(function[, bind]);
+collection.invoke(method[, arg, arg, arg ...]);
+collection.every(function[, bind]);
+collection.filter(function[, bind]);
+collection.clean();
+collection.indexOf(item[, from]);
+collection.map(function[, bind]);
+collection.some(function[, bind]);
+collection.associate(object);
+collection.link(object);
+collection.contains(item[, from]);
+collection.getLast();
+collection.getRandom();
+collection.flatten();
+collection.pick();
 ```
 
 ## Mixin: Events
