@@ -524,7 +524,8 @@
                 model = new this._Model(model, this.options.modelOptions);
                 if (!this.hasModel(model)) {
                     model.addEvent("destroy", this.bound("remove"));
-                    if (at != undefined) {
+                    at = this.length == 0 ? void 0 : at;
+                    if (at != void 0) {
                         this._models.splice(at, 0, model);
                     } else {
                         this._models.push(model);
@@ -538,7 +539,7 @@
                 models = Array.from(models);
                 var len = models.length, i = 0;
                 while (len--) {
-                    this._add(models[i++]);
+                    this._add(models[i++], at);
                 }
                 return this;
             },
@@ -554,10 +555,12 @@
                 return this._models[index];
             },
             _remove: function(model) {
-                model.removeEvent("destroy", this.bound("remove"));
-                this._models.erase(model);
-                this.length = this._models.length;
-                this.signalRemove(model);
+                if (this.hasModel(model)) {
+                    model.removeEvent("destroy", this.bound("remove"));
+                    this._models.erase(model);
+                    this.length = this._models.length;
+                    this.signalRemove(model);
+                }
                 return this;
             },
             remove: function(models) {
@@ -568,17 +571,13 @@
                 }
                 return this;
             },
-            replace: function(oldModel, newModel, signal) {
+            replace: function(oldModel, newModel) {
                 var index;
-                if (oldModel && newModel) {
+                if (oldModel && newModel && this.hasModel(oldModel) && !this.hasModel(newModel)) {
                     index = this.indexOf(oldModel);
                     if (index > -1) {
-                        newModel = new this._Model(newModel, this.options.modelOptions);
-                        this._models.splice(index, 1, newModel);
-                        if (signal) {
-                            this.signalAdd(newModel);
-                            this.signalRemove(oldModel);
-                        }
+                        this.add(newModel, index);
+                        this.remove(oldModel);
                     }
                 }
                 return this;
