@@ -69,6 +69,7 @@ var Collection = new Class({
     /**
      * Private add method
      * @param  {Class} model A Model instance
+     * @param {Number} at The index at which the model should be inserted
      * @return {Class} Collection Instance
      */
     _add: function(model, at){
@@ -78,7 +79,10 @@ var Collection = new Class({
             // Remove the model if it destroys itself.
             model.addEvent('destroy', this.bound('remove'));
 
-            if (at != undefined) {
+            // If _models is empty, then we make sure to push instead of splice.
+            at = this.length == 0 ? void 0 : at;
+
+            if (at != void 0) {
                 this._models.splice(at, 0, model);
             } else {
                 this._models.push(model);
@@ -95,11 +99,12 @@ var Collection = new Class({
     /**
      * Add a model or models
      * @param {Class || Array} A single Model instance or an array of Model instances
+     * @param {Number} at The index at which the model should be inserted
      * @return {Class} Collection Instance
      *
      * @example
-     * collectionInstance.add(model);
-     * collectionInstance.add([model, model]);
+     * collectionInstance.add(model, at);
+     * collectionInstance.add([model, model], at);
      */
     add: function(models, at){
         models = Array.from(models);
@@ -108,7 +113,7 @@ var Collection = new Class({
             i = 0;
 
         while(len--){
-            this._add(models[i++]);
+            this._add(models[i++], at);
         }
 
         return this;
@@ -144,14 +149,16 @@ var Collection = new Class({
      * @return {Class} Collection Instance
      */
     _remove: function(model){
-        // Clean up when removing so that it doesn't try removing itself from the collection
-        model.removeEvent('destroy', this.bound('remove'));
+        if (this.hasModel(model)) {
+            // Clean up when removing so that it doesn't try removing itself from the collection
+            model.removeEvent('destroy', this.bound('remove'));
 
-        this._models.erase(model);
+            this._models.erase(model);
 
-        this.length = this._models.length;
-        
-        this.signalRemove(model);
+            this.length = this._models.length;
+            
+            this.signalRemove(model);
+        }
 
         return this;
     },
@@ -184,25 +191,18 @@ var Collection = new Class({
      * Replace an existing model with a new one
      * @param  {Class} oldModel A Model instance that will be replaced with the new
      * @param  {Object || Class} newModel An object or Model instance that will replace the old
-     * @param  {Boolean} signal A switch to signal add and remove event listeners
      * @return {Class} Collection Instance
      */
-    replace: function(oldModel, newModel, signal){
+    replace: function(oldModel, newModel){
         var index;
 
-        if (oldModel && newModel) {
+        if (oldModel && newModel && this.hasModel(oldModel) && !this.hasModel(newModel)) {
             index = this.indexOf(oldModel);
 
             if (index > -1) {
-                newModel = new this._Model(newModel, this.options.modelOptions);
+                this.add(newModel, index);
 
-                this._models.splice(index, 1, newModel);
-
-                if (signal) {
-                    this.signalAdd(newModel);
-
-                    this.signalRemove(oldModel);
-                }
+                this.remove(oldModel);
             }
         }
 
@@ -260,7 +260,7 @@ var Collection = new Class({
     }
 });
 
-['forEach', 'each', 'invoke', 'every', 'filter', 'clean',  'indexOf', 'map', 'some', 'associate', 'link', 'contains', 'getLast', 'getRandom', 'flatten', 'pick'].each(function(method){
+['forEach', 'each', 'invoke', 'every', 'filter', 'clean', 'indexOf', 'map', 'some', 'associate', 'link', 'contains', 'getLast', 'getRandom', 'flatten', 'pick'].each(function(method){
     Collection.implement(method, function(){
         return Array.prototype[method].apply(this._models, arguments);
     });
