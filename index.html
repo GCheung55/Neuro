@@ -464,14 +464,10 @@
 <h4>Returns: Model instance.</h4>
 <h4>Events:</h4>
 <ul>
-<li><code>change</code> - Triggered when a change to the model's data has occurred
-  <code>function(model){}</code></li>
-<li><code>change:key</code> - Triggered when a specific model data property change has occurred. The <code>key</code> refers to the specific property. All <code>change:key</code> events will be triggered before <code>change</code> is triggered.
-  <code>function(model, key, value, oldValue){}</code></li>
-<li><code>destroy</code> - Triggered when the model is destroyed.
-  <code>function(model){}</code></li>
-<li><code>reset</code> - Triggered when the model is reset to its default values.
-  <code>function(model){}</code></li>
+<li><code>change: function(model){}</code> - Triggered when a change to the model's data has occurred</li>
+<li><code>change:key: function(model, key, value, oldValue){}</code> - Triggered when a specific model data property change has occurred. The <code>key</code> refers to the specific property. All <code>change:key</code> events will be triggered before <code>change</code> is triggered.</li>
+<li><code>destroy: function(model){}</code> - Triggered when the model is destroyed.</li>
+<li><code>reset: function(model){}</code> - Triggered when the model is reset to its default values.</li>
 </ul>
 <h4>Notes:</h4>
 <ul>
@@ -863,14 +859,10 @@ model.toQueryString();</code></pre>
 <h4>Returns: Class instance.</h4>
 <h4>Events:</h4>
 <ul>
-<li><code>add</code> - Triggered when a model is added to the collection.
-  <code>function(collection, model){}</code></li>
-<li><code>remove</code> - Triggered when a specific model is removed from the collection.
-  <code>function(collection, model){}</code></li>
-<li><code>empty</code> - Triggered when the collection is emptied of all models.
-  <code>function(collection){}</code></li>
-<li><code>sort</code> - Triggered when <code>sort</code> or <code>reverse</code> occurs.
-  <code>function(collection){}</code></li>
+<li><code>add: function(collection, model){}</code> - Triggered when a model is added to the collection.</li>
+<li><code>remove: function(collection, model){}</code> - Triggered when a specific model is removed from the collection.</li>
+<li><code>empty: function(collection){}</code> - Triggered when the collection is emptied of all models.</li>
+<li><code>sort: function(collection){}</code> - Triggered when <code>sort</code> or <code>reverse</code> occurs.</li>
 </ul>
 <h4>Notes:</h4>
 <ul>
