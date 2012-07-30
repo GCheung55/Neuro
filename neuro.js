@@ -627,7 +627,7 @@
         exports.Collection = Collection;
     },
     "9": function(require, module, exports, global) {
-        var Connector = require("5").Connector;
+        var Connector = require("5").Connector, Silence = require("4").Silence;
         var eventHandler = function(handler) {
             return function() {
                 var events = this.options.events, element = this.element;
@@ -644,9 +644,9 @@
             };
         };
         var View = new Class({
-            Implements: [ Connector, Events, Options ],
-            element: undefined,
+            Implements: [ Connector, Events, Options, Silence ],
             options: {
+                element: undefined,
                 events: {}
             },
             initialize: function(options) {
@@ -664,10 +664,12 @@
                 return this.element;
             },
             setElement: function(element) {
-                this.element && this.destroy();
-                element = this.element = document.id(element);
                 if (element) {
-                    this.attachEvents();
+                    this.element && this.destroy();
+                    element = this.element = document.id(element);
+                    if (element) {
+                        this.attachEvents();
+                    }
                 }
                 return this;
             },
@@ -676,48 +678,52 @@
             create: function() {
                 return this;
             },
-            render: function() {
+            render: function(data) {
                 this.signalRender();
                 return this;
             },
             inject: function(reference, where) {
-                if (instanceOf(reference, View)) {
+                if (this.element) {
                     reference = document.id(reference);
+                    where = where || "bottom";
+                    this.element.inject(reference, where);
+                    this.signalInject(reference, where);
                 }
-                where = where || "bottom";
-                this.element.inject(reference, where);
-                this.signalInject(reference, where);
                 return this;
             },
             dispose: function() {
-                this.element.dispose();
-                this.signalDispose();
+                if (this.element) {
+                    this.element.dispose();
+                    this.signalDispose();
+                }
                 return this;
             },
             destroy: function() {
                 var element = this.element;
-                element && (this.detachEvents(), element.destroy(), this.element = undefined);
-                this.signalDestroy();
+                if (element) {
+                    element && (this.detachEvents(), element.destroy(), this.element = undefined);
+                    this.signalDestroy();
+                }
                 return this;
             },
             signalReady: function() {
-                this.fireEvent("ready", this);
+                !this.isSilent() && this.fireEvent("ready", this);
                 return this;
             },
             signalRender: function() {
-                this.fireEvent("render", this);
+                !this.isSilent() && this.fireEvent("render", this);
                 return this;
             },
             signalInject: function(reference, where) {
-                this.fireEvent("inject", [ this, reference, where ]);
+                !this.isSilent() && this.fireEvent("inject", [ this, reference, where ]);
                 return this;
             },
             signalDispose: function() {
-                this.fireEvent("dispose", this);
+                !this.isSilent() && this.fireEvent("dispose", this);
                 return this;
             },
             signalDestroy: function() {
-                this.fireEvent("destroy", this);
+                !this.isSilent() && this.fireEvent("destroy", this);
                 return this;
             }
         });
