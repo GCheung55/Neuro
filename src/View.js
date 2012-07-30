@@ -1,4 +1,5 @@
-var Connector = require('../mixins/connector').Connector;
+var Connector = require('../mixins/connector').Connector,
+    Silence = require('../mixins/silence').Silence;
 
 /**
  * Events are attached/detached with the returned function
@@ -30,12 +31,12 @@ var eventHandler = function(handler){
 };
 
 var View = new Class({
-    Implements: [Connector, Events, Options],
+    Implements: [Connector, Events, Options, Silence],
 
     /**
      * Root element - contains all the elements that is to be created
      */
-    element: undefined,
+    // element: undefined,
 
     options: {
         // onReady: function(){},
@@ -43,6 +44,7 @@ var View = new Class({
         // onInject: function(){},
         // onDispose: function(){},
         // onDestroy: function(){},
+        element: undefined,
         events: {
             // 'click': 'nameOfMethod',
             // 'focus': function(){},
@@ -72,11 +74,13 @@ var View = new Class({
     },
 
     setElement: function(element){
-        this.element && this.destroy();
+        if (element){
+            this.element && this.destroy();
 
-        element = this.element = document.id(element);
-        if (element) {
-            this.attachEvents();
+            element = this.element = document.id(element);
+            if (element) {
+                this.attachEvents();
+            }
         }
 
         return this;
@@ -101,27 +105,31 @@ var View = new Class({
 
     /**
      * Override this function with another when extending View
+     * @param {Mixed} data While the argument is not used in the current render function,
+     * it is there to help you understand that data should passed in to be used during
+     * the render process.
      */
-    render: function(){
+    render: function(data){
         this.signalRender();
         return this;
     },
 
     /**
-     * Inject an element or View instance. document.id will resolve the element from the View instance
+     * Inject the root element into another element or View instance. document.id will resolve the element from the View instance
      * @param  {Element | View} reference Element or View instance
      * @param  {String} where Defaults to Element.inject 'bottom' value
      * @return {Class} View instance
      */
     inject: function(reference, where){
-        if (instanceOf(reference, View)) {
+        if (this.element){
             reference = document.id(reference);
+
+            where = where || 'bottom';
+
+            this.element.inject(reference, where);
+            this.signalInject(reference, where);
         }
 
-        where = where || 'bottom';
-
-        this.element.inject(reference, where);
-        this.signalInject(reference, where);
         return this;
     },
 
@@ -129,8 +137,11 @@ var View = new Class({
      * Dispose the element and signal dipose event
      */
     dispose: function(){
-        this.element.dispose();
-        this.signalDispose();
+        if (this.element) {
+            this.element.dispose();
+            this.signalDispose();
+        }
+
         return this;
     },
 
@@ -140,9 +151,12 @@ var View = new Class({
      */
     destroy: function(){
         var element = this.element;
-        element && (this.detachEvents(), element.destroy(), this.element = undefined);
         
-        this.signalDestroy();
+        if (element){
+            element && (this.detachEvents(), element.destroy(), this.element = undefined);
+            
+            this.signalDestroy();
+        }
         return this;
     },
 
@@ -150,7 +164,7 @@ var View = new Class({
      * Triggered when the instance's setup method has finished
      */
     signalReady: function(){
-        this.fireEvent('ready', this);
+        !this.isSilent() && this.fireEvent('ready', this);
         return this;
     },
 
@@ -158,7 +172,7 @@ var View = new Class({
      * Triggered when the render method is finished
      */
     signalRender: function(){
-        this.fireEvent('render', this);
+        !this.isSilent() && this.fireEvent('render', this);
         return this;
     },
 
@@ -166,7 +180,7 @@ var View = new Class({
      * Triggered when the instance's inject method is finished
      */
     signalInject: function(reference, where){
-        this.fireEvent('inject', [this, reference, where]);
+        !this.isSilent() && this.fireEvent('inject', [this, reference, where]);
         return this;
     },
 
@@ -175,7 +189,7 @@ var View = new Class({
      * @return {[type]} [description]
      */
     signalDispose: function(){
-        this.fireEvent('dispose', this);
+        !this.isSilent() && this.fireEvent('dispose', this);
         return this;
     },
 
@@ -184,7 +198,7 @@ var View = new Class({
      * @return {[type]} [description]
      */
     signalDestroy: function(){
-        this.fireEvent('destroy', this);
+        !this.isSilent() && this.fireEvent('destroy', this);
         return this;
     }
 
