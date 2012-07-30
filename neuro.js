@@ -13,8 +13,8 @@
     "0": function(require, module, exports, global) {
         var Neuro = require("1");
         Neuro.Model = require("2").Model;
-        Neuro.Collection = require("8").Collection;
-        Neuro.View = require("9").View;
+        Neuro.Collection = require("9").Collection;
+        Neuro.View = require("a").View;
         exports = module.exports = Neuro;
     },
     "1": function(require, module, exports, global) {
@@ -24,7 +24,7 @@
         exports = module.exports = Neuro;
     },
     "2": function(require, module, exports, global) {
-        var Is = require("3").Is, Silence = require("4").Silence, Connector = require("5").Connector, CustomAccessor = require("7").CustomAccessor;
+        var Is = require("3").Is, Silence = require("4").Silence, Connector = require("5").Connector, CustomAccessor = require("7").CustomAccessor, signalFactory = require("8");
         var cloneVal = function(val) {
             switch (typeOf(val)) {
               case "array":
@@ -59,8 +59,14 @@
                 return obj;
             };
         };
+        var Signals = new Class(signalFactory([ "change", "destroy", "reset" ], {
+            signalChangeProperty: function(prop, newVal, oldVal) {
+                !this.isSilent() && this.fireEvent("change:" + prop, [ this, prop, newVal, oldVal ]);
+                return this;
+            }
+        }));
         var Model = new Class({
-            Implements: [ Connector, CustomAccessor, Events, Options, Silence ],
+            Implements: [ Connector, CustomAccessor, Events, Options, Silence, Signals ],
             primaryKey: undefined,
             _data: {},
             _changed: false,
@@ -180,22 +186,6 @@
             }.overloadSetter(),
             destroy: function() {
                 this.signalDestroy();
-                return this;
-            },
-            signalChange: function() {
-                !this.isSilent() && this.fireEvent("change", this);
-                return this;
-            },
-            signalChangeProperty: function(prop, newVal, oldVal) {
-                !this.isSilent() && this.fireEvent("change:" + prop, [ this, prop, newVal, oldVal ]);
-                return this;
-            },
-            signalDestroy: function() {
-                !this.isSilent() && this.fireEvent("destroy", this);
-                return this;
-            },
-            signalReset: function() {
-                !this.isSilent() && this.fireEvent("reset", this);
                 return this;
             },
             toJSON: function() {
@@ -483,9 +473,33 @@
         exports.CustomAccessor = CustomAccessor;
     },
     "8": function(require, module, exports, global) {
-        var Model = require("2").Model, Silence = require("4").Silence, Connector = require("5").Connector;
+        exports = module.exports = function(names, curryFnc, stack) {
+            if (typeOf(curryFnc) != "function") {
+                stack = curryFnc;
+                curryFnc = undefined;
+            }
+            stack = stack || {};
+            if (typeOf(names) == "array") {
+                names.each(function(name) {
+                    stack["signal" + name.capitalize()] = curryFnc ? curryFnc(name) : function() {
+                        !this.isSilent() && this.fireEvent(name, this);
+                        return this;
+                    };
+                });
+            }
+            return stack;
+        };
+    },
+    "9": function(require, module, exports, global) {
+        var Model = require("2").Model, Silence = require("4").Silence, Connector = require("5").Connector, signalFactory = require("8");
+        var Signals = new Class(signalFactory([ "empty", "sort" ], signalFactory([ "add", "remove" ], function(name) {
+            return function(model) {
+                !this.isSilent() && this.fireEvent(name, [ this, model ]);
+                return this;
+            };
+        })));
         var Collection = new Class({
-            Implements: [ Connector, Events, Options, Silence ],
+            Implements: [ Connector, Events, Options, Silence, Signals ],
             _models: [],
             _Model: Model,
             length: 0,
@@ -597,22 +611,6 @@
                 this.signalEmpty();
                 return this;
             },
-            signalAdd: function(model) {
-                !this.isSilent() && this.fireEvent("add", [ this, model ]);
-                return this;
-            },
-            signalRemove: function(model) {
-                !this.isSilent() && this.fireEvent("remove", [ this, model ]);
-                return this;
-            },
-            signalEmpty: function() {
-                !this.isSilent() && this.fireEvent("empty", this);
-                return this;
-            },
-            signalSort: function() {
-                !this.isSilent() && this.fireEvent("sort", this);
-                return this;
-            },
             toJSON: function() {
                 return this.map(function(model) {
                     return model.toJSON();
@@ -626,8 +624,8 @@
         });
         exports.Collection = Collection;
     },
-    "9": function(require, module, exports, global) {
-        var Connector = require("5").Connector, Silence = require("4").Silence;
+    a: function(require, module, exports, global) {
+        var Connector = require("5").Connector, Silence = require("4").Silence, signalFactory = require("8");
         var eventHandler = function(handler) {
             return function() {
                 var events = this.options.events, element = this.element;
@@ -643,8 +641,14 @@
                 return this;
             };
         };
+        var Signals = new Class(signalFactory([ "ready", "render", "dispose", "destroy" ], {
+            signalInject: function(reference, where) {
+                !this.isSilent() && this.fireEvent("inject", [ this, reference, where ]);
+                return this;
+            }
+        }));
         var View = new Class({
-            Implements: [ Connector, Events, Options, Silence ],
+            Implements: [ Connector, Events, Options, Silence, Signals ],
             options: {
                 element: undefined,
                 events: {}
@@ -704,26 +708,6 @@
                     element && (this.detachEvents(), element.destroy(), this.element = undefined);
                     this.signalDestroy();
                 }
-                return this;
-            },
-            signalReady: function() {
-                !this.isSilent() && this.fireEvent("ready", this);
-                return this;
-            },
-            signalRender: function() {
-                !this.isSilent() && this.fireEvent("render", this);
-                return this;
-            },
-            signalInject: function(reference, where) {
-                !this.isSilent() && this.fireEvent("inject", [ this, reference, where ]);
-                return this;
-            },
-            signalDispose: function() {
-                !this.isSilent() && this.fireEvent("dispose", this);
-                return this;
-            },
-            signalDestroy: function() {
-                !this.isSilent() && this.fireEvent("destroy", this);
                 return this;
             }
         });

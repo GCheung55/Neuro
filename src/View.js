@@ -1,5 +1,6 @@
 var Connector = require('../mixins/connector').Connector,
-    Silence = require('../mixins/silence').Silence;
+    Silence = require('../mixins/silence').Silence,
+    signalFactory = require('../utils/signalFactory');
 
 /**
  * Events are attached/detached with the returned function
@@ -30,8 +31,20 @@ var eventHandler = function(handler){
     }
 };
 
+var Signals = new Class(
+    signalFactory(
+        ['ready', 'render', 'dispose', 'destroy'],
+        {
+            signalInject: function(reference, where){
+                !this.isSilent() && this.fireEvent('inject', [this, reference, where]);
+                return this;
+            }
+        }
+    )
+);
+
 var View = new Class({
-    Implements: [Connector, Events, Options, Silence],
+    Implements: [Connector, Events, Options, Silence, Signals],
 
     /**
      * Root element - contains all the elements that is to be created
@@ -158,50 +171,7 @@ var View = new Class({
             this.signalDestroy();
         }
         return this;
-    },
-
-    /**
-     * Triggered when the instance's setup method has finished
-     */
-    signalReady: function(){
-        !this.isSilent() && this.fireEvent('ready', this);
-        return this;
-    },
-
-    /**
-     * Triggered when the render method is finished
-     */
-    signalRender: function(){
-        !this.isSilent() && this.fireEvent('render', this);
-        return this;
-    },
-
-    /**
-     * Triggered when the instance's inject method is finished
-     */
-    signalInject: function(reference, where){
-        !this.isSilent() && this.fireEvent('inject', [this, reference, where]);
-        return this;
-    },
-
-    /**
-     * Triggered when the instance's dispose method is finished
-     * @return {[type]} [description]
-     */
-    signalDispose: function(){
-        !this.isSilent() && this.fireEvent('dispose', this);
-        return this;
-    },
-
-    /**
-     * Triggered when the instance's destroy method is finished
-     * @return {[type]} [description]
-     */
-    signalDestroy: function(){
-        !this.isSilent() && this.fireEvent('destroy', this);
-        return this;
     }
-
 });
 
 exports.View = View;

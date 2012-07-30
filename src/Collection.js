@@ -2,10 +2,26 @@
 
 var Model = require('./Model').Model,
     Silence = require('../mixins/silence').Silence,
-    Connector = require('../mixins/connector').Connector;
+    Connector = require('../mixins/connector').Connector,
+    signalFactory = require('../utils/signalFactory');
+
+var Signals = new Class(
+    signalFactory(
+        ['empty', 'sort'],
+        signalFactory(
+            ['add', 'remove'],
+            function(name){
+                return function(model){
+                    !this.isSilent() && this.fireEvent(name, [this, model]);
+                    return this;
+                };
+            }
+        )
+    )
+);
 
 var Collection = new Class({
-    Implements: [Connector, Events, Options, Silence],
+    Implements: [Connector, Events, Options, Silence, Signals],
 
     _models: [],
 
@@ -230,26 +246,6 @@ var Collection = new Class({
 
         this.signalEmpty();
 
-        return this;
-    },
-    
-    signalAdd: function(model){
-        !this.isSilent() && this.fireEvent('add', [this, model]);
-        return this;
-    },
-    
-    signalRemove: function(model){
-        !this.isSilent() && this.fireEvent('remove', [this, model]);
-        return this;
-    },
-    
-    signalEmpty: function(){
-        !this.isSilent() && this.fireEvent('empty', this);
-        return this;
-    },
-
-    signalSort: function(){
-        !this.isSilent() && this.fireEvent('sort', this);
         return this;
     },
 

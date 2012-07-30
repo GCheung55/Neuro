@@ -3,7 +3,8 @@
 var Is = require('neuro-is').Is,
     Silence = require('../mixins/silence').Silence,
     Connector = require('../mixins/connector').Connector,
-    CustomAccessor = require('../mixins/customAccessor').CustomAccessor;
+    CustomAccessor = require('../mixins/customAccessor').CustomAccessor,
+    signalFactory = require('../utils/signalFactory');
 
 var cloneVal = function(val){
     switch(typeOf(val)){
@@ -66,8 +67,20 @@ var curryGetData = function(type){
     };
 };
 
+var Signals = new Class(
+    signalFactory(
+        ['change', 'destroy', 'reset'],
+        {
+            signalChangeProperty: function(prop, newVal, oldVal){
+                !this.isSilent() && this.fireEvent('change:' + prop, [this, prop, newVal, oldVal]);
+                return this;
+            }
+        }
+    )
+);
+
 var Model = new Class({
-    Implements: [Connector, CustomAccessor, Events, Options, Silence],
+    Implements: [Connector, CustomAccessor, Events, Options, Silence, Signals],
 
     primaryKey: undefined,
 
@@ -333,26 +346,6 @@ var Model = new Class({
     destroy: function(){
         this.signalDestroy();
 
-        return this;
-    },
-    
-    signalChange: function(){
-        !this.isSilent() && this.fireEvent('change', this);
-        return this;
-    },
-    
-    signalChangeProperty: function(prop, newVal, oldVal){
-        !this.isSilent() && this.fireEvent('change:' + prop, [this, prop, newVal, oldVal]);
-        return this;
-    },
-    
-    signalDestroy: function(){
-        !this.isSilent() && this.fireEvent('destroy', this);
-        return this;
-    },
-
-    signalReset: function(){
-        !this.isSilent() && this.fireEvent('reset', this);
         return this;
     },
 
