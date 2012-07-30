@@ -262,6 +262,59 @@
         </li>
       
         <li>
+          <a href="#neuro-view">Neuro View</a>
+          
+            <ul>
+              
+                <li>
+                  <a href="#neuro-view/constructor-initialize">constructor (initialize)</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-view/setup">setup</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-view/toelement">toElement</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-view/setelement">setElement</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-view/attachevents">attachEvents</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-view/detachevents">detachEvents</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-view/create">create</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-view/render">render</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-view/inject">inject</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-view/dispose">dispose</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-view/destroy">destroy</a>
+                </li>
+              
+            </ul>
+          
+        </li>
+      
+        <li>
           <a href="#mixin-events">Mixin: Events</a>
           
             <ul>
@@ -697,7 +750,7 @@ model.changeProperty(object);</code></pre>
 
 </p>
 <h4>Syntax:</h4>
-<pre><code class="javascript">model.spy(property, function);
+<pre><code class="javascript">model.spy(property, <span class="keyword">function</span>);
 
 model.spy(object);</code></pre>
 <h4>Arguments:</h4>
@@ -719,7 +772,7 @@ model.spy(object);</code></pre>
 
 </p>
 <h4>Syntax:</h4>
-<pre><code class="javascript">model.spy(property, function);</code></pre>
+<pre><code class="javascript">model.spy(property, <span class="keyword">function</span>);</code></pre>
 <h4>Arguments:</h4>
 <ul>
 <li>Two Arguments<ol>
@@ -813,12 +866,12 @@ model.spy(object);</code></pre>
 <li><code>contains</code></li>
 <li><code>toQueryString</code></li>
 </ul>
-<pre><code class="javascript">model.each(function[, bind]);
+<pre><code class="javascript">model.each(<span class="keyword">function</span>[, bind]);
 model.subset(keys);
-model.map(function[, bind]);
-model.filter(function[, bind]);
-model.every(function[, bind]);
-model.some(function[, bind]);
+model.map(<span class="keyword">function</span>[, bind]);
+model.filter(<span class="keyword">function</span>[, bind]);
+model.every(<span class="keyword">function</span>[, bind]);
+model.some(<span class="keyword">function</span>[, bind]);
 model.keys();
 model.values();
 model.getLength();
@@ -984,7 +1037,7 @@ currentCollection.remove([model]); <span class="comment">// remove an array of m
 
 </p>
 <h4>Syntax:</h4>
-<pre><code class="javascript">currentCollection.sort(function);</code></pre>
+<pre><code class="javascript">currentCollection.sort(<span class="keyword">function</span>);</code></pre>
 <h4>Arguments:</h4>
 <ol>
 <li>function - (Function, optional) The function acts as a comparator. Please see <code>[Array.sort](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/sort)</code> for more information.</li>
@@ -998,7 +1051,7 @@ currentCollection.remove([model]); <span class="comment">// remove an array of m
 <pre><code class="javascript"><span class="comment">// Sorts models ordered by id, where id is a number.</span>
 <span class="comment">// This function sorts the order from smallest to largest number.</span>
 
-currentCollection.sort(<span class="function"><span class="keyword">function</span><span class="params">(modelA, modelB)</span>{</span>
+currentCollection.sort(<span class="keyword">function</span>(modelA, modelB){
     <span class="keyword">return</span> modelA.get(<span class="string">'id'</span>) - modelB.get(<span class="string">'id'</span>);
 });</code></pre>
 <h3 id="neuro-collection/reverse">reverse</h3>
@@ -1098,15 +1151,15 @@ currentCollection.sort(<span class="function"><span class="keyword">function</sp
 <li><code>flatten</code></li>
 <li><code>pick</code></li>
 </ul>
-<pre><code class="javascript">collection.forEach(function[, bind]);
-collection.each(function[, bind]);
+<pre><code class="javascript">collection.forEach(<span class="keyword">function</span>[, bind]);
+collection.each(<span class="keyword">function</span>[, bind]);
 collection.invoke(method[, arg, arg, arg ...]);
-collection.every(function[, bind]);
-collection.filter(function[, bind]);
+collection.every(<span class="keyword">function</span>[, bind]);
+collection.filter(<span class="keyword">function</span>[, bind]);
 collection.clean();
 collection.indexOf(item[, from]);
-collection.map(function[, bind]);
-collection.some(function[, bind]);
+collection.map(<span class="keyword">function</span>[, bind]);
+collection.some(<span class="keyword">function</span>[, bind]);
 collection.associate(object);
 collection.link(object);
 collection.contains(item[, from]);
@@ -1114,6 +1167,167 @@ collection.getLast();
 collection.getRandom();
 collection.flatten();
 collection.pick();</code></pre>
+<h2 id="neuro-view">Neuro View</h2>
+<p>The <strong>View</strong> is a MooTools Class object. It acts as a layer between an element and everything else. One of the usual conventions of plugins that deals with elements has to attach/detach events to/from the element. The <strong>View</strong> provides a simple, yet basic, way of binding methods/functions to the element event listeners.
+
+</p>
+<p>Another convention is that attaching event handlers to classes can be a manual process. <strong>View</strong> implements the <a href="#mixin-connector">Connector</a> utility class to provide a powerful and automatic way to attach events between two classes.
+
+</p>
+<p>The <code>render</code> method is the main method that should be used to visualize the element with data. The method is basic, triggering the <code>render</code> event on the <strong>View</strong> class. Other class objects should extend from the <strong>View</strong> class and override the <code>render</code> method, but call <code>this.parent</code> in order to trigger the <code>render</code> event.
+
+</p>
+<h4>Implements:</h4>
+<ul>
+<li><a href="#mixin-connector">Mixin: Connector</a></li>
+<li><a href="#mixin-events">Mixin: Events</a></li>
+<li><a href="#mixin-options">Mixin: Options</a></li>
+<li><a href="#mixin-silence">Mixin: Silence</a></li>
+</ul>
+<h3 id="neuro-view/constructor-initialize">constructor (initialize)</h3>
+<hr />
+<h4>Syntax:</h4>
+<pre><code class="javascript"><span class="keyword">var</span> view = <span class="keyword">new</span> Neuro.View(options);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li><code>options</code> - (Object, optional) The View options<ul>
+<li>element - (String | Element, defaults to <code>undefined</code>) The root/parent element of where the rendered elements should be placed.</li>
+<li>events - (Object, defaults to <code>undefined</code>) An <code>Object</code> of key/value pairs<ul>
+<li><code>key</code> - (String) The element event or event-delegate type. <code>click</code> or <code>click:relay(selector)</code></li>
+<li><code>value</code> - (String | Function | Array) The handler that is attached to the event. It can be a <code>String</code> (amethod name in the view class instance), <code>Function</code>, or an <code>Array</code> of containing a mix of <code>String</code> or <code>Function</code> items.</li>
+</ul>
+</li>
+<li>connector - (Object) See <a href="#mixin-connector">Mixin: Connector</a></li>
+</ul>
+</li>
+</ol>
+<h4>Returns: View instance..</h4>
+<h4>Events:</h4>
+<ul>
+<li><code>ready: function(view){}</code> - Triggered  at the end of the <code>setup</code> method.</li>
+<li><code>render: function(view){}</code> - Triggered at the end of the <code>render</code> method.</li>
+<li><code>inject: function(view){}</code> - Triggered at the end of the <code>inject</code> method.</li>
+<li><code>dispose: function(view){}</code> - Triggered at the end of the <code>dispose</code> method.</li>
+<li><code>destroy: function(view){}</code> - Triggered at the end of the <code>destroy</code> method.</li>
+</ul>
+<h4>Notes:</h4>
+<ul>
+<li>Method names and properties prefixed with <code>_</code> is considered private and should not be used or directly interacted with.</li>
+</ul>
+<h3 id="neuro-view/setup">setup</h3>
+<hr />
+<p>Called during <code>initialize</code> to <code>setOptions</code>, <code>setElement</code>, and trigger the <code>ready</code> event.
+
+</p>
+<h4>Arguments:</h4>
+<ul>
+<li>Same as <code>initialize</code></li>
+</ul>
+<h4>Returns: View instance.</h4>
+<h3 id="neuro-view/toelement">toElement</h3>
+<hr />
+<p>A method to retrieve the element stored in the view instance. Any Class instance, with a <code>toElement</code> method, passed to MooTools Element <code>document.id</code> or <code>$</code> method will return the value from the classes <code>toElement</code> method. This is a hidden MooTools Core trick.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">view.toElement();
+
+document.id(view);
+
+$(view);</code></pre>
+<h4>Returns: <code>element</code> property stored in view instance.</h4>
+<h3 id="neuro-view/setelement">setElement</h3>
+<hr />
+<p>Store the root element for the view instance. If an element exists, it will first execute View <code>destroy</code> method to properly detach events and remove references to it. Then it will store a reference to the element and execute View <code>attachEvents</code>.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">view.setElement(element);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>element - (Element) Element to be set as root element in the view instance. <code>attachEvents</code> will refer to <code>options.events</code> for the event and method/function to attach.</li>
+</ol>
+<h4>Returns: View instance.</h4>
+<h3 id="neuro-view/attachevents">attachEvents</h3>
+<hr />
+<p>Attach events to the root <code>element</code> property in the view instance. It refers to <code>options.events</code> to map element events to functions or methods in the view instance. Events can be detached using <code>detachEvents</code>. <code>element</code> or <code>options.events</code> are required to exist.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">view.attachEvents();</code></pre>
+<h4>Returns: View instance.</h4>
+<h3 id="neuro-view/detachevents">detachEvents</h3>
+<hr />
+<p>Detach events from the root <code>element</code> property in the view instance. It refers to <code>options.events</code> to map element events to functions or methods in the view instance. Events can be attached using <code>attachEvents</code>. <code>element</code> or <code>options.events</code> are required to exist.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">view.detachEvents();</code></pre>
+<h4>Returns: View instance.</h4>
+<h3 id="neuro-view/create">create</h3>
+<hr />
+<p>It is a no-op method. Override <code>create</code> in your Class that extends from <strong>View</strong>. It could be used to create the root <code>element</code>, or other child elements that goes into the root `element.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">view.create();</code></pre>
+<h4>Returns: View instance.</h4>
+<h3 id="neuro-view/render">render</h3>
+<hr />
+<p>Although <code>render</code> is considered a no-op method, it still trggers the <code>render</code> event. Override <code>render</code> in your Class that extends from <strong>View</strong>.  <strong>Remember</strong> to call 'this.parent()' at the end of your code to execute the original <code>render</code> method that will trigger the <code>render</code> event. Pass <code>data</code> to the <code>render</code> method, such as Neuro Model or Neuro Collection.
+
+</p>
+<p>If you are passing any Class that implements <a href="#mixin-connector">Mixin: Connector</a>, you should consider using the <code>connect</code> method. It will help to automatically attach events between the View instance and the other Classes, in this case it is likely to be a Neuro Model or Neuro Collection instances.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">view.render(data);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>data - (Mixed) It can be anything you will use as data to render the view. This also means you can pass in multiple Neuro Model instances, multiple Neuro Collection instances, other View instances. Use your imagination.</li>
+</ol>
+<h4>Returns: View instance.</h4>
+<h4>Triggered Events:</h4>
+<ul>
+<li><code>render</code></li>
+</ul>
+<h3 id="neuro-view/inject">inject</h3>
+<hr />
+<p>Inject or inserts the root <code>element</code> relative to another element or View instance. <code>document.id</code> / <code>$</code> will resolve the element from the other View instance.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">view.inject(reference[, where]);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>reference - (String | Element | Class) The <code>element</code> will be placed relative to the reference element. A <code>String</code> should be the id of the reference element, without the "#". A <code>Class</code> instance should have a <code>toElement</code> method in order to resolve the reference element.</li>
+<li>where - (String, optional, defaults to "bottom") The place to inject/insert the <code>element</code> relative to the reference element. Can be: <code>top</code>, <code>bottom</code>, <code>after</code>, or <code>before</code>.</li>
+</ol>
+<h4>Returns: View instance.</h4>
+<h4>Triggered Events:</h4>
+<ul>
+<li><code>inject</code></li>
+</ul>
+<h3 id="neuro-view/dispose">dispose</h3>
+<hr />
+<p>Removes the Element from the DOM but retains it in memory if the <code>element</code> exists.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">view.dispose();</code></pre>
+<h4>Returns: View instance.</h4>
+<h4>Triggered Events</h4>
+<ul>
+<li><code>dispose</code></li>
+</ul>
+<h3 id="neuro-view/destroy">destroy</h3>
+<hr />
+<p>Removes the Element and its children from the DOM and prepares them for garbage collection. Executes <code>detatchEvents</code> and removes reference to element in <code>element</code> property. Triggers <code>destroy</code> event.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">view.destroy();</code></pre>
+<h4>Returns: View instance.</h4>
 <h2 id="mixin-events">Mixin: Events</h2>
 <hr />
 <p><strong>From MooTools Documentation:</strong>
@@ -1135,10 +1349,10 @@ A Utility Class. Its methods can be implemented with <code>Class:implement</code
 <h4>Example:</h4>
 <pre><code class="javascript"><span class="keyword">var</span> Widget = <span class="keyword">new</span> Class({
     Implements: Events,
-    initialize: <span class="function"><span class="keyword">function</span><span class="params">(element)</span>{</span>
+    initialize: <span class="keyword">function</span>(element){
         <span class="comment">// ...</span>
     },
-    complete: <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+    complete: <span class="keyword">function</span>(){
         <span class="keyword">this</span>.fireEvent(<span class="string">'complete'</span>);
     }
 });
@@ -1182,7 +1396,7 @@ myFx.addEvent(<span class="string">'start'</span>, myStartFunction);</code></pre
 <pre><code class="javascript"><span class="keyword">var</span> myFx = <span class="keyword">new</span> Fx.Tween(<span class="string">'element'</span>, <span class="string">'opacity'</span>);
 myFx.addEvents({
     start: myStartFunction,
-    complete: <span class="function"><span class="keyword">function</span><span class="params">()</span> {</span>
+    complete: <span class="keyword">function</span>() {
         alert(<span class="string">'Done.'</span>);
     }
 });</code></pre>
@@ -1203,7 +1417,7 @@ myFx.addEvents({
 <h4>Example:</h4>
 <pre><code class="javascript"><span class="keyword">var</span> Widget = <span class="keyword">new</span> Class({
     Implements: Events,
-    initialize: <span class="function"><span class="keyword">function</span><span class="params">(arg1, arg2)</span>{</span>
+    initialize: <span class="keyword">function</span>(arg1, arg2){
         <span class="comment">//...</span>
         <span class="keyword">this</span>.fireEvent(<span class="string">'initialize'</span>, [arg1, arg2], <span class="number">50</span>);
     }
@@ -1283,7 +1497,7 @@ A Utility Class. Its methods can be implemented with <code>Class:implement</code
             height: <span class="number">100</span>
         }
     },
-    initialize: <span class="function"><span class="keyword">function</span><span class="params">(options)</span>{</span>
+    initialize: <span class="keyword">function</span>(options){
         <span class="keyword">this</span>.setOptions(options);
     }
 });
@@ -1326,10 +1540,10 @@ A Utility Class. Its methods can be implemented with <code>Class:implement</code
             height: <span class="number">100</span>
         }
     },
-    initialize: <span class="function"><span class="keyword">function</span><span class="params">(options)</span>{</span>
+    initialize: <span class="keyword">function</span>(options){
         <span class="keyword">this</span>.setOptions(options);
     },
-    show: <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+    show: <span class="keyword">function</span>(){
         <span class="comment">// Do some cool stuff</span>
 
         <span class="keyword">this</span>.fireEvent(<span class="string">'show'</span>);
@@ -1342,7 +1556,7 @@ A Utility Class. Its methods can be implemented with <code>Class:implement</code
     size: {
         width: <span class="number">200</span>
     },
-    onShow: <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>
+    onShow: <span class="keyword">function</span>(){
         alert(<span class="string">'Lets show it!'</span>);
     }
 });
@@ -1383,30 +1597,30 @@ myWidget.show(); <span class="comment">// fires the event and alerts 'Lets show 
 <ul>
 <li><code>value</code> is a function</li>
 </ul>
-<pre><code class="javascript">change: <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span><span class="comment">/*... code here ...*/</span>}</code></pre>
-<pre><code class="javascript">currentClass.addEvent(<span class="string">'change'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span><span class="comment">/*... code here ...*/</span>});</code></pre>
+<pre><code class="javascript">change: <span class="keyword">function</span>(){<span class="comment">/*... code here ...*/</span>}</code></pre>
+<pre><code class="javascript">currentClass.addEvent(<span class="string">'change'</span>, <span class="keyword">function</span>(){<span class="comment">/*... code here ...*/</span>});</code></pre>
 <ul>
 <li><code>value</code> is an array</li>
 </ul>
-<pre><code class="javascript">change: [<span class="string">'doneMethodName'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span><span class="comment">/*... code here ...*/</span>}]</code></pre>
+<pre><code class="javascript">change: [<span class="string">'doneMethodName'</span>, <span class="keyword">function</span>(){<span class="comment">/*... code here ...*/</span>}]</code></pre>
 <pre><code class="javascript">currentClass.addEvent(<span class="string">'change'</span>, targetClass.doneMethodName.bind(targetClass));
 
-currentClass.addEvent(<span class="string">'change'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span><span class="comment">/*... code here ...*/</span>});</code></pre>
+currentClass.addEvent(<span class="string">'change'</span>, <span class="keyword">function</span>(){<span class="comment">/*... code here ...*/</span>});</code></pre>
 <ul>
 <li><code>value</code> is an object with subevents and a mix of string, function, or array.</li>
 </ul>
 <pre><code class="javascript">change: {
     <span class="string">'*'</span>: <span class="string">'doneMethodName'</span>,
-    <span class="string">'name'</span>: <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span><span class="comment">/*... code here ...*/</span>},
-    <span class="string">'age'</span>: [<span class="string">'otherDoneMethodName'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span><span class="comment">/*... other code here ...*/</span>}]
+    <span class="string">'name'</span>: <span class="keyword">function</span>(){<span class="comment">/*... code here ...*/</span>},
+    <span class="string">'age'</span>: [<span class="string">'otherDoneMethodName'</span>, <span class="keyword">function</span>(){<span class="comment">/*... other code here ...*/</span>}]
 }</code></pre>
 <pre><code class="javascript">currentClass.addEvent(<span class="string">'change'</span>, targetClass.doneMethodName.bind(<span class="keyword">this</span>));
 
-currentClass.addEvent(<span class="string">'name'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span><span class="comment">/*... code here ...*/</span>});
+currentClass.addEvent(<span class="string">'name'</span>, <span class="keyword">function</span>(){<span class="comment">/*... code here ...*/</span>});
 
 currentClass.addEvent(<span class="string">'age'</span>, targetClass.otherDoneMethodName.bind(targetClass));
 
-currentClass.addEvent(<span class="string">'age'</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span><span class="comment">/*... other code here ...*/</span>});</code></pre>
+currentClass.addEvent(<span class="string">'age'</span>, <span class="keyword">function</span>(){<span class="comment">/*... other code here ...*/</span>});</code></pre>
 <h3 id="mixin-connector/connect">connect</h3>
 <hr />
 <p>Connects two classes by using <code>options.connector</code> as the map to either attach event listeners to functions on <code>options.connector</code> or methods on the target class where the method names are retrieved from <code>options.connector</code>. Default behavior is to connect two classes. Connect one way by passing a second argument as <code>true</code>.
@@ -1432,9 +1646,9 @@ currentClass.addEvent(<span class="string">'age'</span>, <span class="function">
 </p>
 <h4>Syntax: key/value pairs</h4>
 <pre><code class="javascript">name: {
-    set: function,
-    get: function
-}</code></pre>
+    set: <span class="keyword">function</span>,
+    get: <span class="function"><span class="keyword">function</span>
+}</span></code></pre>
 <h4>Arguments</h4>
 <ol>
 <li>name - (String) Name of the set/get method that will get overriden</li>
@@ -1486,7 +1700,7 @@ currentClass.setAccessor(obj);</code></pre>
     options: {
         accessors: {
             fullName: {
-                set: <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>}
+                set: <span class="keyword">function</span>(){}
             }
         }
     }
@@ -1521,7 +1735,7 @@ fullNameAccessor.set._orig <span class="comment">// is the undecorated original 
 
 </p>
 <pre><code class="javascript">currentClass.setAccessor(<span class="string">'fullName'</span>, {
-    set: <span class="function"><span class="keyword">function</span><span class="params">()</span>{</span>}
+    set: <span class="keyword">function</span>(){}
 });
 
 <span class="keyword">var</span> fullNameAccessors =  currentClass.getAccessor(<span class="string">'fullName'</span>);
@@ -1576,7 +1790,7 @@ fullNameAccessors returns and object where the set function is the decorated fun
 
 </p>
 <h4>Syntax:</h4>
-<pre><code class="javascript">currentClass.silence(function);</code></pre>
+<pre><code class="javascript">currentClass.silence(<span class="keyword">function</span>);</code></pre>
 <h4>Arguments:</h4>
 <ol>
 <li>function - (Function) The function that will be executed once events have been prevented. The function is bound to the model instance before execution.</li>
