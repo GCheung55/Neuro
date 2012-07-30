@@ -474,19 +474,17 @@
     },
     "8": function(require, module, exports, global) {
         exports = module.exports = function(names, curryFnc, stack) {
-            if (typeOf(curryFnc) != "function") {
+            if (!Type.isFunction(curryFnc)) {
                 stack = curryFnc;
                 curryFnc = undefined;
             }
             stack = stack || {};
-            if (typeOf(names) == "array") {
-                names.each(function(name) {
-                    stack["signal" + name.capitalize()] = curryFnc ? curryFnc(name) : function() {
-                        !this.isSilent() && this.fireEvent(name, this);
-                        return this;
-                    };
-                });
-            }
+            Type.isArray(names) && names.each(function(name) {
+                stack["signal" + name.capitalize()] = curryFnc ? curryFnc(name) : function() {
+                    !this.isSilent() && this.fireEvent(name, this);
+                    return this;
+                };
+            });
             return stack;
         };
     },
