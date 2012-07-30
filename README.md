@@ -692,6 +692,180 @@ collection.flatten();
 collection.pick();
 ```
 
+## Neuro View
+The __View__ is a MooTools Class object. It acts as a layer between an element and everything else. One of the usual conventions of plugins that deals with elements has to attach/detach events to/from the element. The __View__ provides a simple, yet basic, way of binding methods/functions to the element event listeners.
+
+Another convention is that attaching event handlers to classes can be a manual process. __View__ implements the [Connector](#mixin-connector) utility class to provide a powerful and automatic way to attach events between two classes.
+
+The `render` method is the main method that should be used to visualize the element with data. The method is basic, triggering the `render` event on the __View__ class. Other class objects should extend from the __View__ class and override the `render` method, but call `this.parent` in order to trigger the `render` event.
+
+#### Implements:
+* [Mixin: Connector](#mixin-connector)
+* [Mixin: Events](#mixin-events)
+* [Mixin: Options](#mixin-options)
+* [Mixin: Silence](#mixin-silence)
+
+### constructor (initialize)
+---
+
+#### Syntax:
+```javascript
+var view = new Neuro.View(options);
+```
+
+#### Arguments:
+1. `options` - (Object, optional) The View options
+    * element - (String | Element, defaults to `undefined`) The root/parent element of where the rendered elements should be placed.
+    * events - (Object, defaults to `undefined`) An `Object` of key/value pairs
+        * `key` - (String) The element event or event-delegate type. `click` or `click:relay(selector)`
+        * `value` - (String | Function | Array) The handler that is attached to the event. It can be a `String` (amethod name in the view class instance), `Function`, or an `Array` of containing a mix of `String` or `Function` items.
+    * connector - (Object) See [Mixin: Connector](#mixin-connector)
+
+#### Returns: View instance..
+
+#### Events:
+* `ready: function(view){}` - Triggered  at the end of the `setup` method.
+* `render: function(view){}` - Triggered at the end of the `render` method.
+* `inject: function(view){}` - Triggered at the end of the `inject` method.
+* `dispose: function(view){}` - Triggered at the end of the `dispose` method.
+* `destroy: function(view){}` - Triggered at the end of the `destroy` method.
+
+#### Notes:
+* Method names and properties prefixed with `_` is considered private and should not be used or directly interacted with.
+
+### setup
+---
+Called during `initialize` to `setOptions`, `setElement`, and trigger the `ready` event.
+
+#### Arguments:
+* Same as `initialize`
+
+#### Returns: View instance.
+
+### toElement
+---
+A method to retrieve the element stored in the view instance. Any Class instance, with a `toElement` method, passed to MooTools Element `document.id` or `$` method will return the value from the classes `toElement` method. This is a hidden MooTools Core trick.
+
+#### Syntax:
+```javascript
+view.toElement();
+
+document.id(view);
+
+$(view);
+```
+
+#### Returns: `element` property stored in view instance.
+
+### setElement
+---
+Store the root element for the view instance. If an element exists, it will first execute View `destroy` method to properly detach events and remove references to it. Then it will store a reference to the element and execute View `attachEvents`.
+
+#### Syntax:
+```javascript
+view.setElement(element);
+```
+
+#### Arguments:
+1. element - (Element) Element to be set as root element in the view instance. `attachEvents` will refer to `options.events` for the event and method/function to attach.
+
+#### Returns: View instance.
+
+### attachEvents
+---
+Attach events to the root `element` property in the view instance. It refers to `options.events` to map element events to functions or methods in the view instance. Events can be detached using `detachEvents`. `element` or `options.events` are required to exist.
+
+#### Syntax:
+```javascript
+view.attachEvents();
+```
+
+#### Returns: View instance.
+
+### detachEvents
+---
+Detach events from the root `element` property in the view instance. It refers to `options.events` to map element events to functions or methods in the view instance. Events can be attached using `attachEvents`. `element` or `options.events` are required to exist.
+
+#### Syntax:
+```javascript
+view.detachEvents();
+```
+
+#### Returns: View instance.
+
+### create
+---
+It is a no-op method. Override `create` in your Class that extends from __View__. It could be used to create the root `element`, or other child elements that goes into the root `element.
+
+#### Syntax:
+```javascript
+view.create();
+```
+
+#### Returns: View instance.
+
+### render
+---
+Although `render` is considered a no-op method, it still trggers the `render` event. Override `render` in your Class that extends from __View__.  __Remember__ to call 'this.parent()' at the end of your code to execute the original `render` method that will trigger the `render` event. Pass `data` to the `render` method, such as Neuro Model or Neuro Collection.
+
+If you are passing any Class that implements [Mixin: Connector](#mixin-connector), you should consider using the `connect` method. It will help to automatically attach events between the View instance and the other Classes, in this case it is likely to be a Neuro Model or Neuro Collection instances.
+
+#### Syntax:
+```javascript
+view.render(data);
+```
+
+#### Arguments:
+1. data - (Mixed) It can be anything you will use as data to render the view. This also means you can pass in multiple Neuro Model instances, multiple Neuro Collection instances, other View instances. Use your imagination.
+
+#### Returns: View instance.
+
+#### Triggered Events:
+* `render`
+
+### inject
+---
+Inject or inserts the root `element` relative to another element or View instance. `document.id` / `$` will resolve the element from the other View instance.
+
+#### Syntax:
+```javascript
+view.inject(reference[, where]);
+```
+
+#### Arguments:
+1. reference - (String | Element | Class) The `element` will be placed relative to the reference element. A `String` should be the id of the reference element, without the "#". A `Class` instance should have a `toElement` method in order to resolve the reference element.
+2. where - (String, optional, defaults to "bottom") The place to inject/insert the `element` relative to the reference element. Can be: `top`, `bottom`, `after`, or `before`.
+
+#### Returns: View instance.
+
+#### Triggered Events:
+* `inject`
+
+### dispose
+---
+Removes the Element from the DOM but retains it in memory if the `element` exists.
+
+#### Syntax:
+```javascript
+view.dispose();
+```
+
+#### Returns: View instance.
+
+#### Triggered Events
+* `dispose`
+
+### destroy
+---
+Removes the Element and its children from the DOM and prepares them for garbage collection. Executes `detatchEvents` and removes reference to element in `element` property. Triggers `destroy` event.
+
+#### Syntax:
+```javascript
+view.destroy();
+```
+
+#### Returns: View instance.
+
 ## Mixin: Events
 ---
 __From MooTools Documentation:__
