@@ -68,6 +68,8 @@ var View = new Class({
 
     initialize: function(options){
         this.setup(options);
+
+        this.signalReady();
     },
 
     setup: function(options){
@@ -76,8 +78,6 @@ var View = new Class({
         if (this.options.element) {
             this.setElement(this.options.element);
         }
-
-        this.signalReady();
 
         return this;
     },
