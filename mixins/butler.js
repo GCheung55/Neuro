@@ -1,10 +1,4 @@
-var accessTypes = ['set', 'get', 'getPrevious'],
-    getMap = {
-        get: false,
-        getPrevious: true
-    };
-
-var CustomAccessor = new Class({
+var Butler = new Class({
     _accessors: {
         /*
         key: {
@@ -112,4 +106,4 @@ var CustomAccessor = new Class({
     }
 });
 
-exports.CustomAccessor = CustomAccessor
+exports.Butler = Butler;
