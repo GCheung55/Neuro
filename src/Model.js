@@ -3,7 +3,7 @@
 var Is = require('neuro-is').Is,
     Silence = require('../mixins/silence').Silence,
     Connector = require('../mixins/connector').Connector,
-    CustomAccessor = require('../mixins/customAccessor').CustomAccessor,
+    Butler = require('../mixins/butler').Butler,
     signalFactory = require('../utils/signalFactory');
 
 var cloneVal = function(val){
@@ -80,7 +80,7 @@ var Signals = new Class(
 );
 
 var Model = new Class({
-    Implements: [Connector, CustomAccessor, Events, Options, Silence, Signals],
+    Implements: [Connector, Butler, Events, Options, Silence, Signals],
 
     primaryKey: undefined,
 
@@ -397,7 +397,7 @@ var Model = new Class({
             }
 
             // Kind of hack because implementing a class only copies the methods.
-            CustomAccessor.prototype.setAccessor.call(this, name, val);
+            Butler.prototype.setAccessor.call(this, name, val);
         }
 
         return this;
