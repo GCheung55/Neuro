@@ -24,7 +24,7 @@
         exports = module.exports = Neuro;
     },
     "2": function(require, module, exports, global) {
-        var Is = require("3").Is, Silence = require("4").Silence, Connector = require("5").Connector, CustomAccessor = require("7").CustomAccessor, signalFactory = require("8");
+        var Is = require("3").Is, Silence = require("4").Silence, Connector = require("5").Connector, Butler = require("7").Butler, signalFactory = require("8");
         var cloneVal = function(val) {
             switch (typeOf(val)) {
               case "array":
@@ -66,7 +66,7 @@
             }
         }));
         var Model = new Class({
-            Implements: [ Connector, CustomAccessor, Events, Options, Silence, Signals ],
+            Implements: [ Connector, Butler, Events, Options, Silence, Signals ],
             primaryKey: undefined,
             _data: {},
             _changed: false,
@@ -209,7 +209,7 @@
                     if (val.get && !val.getPrevious) {
                         val.getPrevious = val.get;
                     }
-                    CustomAccessor.prototype.setAccessor.call(this, name, val);
+                    Butler.prototype.setAccessor.call(this, name, val);
                 }
                 return this;
             }.overloadSetter()
@@ -410,11 +410,7 @@
         });
     },
     "7": function(require, module, exports, global) {
-        var accessTypes = [ "set", "get", "getPrevious" ], getMap = {
-            get: false,
-            getPrevious: true
-        };
-        var CustomAccessor = new Class({
+        var Butler = new Class({
             _accessors: {},
             _accessorName: undefined,
             options: {
@@ -470,7 +466,7 @@
                 return this;
             }
         });
-        exports.CustomAccessor = CustomAccessor;
+        exports.Butler = Butler;
     },
     "8": function(require, module, exports, global) {
         exports = module.exports = function(names, curryFnc, stack) {
@@ -479,7 +475,7 @@
                 curryFnc = undefined;
             }
             stack = stack || {};
-            Type.isArray(names) && names.each(function(name) {
+            Array.from(names).each(function(name) {
                 stack["signal" + name.capitalize()] = curryFnc ? curryFnc(name) : function() {
                     !this.isSilent() && this.fireEvent(name, this);
                     return this;
@@ -653,13 +649,13 @@
             },
             initialize: function(options) {
                 this.setup(options);
+                this.signalReady();
             },
             setup: function(options) {
                 this.setOptions(options);
                 if (this.options.element) {
                     this.setElement(this.options.element);
                 }
-                this.signalReady();
                 return this;
             },
             toElement: function() {
