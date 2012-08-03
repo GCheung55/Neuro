@@ -214,41 +214,6 @@ model.reset([property1, property2]);
 * `change`
 * `reset`
 
-### change
----
-Checks if data is changed before triggering `change` event. Not likely to be called outside of `set`.
-
-```javascript
-model.change();
-```
-
-#### Returns: Model instance.
-
-#### Triggered Events: (only if there is a change in the model data)
-* `change`
-
-### changeProperty
----
-Checks if data is changed before triggering `change:key` event. Not likely to be called outside of `set`.
-
-```javascript
-model.changeProperty(property, value);
-
-model.changeProperty(object);
-```
-
-#### Arguments:
-* Two Arguments (property, value)
-    1. property - (String) A key corresponding to the changed property the model has.
-    2. value - (String | Array | Number | Object | Function | Class) A value of the corresponding property that was changed.
-* One Argument (object)
-    1. object (Object) An object containing sets of property/value pairs
-
-#### Returns: Model instance.
-
-#### Triggered Events: (only if there is a change in the model data)
-* `change:key`
-
 ### destroy
 ---
 Triggers the `destroy` event. This should be overriden in a Class that extends from Model to do additional things. If overriden, remember to call `this.parent();` to trigger the `destroy` method, or execute `signalDestroy` manually.
@@ -707,6 +672,7 @@ The `render` method is the main method that should be used to visualize the elem
 
 ### constructor (initialize)
 ---
+Starts out with executing `setup` and then triggering `ready` event.
 
 #### Syntax:
 ```javascript
@@ -735,7 +701,7 @@ var view = new Neuro.View(options);
 
 ### setup
 ---
-Called during `initialize` to `setOptions`, `setElement`, and trigger the `ready` event.
+Called during `initialize` to `setOptions`, and `setElement`.
 
 #### Arguments:
 * Same as `initialize`
