@@ -1,6 +1,6 @@
 // (function(context){
 
-var Model = require('./Model').Model,
+var Model = require('./model/main').Model,
     Silence = require('../mixins/silence').Silence,
     Connector = require('../mixins/connector').Connector,
     signalFactory = require('../utils/signalFactory');
@@ -43,12 +43,12 @@ var Collection = new Class({
     },
 
     initialize: function(models, options){
+        this.setOptions(options);
+
         this.setup(models, options);
     },
 
     setup: function(models, options){
-        this.setOptions(options);
-
         this.primaryKey = this.options.primaryKey;
 
         if (this.options.Model) {

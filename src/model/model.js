@@ -1,9 +1,9 @@
 // (function(context){
 
 var Is = require('neuro-is').Is,
-    Silence = require('../mixins/silence').Silence,
-    Connector = require('../mixins/connector').Connector,
-    signalFactory = require('../utils/signalFactory');
+    Silence = require('../../mixins/silence').Silence,
+    Connector = require('../../mixins/connector').Connector,
+    signalFactory = require('../../utils/signalFactory');
 
 var isObject = function(obj){ return Type.isObject(obj); };
 

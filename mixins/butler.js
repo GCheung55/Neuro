@@ -1,24 +1,24 @@
-var Butler = new Class({
-    _accessors: {
-        /*
-        key: {
-            // The buck stops here for this custom set method.
-            // Any returned value goes into the ether because
-            // the original set code block is ignored when this is invoked
+var modelObj = require('../src/model/model');
 
-            set: function(prop, val){},
+exports.Butler = new Class({
+    // _accessors: {
+    //     key: {
+    //         // The buck stops here for this custom set method.
+    //         // Any returned value goes into the ether because
+    //         // the original set code block is ignored when this is invoked
 
-            // isPrevious flag lets you choose whether to pull data from this._data or this._previousData
-            get: function(isPrevious){
-                //Example
-                var data = isPrevious ? this._data : this._previousData;
-                return data['somekey'];
-            },
+    //         set: function(prop, val){},
 
-            getPrevious: function(){}
-        }
-        */
-    },
+    //         // isPrevious flag lets you choose whether to pull data from this._data or this._previousData
+    //         get: function(isPrevious){
+    //             //Example
+    //             var data = isPrevious ? this._data : this._previousData;
+    //             return data['somekey'];
+    //         },
+
+    //         getPrevious: function(){}
+    //     }
+    // },
 
     _accessorName: undefined,
 
@@ -27,7 +27,9 @@ var Butler = new Class({
     },
 
     setupAccessors: function(){
-        this.setAccessor(Object.merge({}, this._accessors, this.options.accessors));
+        this._accessors = new modelObj.Model();
+
+        this.setAccessor(this.options.accessors);
 
         return this;
     },
@@ -41,7 +43,7 @@ var Butler = new Class({
      * to signify that an accessor is being used.
      */
     _processAccess: function(name, fnc){
-        var value = undefined;
+        var value;
 
         if (name) {
             // this._accessing++;
@@ -50,7 +52,7 @@ var Butler = new Class({
             value = fnc();
 
             // this._accessing--;
-            this._accessorName = undefined;
+            this._accessorName = void 0;
         }
 
         return value;
@@ -67,26 +69,29 @@ var Butler = new Class({
              * the name is.
              */
             Object.each(obj, function(fnc, type) {
+                var f;
                 if (fnc && !accessors[type]) {
-                    accessors[type] = function(){
+                    f = accessors[type] = function(){
                         return this._processAccess(name, fnc.pass(arguments, this));
                     }.bind(this);
 
-                    accessors[type]._orig = fnc;
+                    f._orig = fnc;
                 }
             }, this);
 
-            this._accessors[name] = accessors;
+            this._accessors.set(name, accessors);
         }
 
         return this;
     }.overloadSetter(),
 
     getAccessor: function(name, type){
-        var accessors = this._accessors[name];
+        var accessors;
+        
+        if (name) {
+            name = type ? name + '.' + type : name;
 
-        if (type) {
-            return accessors && accessors[type] ? accessors[type] : undefined;
+            accessors = this._accessors.get(name);
         }
 
         return accessors;
@@ -94,16 +99,11 @@ var Butler = new Class({
 
     unsetAccessor: function(name, type){
         if (name) {
-            if (type) {
-                delete this._accessors[name][type];
-            } else {
-                delete this._accessors[name];
-                this._accessors[name] = undefined;
-            }
+            name = type ? name + '.' + type : name;
+
+            this._accessors.unset(name);
         }
 
         return this;
     }
 });
-
-exports.Butler = Butler;

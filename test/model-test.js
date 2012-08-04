@@ -168,125 +168,125 @@ buster.testCase('Neuro Model', {
         refute.equals(test, result);
     },
 
-    // 'Butler (Custom Accessor)': {
-    //     setUp: function(){
-    //         var testModel = new Class({
-    //             Extends: Neuro.Model,
-    //             options: {
-    //                 defaults: {
-    //                     'firstName': '',
-    //                     'lastName': '',
-    //                     'age': 0
-    //                 }
-    //             },
-    //             _accessors: {
-    //                 'fullName': {
-    //                     set: function(prop, val){
-    //                         if (val) {
-    //                             var names = val.split(' '),
-    //                                 first = names[0],
-    //                                 last = names[1];
+    'Butler (Custom Accessor)': {
+        setUp: function(){
+            var testModel = new Class({
+                Extends: Neuro.Model,
+                options: {
+                    defaults: {
+                        'firstName': '',
+                        'lastName': '',
+                        'age': 0
+                    },
+                    accessors: {
+                        'fullName': {
+                            set: function(prop, val){
+                                if (val) {
+                                    var names = val.split(' '),
+                                        first = names[0],
+                                        last = names[1];
 
-    //                             this.set('firstName', first);
-    //                             this.set('lastName', last);
-    //                         }
+                                    this.set('firstName', first);
+                                    this.set('lastName', last);
+                                }
 
-    //                         return val;
-    //                     },
-    //                     get: function(isPrevious){
-    //                         var method = isPrevious ? 'getPrevious' : 'get';
+                                return val;
+                            },
+                            get: function(isPrevious){
+                                var method = isPrevious ? 'getPrevious' : 'get';
 
-    //                         return this[method]('firstName') + ' ' + this[method]('lastName');
-    //                     }
-    //                 }
-    //             }
-    //         });
+                                return this[method]('firstName') + ' ' + this[method]('lastName');
+                            }
+                        }
+                    }
+                }
+            });
 
-    //         this.mockButlerModel = new testModel();
+            this.mockButlerModel = new testModel();
 
-    //         this.mockData = {
-    //             'firstName': 'Garrick',
-    //             'lastName': 'Cheung',
-    //             'age': 29
-    //         };
+            this.mockData = {
+                'firstName': 'Garrick',
+                'lastName': 'Cheung',
+                'age': 29
+            };
 
-    //         this.mockButlerModelWithData = new testModel(this.mockData);
-    //     },
-    //     'setAccessor/getAccessor should set/get accessors that are used to set/get properties': function(){
-    //         var accessor = {
-    //                 set: function(key, val){
-    //                     if (val) {
-    //                         // Make this backwards to differentiate from the original
-    //                         var name = val.split(' '),
-    //                             first = name[1],
-    //                             last = name[0];
+            this.mockButlerModelWithData = new testModel(this.mockData);
+        },
+        'setAccessor/getAccessor should set/get accessors that are used to set/get properties': function(){
+            var accessor = {
+                    set: function(key, val){
+                        if (val) {
+                            // Make this backwards to differentiate from the original
+                            var name = val.split(' '),
+                                first = name[1],
+                                last = name[0];
 
-    //                         this.set('firstName', first);
-    //                         this.set('lastName', last);
-    //                     }
-    //                 },
-    //                 get: this.mockButlerModelWithData.getAccessor('fullName', 'get')._orig
-    //             },
-    //             model = this.mockButlerModelWithData;
+                            this.set('firstName', first);
+                            this.set('lastName', last);
+                        }
+                    },
+                    get: this.mockButlerModelWithData.getAccessor('fullName', 'get')._orig
+                },
+                model = this.mockButlerModelWithData;
 
-    //         model.setAccessor('fullName', accessor);
+            model.setAccessor('fullName', accessor);
 
-    //         model.set('fullName', 'Garrick Cheung');
+            model.set('fullName', 'Garrick Cheung');
 
-    //         assert.equals('Cheung', model.get('firstName'));
-    //         assert.equals('Garrick', model.get('lastName'));
-    //     },
+            assert.equals('Cheung', model.get('firstName'));
+            assert.equals('Garrick', model.get('lastName'));
+        },
 
-    //     'unsetAccessor should unset accessor by key': function(){
-    //         var test = this.mockButlerModelWithData.unsetAccessor('fullName').set('fullName', 'something').get('firstName'),
-    //             result = 'Garrick';
+        'unsetAccessor should unset accessor by key': function(){
+            var test = this.mockButlerModelWithData.unsetAccessor('fullName').set('fullName', 'something').get('firstName'),
+                result = 'Garrick';
 
-    //         assert.equals(test, result);
-    //     },
+            assert.equals(test, result);
+        },
 
-    //     'custom accessors should be used to set/get property': function(){
-    //         var model = this.mockButlerModelWithData,
-    //             test = model.set('fullName', 'Mark Obcena').get('fullName'),
-    //             result = 'Mark Obcena';
+        'custom accessors should be used to set/get property': function(){
+            var model = this.mockButlerModelWithData,
+                test = model.set('fullName', 'Mark Obcena').get('fullName'),
+                result = 'Mark Obcena';
 
-    //         assert.equals(test, result);
-    //     },
+            assert.equals(test, result);
+        },
 
-    //     'custom accessors should not recursively fire itself when calling in the setter': function(){
-    //         var model = this.mockButlerModel.setAccessor('price', {
-    //             set: function(prop, val){
-    //                 this.set(prop, '$' + val.toString());
-    //             },
+        'custom accessors should not recursively fire itself when calling in the setter': function(){
+            var model = this.mockButlerModel.setAccessor('price', {
+                set: function(prop, val){
+                    this.set(prop, '$' + val.toString());
+                },
 
-    //             get: function(){
-    //                 var val = this.get('price');
-    //                 return val && val.replace('$', '').toInt();
-    //             }
-    //         });
+                get: function(){
+                    var val = this.get('price');
+                    return val && val.replace('$', '').toInt();
+                }
+            });
 
-    //         assert.equals(model.set({'price': 100})._data['price'], '$100');
-    //         assert.equals(model.get('price'), 100);
-    //     },
+            assert.equals(model.set({'price': 100})._data['price'], '$100');
+            assert.equals(model.get('price'), 100);
+        },
 
-    //     'custom setter accessor triggered during setting should not trigger setPrevious and change': function(){
-    //         var spy = this.spy(),
-    //             model = this.mockButlerModelWithData,
-    //             test = model.getData(),
-    //             result;
+        'custom setter accessor triggered during setting should not trigger setPrevious and change': function(){
+            var spy = this.spy(),
+                model = this.mockButlerModelWithData,
+                test = model.getData(),
+                result;
 
-    //         model.addEvent('change', spy);
+            model.addEvent('change', spy);
 
-    //         model.set({
-    //             age: 30,
-    //             fullName: 'Mark Obcena'
-    //         });
+            model.set({
+                age: 30,
+                fullName: 'Mark Obcena'
+            });
 
-    //         result = model.getPreviousData();
+            result = model.getPreviousData();
 
-    //         assert.equals(test, result);
-    //         assert.calledOnce(spy);
-    //     },
-    // },
+            assert.equals(test, result);
+            assert.calledOnce(spy);
+        },
+    },
 
     'JSON encode/stringify should return a json string of the data': function(){
         var test = JSON.encode(this.mockModelWithData),
