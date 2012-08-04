@@ -77,14 +77,6 @@
                 </li>
               
                 <li>
-                  <a href="#neuro-model/change">change</a>
-                </li>
-              
-                <li>
-                  <a href="#neuro-model/changeproperty">changeProperty</a>
-                </li>
-              
-                <li>
                   <a href="#neuro-model/destroy">destroy</a>
                 </li>
               
@@ -382,32 +374,32 @@
         </li>
       
         <li>
-          <a href="#mixin-customaccessor">Mixin: CustomAccessor</a>
+          <a href="#mixin-butler">Mixin: Butler</a>
           
             <ul>
               
                 <li>
-                  <a href="#mixin-customaccessor/options-accessors">options.accessors</a>
+                  <a href="#mixin-butler/options-accessors">options.accessors</a>
                 </li>
               
                 <li>
-                  <a href="#mixin-customaccessor/setupaccessors">setupAccessors</a>
+                  <a href="#mixin-butler/setupaccessors">setupAccessors</a>
                 </li>
               
                 <li>
-                  <a href="#mixin-customaccessor/isaccessing">isAccessing</a>
+                  <a href="#mixin-butler/isaccessing">isAccessing</a>
                 </li>
               
                 <li>
-                  <a href="#mixin-customaccessor/setaccessor">setAccessor</a>
+                  <a href="#mixin-butler/setaccessor">setAccessor</a>
                 </li>
               
                 <li>
-                  <a href="#mixin-customaccessor/getaccessor">getAccessor</a>
+                  <a href="#mixin-butler/getaccessor">getAccessor</a>
                 </li>
               
                 <li>
-                  <a href="#mixin-customaccessor/unsetaccessor">unsetAccessor</a>
+                  <a href="#mixin-butler/unsetaccessor">unsetAccessor</a>
                 </li>
               
             </ul>
@@ -453,7 +445,7 @@
 <p>A MooTools client-side MVC.
 
 </p>
-<p><strong>Version: 0.2.0 (Alpha)</strong>
+<p><strong>Version: 0.2.1 (Alpha)</strong>
 
 </p>
 <p><a href="http://travis-ci.org/GCheung55/Neuro"><img src="https://secure.travis-ci.org/GCheung55/Neuro.png" alt="Build Status" /></a>
@@ -494,7 +486,7 @@
 <h4>Implements:</h4>
 <ul>
 <li><a href="#mixin-connector">Mixin: Connector</a></li>
-<li><a href="#mixin-customaccessor">Mixin: CustomAccessor</a></li>
+<li><a href="#mixin-Butler">Mixin: Butler</a></li>
 <li><a href="#mixin-events">Mixin: Events</a></li>
 <li><a href="#mixin-options">Mixin: Options</a></li>
 <li><a href="#mixin-silence">Mixin: Silence</a></li>
@@ -510,7 +502,7 @@
 <li>primaryKey - (String) Define to uniquely identify a model in a collection</li>
 <li>defaults - (Object) Contains the default key/value pair defaults for the Model.</li>
 <li>connector - (Object) See <a href="#mixin-connector">Mixin: Connector</a></li>
-<li>accessor - (Object) See <a href="#mixin-customaccessor">Mixin: CustomAccessor</a></li>
+<li>accessor - (Object) See <a href="#mixin-butler">Mixin: Butler</a></li>
 </ul>
 </li>
 </ol>
@@ -532,6 +524,9 @@
 <p>The way to assign values to properties the model has. <strong>Do not</strong> use direct assignment else events will not be triggered or custom setters will not be used.
 
 </p>
+<p>Allows for deep object setting by using string delimited with a period.
+
+</p>
 <h4>Syntax:</h4>
 <pre><code class="javascript">model.set(property, value);
 
@@ -539,7 +534,7 @@ model.set(object);</code></pre>
 <h4>Arguments:</h4>
 <ul>
 <li>Two Arguments (property, value)<ol>
-<li>property - (String) A key used to define a property the model has.</li>
+<li>property - (String) A key used to define a property the model has. It can also be a dot-delimited name string that will be parsed to create an object path to the property.</li>
 <li>value - (String | Array | Number | Object | Function | Class) A value of the corresponding property.</li>
 </ol>
 </li>
@@ -554,6 +549,20 @@ model.set(object);</code></pre>
 <li><code>change:key</code></li>
 <li><code>change</code></li>
 </ul>
+<h4>Examples:</h4>
+<pre><code class="javascript"><span class="comment">// set the property 'name' as an object.</span>
+model.set(<span class="string">'name'</span>, {});
+
+<span class="comment">// set an object that contains all the property value pairs</span>
+model.set({
+    name: {
+        first: <span class="string">'Garrick'</span>,
+        last: <span class="string">'Cheung'</span>
+    }
+});
+
+<span class="comment">// set a property with a dot-delimited string</span>
+model.set(<span class="string">'name.middle'</span>, <span class="string">'T'</span>);</code></pre>
 <h3 id="neuro-model/issetting">isSetting</h3>
 <hr />
 <p>Use to check if data is currently being handled by the model to assign values to properties the model has.
@@ -570,11 +579,11 @@ model.set(object);</code></pre>
 <h4>Syntax:</h4>
 <pre><code class="javascript">model.get(property);
 
-model.set(property1, property2);</code></pre>
+model.get(property1, property2);</code></pre>
 <h4>Arguments:</h4>
 <ul>
 <li>More than One Consecutive Argument<ol>
-<li>property1, property2... - (String) The properties used to retrieve corresponding values that the model has.</li>
+<li>property1, property2... - (String) The properties used to retrieve corresponding values that the model has. </li>
 </ol>
 </li>
 <li>One Argument<ol>
@@ -593,6 +602,19 @@ model.set(property1, property2);</code></pre>
 </ul>
 </li>
 </ul>
+<h4>Note:</h4>
+<p>A dot-delimited string can also be used in place of the arguments. The string will be parsed to create an object path to retrieve the value.
+
+</p>
+<h4>Example:</h4>
+<pre><code class="javascript"><span class="comment">// Using one argument</span>
+model.get(<span class="string">'name'</span>);
+
+<span class="comment">// Using multiple arguments</span>
+model.get(<span class="string">'name'</span>, <span class="string">'age'</span>);
+
+<span class="comment">// Using a dot-delimited string</span>
+model.get(<span class="string">'name.first'</span>, <span class="string">'name.last'</span>);</code></pre>
 <h3 id="neuro-model/getdata">getData</h3>
 <hr />
 <p>Retrieve all properties/values the model has. The returned object is a clone (dereferenced) of the data the model has.
@@ -688,42 +710,6 @@ model.reset([property1, property2]);</code></pre>
 <li><code>change</code></li>
 <li><code>reset</code></li>
 </ul>
-<h3 id="neuro-model/change">change</h3>
-<hr />
-<p>Checks if data is changed before triggering <code>change</code> event. Not likely to be called outside of <code>set</code>.
-
-</p>
-<pre><code class="javascript">model.change();</code></pre>
-<h4>Returns: Model instance.</h4>
-<h4>Triggered Events: (only if there is a change in the model data)</h4>
-<ul>
-<li><code>change</code></li>
-</ul>
-<h3 id="neuro-model/changeproperty">changeProperty</h3>
-<hr />
-<p>Checks if data is changed before triggering <code>change:key</code> event. Not likely to be called outside of <code>set</code>.
-
-</p>
-<pre><code class="javascript">model.changeProperty(property, value);
-
-model.changeProperty(object);</code></pre>
-<h4>Arguments:</h4>
-<ul>
-<li>Two Arguments (property, value)<ol>
-<li>property - (String) A key corresponding to the changed property the model has.</li>
-<li>value - (String | Array | Number | Object | Function | Class) A value of the corresponding property that was changed.</li>
-</ol>
-</li>
-<li>One Argument (object)<ol>
-<li>object (Object) An object containing sets of property/value pairs</li>
-</ol>
-</li>
-</ul>
-<h4>Returns: Model instance.</h4>
-<h4>Triggered Events: (only if there is a change in the model data)</h4>
-<ul>
-<li><code>change:key</code></li>
-</ul>
 <h3 id="neuro-model/destroy">destroy</h3>
 <hr />
 <p>Triggers the <code>destroy</code> event. This should be overriden in a Class that extends from Model to do additional things. If overriden, remember to call <code>this.parent();</code> to trigger the <code>destroy</code> method, or execute <code>signalDestroy</code> manually.
@@ -796,23 +782,23 @@ model.spy(object);</code></pre>
 </p>
 <h3 id="neuro-model/setupaccessors">setupAccessors</h3>
 <hr />
-<p>see <a href="#mixin-customaccessor">Mixin: CustomAccessor</a>
+<p>see <a href="#mixin-butler">Mixin: Butler</a>
 </p>
 <h3 id="neuro-model/isaccessing">isAccessing</h3>
 <hr />
-<p>see <a href="#mixin-customaccessor">Mixin: CustomAccessor</a>
+<p>see <a href="#mixin-butler">Mixin: Butler</a>
 </p>
 <h3 id="neuro-model/setaccessor">setAccessor</h3>
 <hr />
-<p>see <a href="#mixin-customaccessor">Mixin: CustomAccessor</a>
+<p>see <a href="#mixin-butler">Mixin: Butler</a>
 </p>
 <h3 id="neuro-model/getaccessor">getAccessor</h3>
 <hr />
-<p>see <a href="#mixin-customaccessor">Mixin: CustomAccessor</a>
+<p>see <a href="#mixin-butler">Mixin: Butler</a>
 </p>
 <h3 id="neuro-model/unsetaccessor">unsetAccessor</h3>
 <hr />
-<p>see <a href="#mixin-customaccessor">Mixin: CustomAccessor</a>
+<p>see <a href="#mixin-butler">Mixin: Butler</a>
 </p>
 <h3 id="neuro-model/addevent">addEvent</h3>
 <hr />
@@ -1186,6 +1172,9 @@ collection.pick();</code></pre>
 </ul>
 <h3 id="neuro-view/constructor-initialize">constructor (initialize)</h3>
 <hr />
+<p>Starts out with executing <code>setup</code> and then triggering <code>ready</code> event.
+
+</p>
 <h4>Syntax:</h4>
 <pre><code class="javascript"><span class="keyword">var</span> view = <span class="keyword">new</span> Neuro.View(options);</code></pre>
 <h4>Arguments:</h4>
@@ -1216,7 +1205,7 @@ collection.pick();</code></pre>
 </ul>
 <h3 id="neuro-view/setup">setup</h3>
 <hr />
-<p>Called during <code>initialize</code> to <code>setOptions</code>, <code>setElement</code>, and trigger the <code>ready</code> event.
+<p>Called during <code>initialize</code> to <code>setOptions</code>, and <code>setElement</code>.
 
 </p>
 <h4>Arguments:</h4>
@@ -1635,11 +1624,11 @@ currentClass.addEvent(<span class="string">'age'</span>, <span class="keyword">f
 </ol>
 <h3 id="mixin-connector/disconnect">disconnect</h3>
 <hr />
-<h2 id="mixin-customaccessor">Mixin: CustomAccessor</h2>
+<h2 id="mixin-butler">Mixin: Butler</h2>
 <hr />
 <p>A Utility Class. It provides a way to define custom setters/getters on a Class.
 </p>
-<h3 id="mixin-customaccessor/options-accessors">options.accessors</h3>
+<h3 id="mixin-butler/options-accessors">options.accessors</h3>
 <hr />
 <p>A key/value object where the key is the name of the setter and value is an object containing overriding set/get methods.
 
@@ -1658,7 +1647,7 @@ currentClass.addEvent(<span class="string">'age'</span>, <span class="keyword">f
 </ul>
 </li>
 </ol>
-<h3 id="mixin-customaccessor/setupaccessors">setupAccessors</h3>
+<h3 id="mixin-butler/setupaccessors">setupAccessors</h3>
 <hr />
 <p>Existing accessors in <code>_accessors</code> need to be decorated so they are merged with <code>options.accessors</code> before being sent to <code>setAccessor</code>.
 
@@ -1666,7 +1655,7 @@ currentClass.addEvent(<span class="string">'age'</span>, <span class="keyword">f
 <h4>Syntax:</h4>
 <pre><code class="javascript">currentClass.setupAccessors();</code></pre>
 <h4>Returns: Class instance.</h4>
-<h3 id="mixin-customaccessor/isaccessing">isAccessing</h3>
+<h3 id="mixin-butler/isaccessing">isAccessing</h3>
 <hr />
 <p>Check whether an accessor is being used by checking if <code>_accessorName</code> has been defined. This will allow a class to bypass recursive calls to the same custom setter/getter.
 
@@ -1674,7 +1663,7 @@ currentClass.addEvent(<span class="string">'age'</span>, <span class="keyword">f
 <h4>Syntax:</h4>
 <pre><code class="javascript">currentClass.isAccessing();</code></pre>
 <h4>Returns: Boolean</h4>
-<h3 id="mixin-customaccessor/setaccessor">setAccessor</h3>
+<h3 id="mixin-butler/setaccessor">setAccessor</h3>
 <hr />
 <p>A method to decorate custom setters/getters that will allow the use of <code>isAccessing</code> to prevent recursive calls to the same custom setter/getter.
 
@@ -1713,7 +1702,7 @@ currentClass.setAccessor(obj);</code></pre>
 fullNameAccessor.set; <span class="comment">// returns the decorated set function.</span>
 
 fullNameAccessor.set._orig <span class="comment">// is the undecorated original set function.</span></code></pre>
-<h3 id="mixin-customaccessor/getaccessor">getAccessor</h3>
+<h3 id="mixin-butler/getaccessor">getAccessor</h3>
 <hr />
 <p>A method to retrieve stored accessors by name or by name and type.
 
@@ -1750,7 +1739,7 @@ fullNameAccessors returns and object where the set function is the decorated fun
 </p>
 <pre><code class="javascript"><span class="comment">// Returns the decorated function that is stored with the set key, in the fullName accessor object.</span>
 <span class="keyword">var</span> fullNameSetAccessor = currentClass.getAccessor(<span class="string">'fullName'</span>, <span class="string">'set'</span>);</code></pre>
-<h3 id="mixin-customaccessor/unsetaccessor">unsetAccessor</h3>
+<h3 id="mixin-butler/unsetaccessor">unsetAccessor</h3>
 <hr />
 <p>Remove an accessor object or decorated function from the accessor object.
 
