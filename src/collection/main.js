@@ -1,9 +1,9 @@
 // (function(context){
 
-var Model = require('./model/main').Model,
-    Silence = require('../mixins/silence').Silence,
-    Connector = require('../mixins/connector').Connector,
-    signalFactory = require('../utils/signalFactory');
+var Model = require('../model/main').Model,
+    Silence = require('../../mixins/silence').Silence,
+    Connector = require('../../mixins/connector').Connector,
+    signalFactory = require('../../utils/signalFactory');
 
 var Signals = new Class(
     signalFactory(

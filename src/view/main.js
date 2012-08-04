@@ -1,6 +1,6 @@
-var Connector = require('../mixins/connector').Connector,
-    Silence = require('../mixins/silence').Silence,
-    signalFactory = require('../utils/signalFactory');
+var Connector = require('../../mixins/connector').Connector,
+    Silence = require('../../mixins/silence').Silence,
+    signalFactory = require('../../utils/signalFactory');
 
 /**
  * Events are attached/detached with the returned function

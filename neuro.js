@@ -13,8 +13,8 @@
     "0": function(require, module, exports, global) {
         var Neuro = require("1");
         Neuro.Model = require("2").Model;
-        Neuro.Collection = require("a").Collection;
-        Neuro.View = require("b").View;
+        Neuro.Collection = require("b").Collection;
+        Neuro.View = require("c").View;
         exports = module.exports = Neuro;
     },
     "1": function(require, module, exports, global) {
@@ -25,6 +25,7 @@
     },
     "2": function(require, module, exports, global) {
         var Model = require("3").Model, Butler = require("9").Butler;
+        Validator = require("a").Validator;
         var curryGetter = function(isPrevious) {
             return function(prop) {
                 var accessor = this.getAccessor(prop, isPrevious ? "getPrevious" : "get"), accessorName = this._accessorName;
@@ -37,8 +38,10 @@
         Model.implement(new Butler);
         exports.Model = new Class({
             Extends: Model,
+            Implements: [ Validator ],
             setup: function(data, options) {
                 this.setupAccessors();
+                this.setupValidators();
                 this.parent(data, options);
                 return this;
             },
@@ -49,6 +52,20 @@
                 }
                 return this.parent(prop, val);
             }.overloadSetter(),
+            set: function(prop, val) {
+                var validator;
+                if (prop) {
+                    this.hasValidators() && this.validate(prop, val);
+                    if (this._errored) {
+                        this._erroredProperty(this._erroredProperties);
+                        this.signalError();
+                        this._resetErrored();
+                    } else {
+                        this.parent(prop, val);
+                    }
+                }
+                return this;
+            },
             get: curryGetter(),
             getPrevious: curryGetter(true),
             setAccessor: function(name, val) {
@@ -57,6 +74,18 @@
                         val.getPrevious = val.get;
                     }
                     this.parent(name, val);
+                }
+                return this;
+            }.overloadSetter(),
+            isValid: function() {
+                var isValid = (this.hasValidators() && this.validate(this.getData()), this._errored);
+                return !!(this._resetErrored(), isValid);
+            },
+            validate: function(prop, val) {
+                var validator = this.getValidator(prop);
+                if (validator && !validator(val)) {
+                    this._errored = true;
+                    this._erroredProperties[prop] = val;
                 }
                 return this;
             }.overloadSetter()
@@ -542,6 +571,28 @@
         });
     },
     a: function(require, module, exports, global) {
+        exports.Validator = new Class({
+            _validators: {},
+            options: {
+                validators: {}
+            },
+            setupValidators: function() {
+                this.setValidator(this.options.validators);
+                return this;
+            },
+            hasValidators: function() {
+                return !!Object.getLength(this._validators);
+            },
+            setValidator: function(name, validator) {
+                Type.isFunction(validator) && (this._validators[name] = validator.bind(this));
+                return this;
+            }.overloadSetter(),
+            getValidator: function(name) {
+                return this._validators[name];
+            }.overloadGetter()
+        });
+    },
+    b: function(require, module, exports, global) {
         var Model = require("2").Model, Silence = require("5").Silence, Connector = require("6").Connector, signalFactory = require("8");
         var Signals = new Class(signalFactory([ "empty", "sort" ], signalFactory([ "add", "remove" ], function(name) {
             return function(model) {
@@ -675,7 +726,7 @@
         });
         exports.Collection = Collection;
     },
-    b: function(require, module, exports, global) {
+    c: function(require, module, exports, global) {
         var Connector = require("6").Connector, Silence = require("5").Silence, signalFactory = require("8");
         var eventHandler = function(handler) {
             return function() {
