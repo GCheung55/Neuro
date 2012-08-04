@@ -8,27 +8,6 @@ buster.testCase('Neuro Model', {
                     'lastName': '',
                     'age': 0
                 }
-            },
-            _accessors: {
-                'fullName': {
-                    set: function(prop, val){
-                        if (val) {
-                            var names = val.split(' '),
-                                first = names[0],
-                                last = names[1];
-
-                            this.set('firstName', first);
-                            this.set('lastName', last);
-                        }
-
-                        return val;
-                    },
-                    get: function(isPrevious){
-                        var method = isPrevious ? 'getPrevious' : 'get';
-
-                        return this[method]('firstName') + ' ' + this[method]('lastName');
-                    }
-                }
             }
         });
 
@@ -60,6 +39,35 @@ buster.testCase('Neuro Model', {
     'set and get a value of 30': function(){
         var test = this.mockModelWithData.set('age', 30).get('age');
         assert.equals(test, 30);
+    },
+
+    'set and get the last position of the object path to the specified value': function(){
+        var model = this.mockModel;
+        model.set('a.b.c', 'str');
+        model.set('d.e.f', []);
+        model.set('g.h.i', {});
+
+        assert.equals(model.get('a.b.c'), 'str');
+        assert.equals(model.get('d.e.f'), []);
+        assert.equals(model.get('g.h.i'), {});
+    },
+
+    'set and get the last position of the object path to the specified value where one of the items is a model instance': function(){
+        var model = new Neuro.Model({
+                a: {
+                    b: {
+                        c: 'str',
+                        d: 'another'
+                    }
+                }
+            }),
+            model2 = new Neuro.Model({
+                model: model
+            });
+
+        model2.set('model.a', 'str');
+
+        assert.equals(model.get('a'), 'str');
     },
 
     'arrays and objects should be dereferenced when set': function(){
@@ -160,80 +168,125 @@ buster.testCase('Neuro Model', {
         refute.equals(test, result);
     },
 
-    'setAccessor/getAccessor should set/get accessors that are used to set/get properties': function(){
-        var accessor = {
-                set: function(key, val){
-                    if (val) {
-                        // Make this backwards to differentiate from the original
-                        var name = val.split(' '),
-                            first = name[1],
-                            last = name[0];
+    // 'Butler (Custom Accessor)': {
+    //     setUp: function(){
+    //         var testModel = new Class({
+    //             Extends: Neuro.Model,
+    //             options: {
+    //                 defaults: {
+    //                     'firstName': '',
+    //                     'lastName': '',
+    //                     'age': 0
+    //                 }
+    //             },
+    //             _accessors: {
+    //                 'fullName': {
+    //                     set: function(prop, val){
+    //                         if (val) {
+    //                             var names = val.split(' '),
+    //                                 first = names[0],
+    //                                 last = names[1];
 
-                        this.set('firstName', first);
-                        this.set('lastName', last);
-                    }
-                },
-                get: this.mockModelWithData.getAccessor('fullName', 'get')._orig
-            },
-            model = this.mockModelWithData;
+    //                             this.set('firstName', first);
+    //                             this.set('lastName', last);
+    //                         }
 
-        model.setAccessor('fullName', accessor);
+    //                         return val;
+    //                     },
+    //                     get: function(isPrevious){
+    //                         var method = isPrevious ? 'getPrevious' : 'get';
 
-        model.set('fullName', 'Garrick Cheung');
+    //                         return this[method]('firstName') + ' ' + this[method]('lastName');
+    //                     }
+    //                 }
+    //             }
+    //         });
 
-        assert.equals('Cheung', model.get('firstName'));
-        assert.equals('Garrick', model.get('lastName'));
-    },
+    //         this.mockButlerModel = new testModel();
 
-    'unsetAccessor should unset accessor by key': function(){
-        var test = this.mockModelWithData.unsetAccessor('fullName').set('fullName', 'something').get('firstName'),
-            result = 'Garrick';
+    //         this.mockData = {
+    //             'firstName': 'Garrick',
+    //             'lastName': 'Cheung',
+    //             'age': 29
+    //         };
 
-        assert.equals(test, result);
-    },
+    //         this.mockButlerModelWithData = new testModel(this.mockData);
+    //     },
+    //     'setAccessor/getAccessor should set/get accessors that are used to set/get properties': function(){
+    //         var accessor = {
+    //                 set: function(key, val){
+    //                     if (val) {
+    //                         // Make this backwards to differentiate from the original
+    //                         var name = val.split(' '),
+    //                             first = name[1],
+    //                             last = name[0];
 
-    'custom accessors should be used to set/get property': function(){
-        var model = this.mockModelWithData,
-            test = model.set('fullName', 'Mark Obcena').get('fullName'),
-            result = 'Mark Obcena';
+    //                         this.set('firstName', first);
+    //                         this.set('lastName', last);
+    //                     }
+    //                 },
+    //                 get: this.mockButlerModelWithData.getAccessor('fullName', 'get')._orig
+    //             },
+    //             model = this.mockButlerModelWithData;
 
-        assert.equals(test, result);
-    },
+    //         model.setAccessor('fullName', accessor);
 
-    'custom accessors should not recursively fire itself when calling in the setter': function(){
-        var model = this.mockModel.setAccessor('price', {
-            set: function(prop, val){
-                this.set(prop, '$' + val.toString());
-            },
+    //         model.set('fullName', 'Garrick Cheung');
 
-            get: function(){
-                var val = this.get('price');
-                return val && val.replace('$', '').toInt();
-            }
-        });
+    //         assert.equals('Cheung', model.get('firstName'));
+    //         assert.equals('Garrick', model.get('lastName'));
+    //     },
 
-        assert.equals(model.set({'price': 100})._data['price'], '$100');
-        assert.equals(model.get('price'), 100);
-    },
+    //     'unsetAccessor should unset accessor by key': function(){
+    //         var test = this.mockButlerModelWithData.unsetAccessor('fullName').set('fullName', 'something').get('firstName'),
+    //             result = 'Garrick';
 
-    'custom setter accessor triggered during setting should not trigger setPrevious and change': function(){
-        var spy = this.spy(),
-            model = this.mockModelWithData,
-            test = model.getData(),
-            result;
+    //         assert.equals(test, result);
+    //     },
 
-        model.addEvent('change', spy);
+    //     'custom accessors should be used to set/get property': function(){
+    //         var model = this.mockButlerModelWithData,
+    //             test = model.set('fullName', 'Mark Obcena').get('fullName'),
+    //             result = 'Mark Obcena';
 
-        model.set({
-            age: 30,
-            fullName: 'Mark Obcena'
-        });
+    //         assert.equals(test, result);
+    //     },
 
-        result = model.getPreviousData();
+    //     'custom accessors should not recursively fire itself when calling in the setter': function(){
+    //         var model = this.mockButlerModel.setAccessor('price', {
+    //             set: function(prop, val){
+    //                 this.set(prop, '$' + val.toString());
+    //             },
 
-        assert.equals(test, result);
-        assert.calledOnce(spy);
-    },
+    //             get: function(){
+    //                 var val = this.get('price');
+    //                 return val && val.replace('$', '').toInt();
+    //             }
+    //         });
+
+    //         assert.equals(model.set({'price': 100})._data['price'], '$100');
+    //         assert.equals(model.get('price'), 100);
+    //     },
+
+    //     'custom setter accessor triggered during setting should not trigger setPrevious and change': function(){
+    //         var spy = this.spy(),
+    //             model = this.mockButlerModelWithData,
+    //             test = model.getData(),
+    //             result;
+
+    //         model.addEvent('change', spy);
+
+    //         model.set({
+    //             age: 30,
+    //             fullName: 'Mark Obcena'
+    //         });
+
+    //         result = model.getPreviousData();
+
+    //         assert.equals(test, result);
+    //         assert.calledOnce(spy);
+    //     },
+    // },
 
     'JSON encode/stringify should return a json string of the data': function(){
         var test = JSON.encode(this.mockModelWithData),
@@ -252,6 +305,18 @@ buster.testCase('Neuro Model', {
         assert.calledWith(spy, model);
     },
 
+    'should trigger a change event when setting a value with a period-separated path': function(){
+        var spy = this.spy(),
+            model = this.mockModel;
+
+        model.addEvent('change', spy);
+
+        model.set('a.b.c', 'str');
+
+        assert.called(spy);
+        assert.calledWith(spy, model);
+    },
+
     'should trigger a change event that notifies what property and value was changed': function(){
         var spy = this.spy(),
             model = this.mockModelWithData.addEvent('change:age', spy);
@@ -260,6 +325,61 @@ buster.testCase('Neuro Model', {
 
         assert.called(spy);
         assert.calledWith(spy, model, 'age', 30, 29);
+    },
+
+    'should trigger a change event that notifies what property and value was changed for every item in the period-separated path': function(){
+        var spy = this.spy(),
+            model = this.mockModel,
+            data = {
+                a: {
+                    b: {
+                        c: 'str'
+                    }
+                }
+            };
+
+        model.addEvent('change:a', spy);
+        model.addEvent('change:a.b', spy);
+        model.addEvent('change:a.b.c', spy);
+
+        model.set('a.b.c', 'str');
+
+        assert.calledWith(spy, model, 'a', data.a, undefined);
+        assert.calledWith(spy, model, 'a.b', data.a.b, undefined);
+        assert.calledWith(spy, model, 'a.b.c', data.a.b.c, undefined);
+    },
+
+    'should trigger a change event for previous properties in previous objects': function(){
+        var spy = this.spy(),
+            model = this.mockModel,
+            prevData = {
+                a: {
+                    b: {
+                        c: 'str'
+                    }
+                }
+            },
+            currentData = {
+                e: {
+                    f: 'otherStr'
+                }
+            };
+
+        model.set(prevData);
+
+        model.addEvent('change:a', spy);
+        model.addEvent('change:a.b', spy);
+        model.addEvent('change:a.b.c', spy);
+
+        model.set('a', currentData)
+
+        assert.calledWith(spy, model, 'a', currentData, prevData.a);
+
+        // a.b is now undefined because it no longer exists
+        assert.calledWith(spy, model, 'a.b', undefined, prevData.a.b);
+
+        // a.b.c is now undefined because it no longer exists
+        assert.calledWith(spy, model, 'a.b.c', undefined, prevData.a.b.c);
     },
 
     'should trigger an event when the model is destroyed': function(){
@@ -590,6 +710,70 @@ buster.testCase('Neuro Model', {
             }
         }
     },
+
+    // 'Validator': {
+    //     setUp: function(){
+    //         this.validatorTestModel = new Neuro.Model({}, {
+    //             validators: {
+    //                 name: function(value){
+    //                     return !!value;
+    //                 }
+    //             }
+    //         });
+    //     },
+
+    //     'hasValidator should return a boolean': function(){
+    //         var model = new Neuro.Model(),
+    //             result = model.hasValidators();
+
+    //         assert.equals(result, false);
+
+    //         model = this.validatorTestModel;
+    //         result = model.hasValidators();
+
+    //         assert.equals(result, true);
+    //     },
+
+    //     'setValidator should set a validator(s)': function(){
+    //         var model = new Neuro.Model(),
+    //             name, age, year,
+    //             nameFnc = function(){ name = true; },
+    //             ageFnc = function(){ age = true; },
+    //             yearFnc = function(){ year = true; };
+            
+    //         model.setValidator('name', nameFnc);
+
+    //         model.setValidator({'age': ageFnc, 'year': yearFnc});
+
+    //         model._validators.name();
+    //         model._validators.age();
+    //         model._validators.year();
+
+    //         assert(name);
+    //         assert(age);
+    //         assert(year);
+    //     },
+
+    //     'getValidator should return validator functions as a single function or an object key/value pairs of functions': function(){
+    //         var model = new Neuro.Model(),
+    //             name, age, year,
+    //             fncs = {
+    //                 name: function(){ name = true; },
+    //                 age: function(){ age = true; },
+    //                 year: function(){ year = true; }
+    //             };
+            
+    //         model.setValidator(fncs);
+
+    //         model.getValidator('name')();
+    //         model.getValidator('age')();
+    //         model.getValidator('year')();
+
+    //         assert(name);
+    //         assert(age);
+    //         assert(year);
+    //     }
+    // },
 
     'Object Methods': {
         setUp: function(){

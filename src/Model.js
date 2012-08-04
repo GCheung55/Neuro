@@ -3,8 +3,9 @@
 var Is = require('neuro-is').Is,
     Silence = require('../mixins/silence').Silence,
     Connector = require('../mixins/connector').Connector,
-    Butler = require('../mixins/butler').Butler,
     signalFactory = require('../utils/signalFactory');
+
+var isObject = function(obj){ return Type.isObject(obj); };
 
 var cloneVal = function(val){
     switch(typeOf(val)){
@@ -30,26 +31,7 @@ var curryGetter = function(type){
     var isPrevious = type == '_previousData' || void 0;
 
     return function(prop){
-        var accessor = this.getAccessor(prop, isPrevious ? 'getPrevious' : 'get'),
-            // accessing = this.isAccessing(),
-            accessorName = this._accessorName;
-
-        /**
-         * Prevent recursive get calls by checking if it's currently accessing
-         * and if the accessor name is the same as the property arg. If all positive,
-         * then return the value from _data/_previousData, otherwise return from 
-         * the accessor function. Fallback to returning from the _data/_previousData
-         * if an accessor function does not exist.
-         */
-        if (accessor) {
-            if (accessorName != prop) {
-                return accessor();
-            }
-        }
-
-        return this[type][prop];
-
-        // return accessor && accessorName != prop ? accessor() : this[type][prop];
+        return this._deepGet(this[type], prop, isPrevious);
     }.overloadGetter();
 };
 
@@ -80,7 +62,7 @@ var Signals = new Class(
 );
 
 var Model = new Class({
-    Implements: [Connector, Butler, Events, Options, Silence, Signals],
+    Implements: [Connector, Events, Options, Silence, Signals],
 
     primaryKey: undefined,
 
@@ -110,18 +92,13 @@ var Model = new Class({
             return data;
         }
 
+        this.setOptions(options);
+
         this.setup(data, options);
     },
 
     setup: function(data, options){
-        this.setOptions(options);
-
         this.primaryKey = this.options.primaryKey;
-
-        this.setupAccessors();
-
-        // properly set the defaults object
-        // Object.merge(this._defaults, this.options.defaults);
 
         // Set the _data defaults silently because listeners shouldn't need to know that the defaults have been defined
         this.silence(function(){
@@ -134,6 +111,64 @@ var Model = new Class({
         return this;
     },
 
+    _deepSet: function(object, path, val){
+        path = (typeof path == 'string') ? path.split('.') : path.slice(0);
+        var key = path.pop(),
+            len = path.length,
+            i = 0,
+            current;
+
+        while (len--) {
+            current = path[i++];
+
+            object = current in object ? object[current] : (object[current] = {});
+
+            /**
+             * Since the object is a model, lets use its own set method.
+             */
+            if (instanceOf(object, Model)) { 
+                path = path.slice(i);
+                path.push(key)
+                object.set(path.join('.'), val);
+                return this;
+            }
+        }
+
+        /**
+         * Not setting previous here because that's only handled by setting data.
+         *
+         * Class instances are typed as Objects
+         */
+        if (isObject(object)) {
+            object[key] = val;
+        } else {
+            throw new Error('Can not set to this path: ' + path);
+        }
+
+        return this;
+    },
+
+    _deepGet: function(object, path, prev){
+        if (typeof path == 'string') {
+            path = path.split('.');
+        }
+
+        for (var i = 0, l = path.length; i < l; i++) {
+            if (!object) continue;
+
+            if (hasOwnProperty.call(object, path[i])) {
+                object = object[path[i]];
+            } else if (instanceOf(object, Model)) {
+                // A model should be treated differently. And will rely on 'prev' to properly access data
+                object = object[prev ? 'getPrevious': 'get'](path[i]);
+            } else {
+                return object[path[i]];
+            }
+        }
+
+        return object;
+    },
+
     /**
      * Store the key/value pair in the Model instance
      * Signal to property referenced change listener if property value is changed
@@ -143,28 +178,19 @@ var Model = new Class({
      * @return {Class} The Model instance
      */
     __set: function(prop, val){
-        /**
-         * Use the custom setter accessor if it exists.
-         * Otherwise, set the property in the regular fashion.
-         */
-        var accessor = this.getAccessor(prop, 'set');
-        /**
-         * If the accessor is true, then run it, and return false
-         * to the if statement to prevent it from continuing to 
-         * run through the code block
-         */
-        if (accessor && this._accessorName != prop) {
-            return accessor.apply(this, arguments);
-        }
-
         // Store the older prop
         var old = this.get(prop);
 
         if (!Is.Equal(old, val)) {
-            this._changed = true;
-
             // cloneVal will return a cloned of an Array or Object that is not a Class or the val itself
-            this._data[prop] = this._changedProperties[prop] = cloneVal(val);
+            val = cloneVal(val);
+            this._deepSet(this._data, prop, val);
+            
+            // Check the value to make sure it actually did set before setting changeed to true
+            if (Is.Equal(this.get(prop), val)) {
+                this._changed = true;
+                this._deepSet(this._changedProperties, prop, val);
+            }
         }
 
         return this;
@@ -197,7 +223,6 @@ var Model = new Class({
         var isSetting;
 
         if (prop) {
-
             isSetting = this.isSetting();
 
             // store the previously changed property
@@ -211,14 +236,17 @@ var Model = new Class({
             this._set(prop, val);
 
             if (!isSetting) {
-                // Signal any changed properties
-                this.changeProperty(this._changedProperties);
-
-                // Signal change
-                this.change();
                 
-                // reset changed and changed properties
-                this._resetChanged();
+                if (this._changed) {
+                    // Signal any changed properties
+                    this._changeProperty(this._changedProperties);
+
+                    // Signal change
+                    this.signalChange();
+                    
+                    // reset changed and changed properties
+                    this._resetChanged();
+                }
             }
         }
 
@@ -226,7 +254,7 @@ var Model = new Class({
     },
 
     isSetting: function(){
-        return !! this._setting;
+        return !!this._setting;
     },
 
     /**
@@ -263,7 +291,7 @@ var Model = new Class({
             
             while(len--){
                 item = prop[i++];
-                props[item] = defaults[item];
+                props[item] = this._deepGet(defaults, item);
             }
         } else {
             props = defaults;
@@ -301,27 +329,12 @@ var Model = new Class({
     getPreviousData: curryGetData('getPrevious'),
     
     _resetChanged: function(){
-        if (this._changed) {
-            // reset the changed
-            this._changed = false;
-    
-            // reset changed properties
-            this._changedProperties = {};
-        }
+        // reset the changed
+        this._changed = false;
+
+        // reset changed properties
+        this._changedProperties = {};
         
-        return this;
-    },
-
-    /**
-     * Signal to 'change' listener if model has changed
-     *
-     * @return {[type]}
-     */
-    change: function(){
-        if (this._changed) {
-            this.signalChange();
-        }
-
         return this;
     },
 
@@ -330,13 +343,35 @@ var Model = new Class({
      * @param  {String} prop Name of property
      * @return {[type]}
      */
-    changeProperty: function(prop, val){
-        if (this._changed) {
-            this.signalChangeProperty(prop, val, this.getPrevious(prop));
-        }
+    // _changeProperty: function(prop, val){
+    //     this.signalChangeProperty(prop, val, this.getPrevious(prop));
+
+    //     return this;
+    // }.overloadSetter(),
+    _changeProperty: function(object, basePath){
+        basePath = basePath ? basePath + '.' : '';
+
+        Object.each(object, function(val, prop){
+            var path = basePath + prop,
+                newVal = this.get(path), oldVal = this.getPrevious(path),
+                newValIsObject = isObject(newVal), oldValIsObject = isObject(oldVal);
+
+            this.signalChangeProperty(path, newVal, oldVal);
+
+            /**
+             * Use the val instead of newVal because they're actually different.
+             * val is the actually changed value, while newVal contains other values on the object
+             *
+             * Skip objects that are Class instances. They shouldn't be iterated over anyways.
+             */
+            newValIsObject && !instanceOf(object, Class) && this._changeProperty(val, path);
+
+            // Report the change of old objects that the new parent value is now not an object
+            oldValIsObject && this._changeProperty(oldVal, path);
+        }, this);
 
         return this;
-    }.overloadSetter(),
+    },
 
     /**
      * Signal to 'destroy' listener if model is to be destroyed
@@ -376,28 +411,6 @@ var Model = new Class({
     unspy: function(prop, callback){
         if ((Type.isString(prop) && prop in this._data)) {
             this.removeEvents('change:' + prop, callback);
-        }
-
-        return this;
-    }.overloadSetter(),
-
-    setAccessor: function(name, val){
-        var set;
-
-        if (name && val) {
-            
-            /**
-             * Create a getPrevious method that is the get method,
-             * but passed a true arg to signify it should access _previousData
-             * while the get method gets passed a false value to signify it
-             * should access _data.
-             */
-            if (val.get && !val.getPrevious) {
-                val.getPrevious = val.get;
-            }
-
-            // Kind of hack because implementing a class only copies the methods.
-            Butler.prototype.setAccessor.call(this, name, val);
         }
 
         return this;
