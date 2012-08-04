@@ -13,18 +13,60 @@
     "0": function(require, module, exports, global) {
         var Neuro = require("1");
         Neuro.Model = require("2").Model;
-        Neuro.Collection = require("9").Collection;
-        Neuro.View = require("a").View;
+        Neuro.Collection = require("a").Collection;
+        Neuro.View = require("b").View;
         exports = module.exports = Neuro;
     },
     "1": function(require, module, exports, global) {
         var Neuro = {
-            version: "0.2.0"
+            version: "0.2.1"
         };
         exports = module.exports = Neuro;
     },
     "2": function(require, module, exports, global) {
-        var Is = require("3").Is, Silence = require("4").Silence, Connector = require("5").Connector, Butler = require("7").Butler, signalFactory = require("8");
+        var Model = require("3").Model, Butler = require("9").Butler;
+        var curryGetter = function(isPrevious) {
+            return function(prop) {
+                var accessor = this.getAccessor(prop, isPrevious ? "getPrevious" : "get"), accessorName = this._accessorName;
+                if (accessor && accessorName != prop) {
+                    return accessor();
+                }
+                return this.parent(prop);
+            }.overloadGetter();
+        };
+        Model.implement(new Butler);
+        exports.Model = new Class({
+            Extends: Model,
+            setup: function(data, options) {
+                this.setupAccessors();
+                this.parent(data, options);
+                return this;
+            },
+            __set: function(prop, val) {
+                var accessor = this.getAccessor(prop, "set");
+                if (accessor && this._accessorName != prop) {
+                    return accessor.apply(this, arguments);
+                }
+                return this.parent(prop, val);
+            }.overloadSetter(),
+            get: curryGetter(),
+            getPrevious: curryGetter(true),
+            setAccessor: function(name, val) {
+                if (name && val) {
+                    if (val.get && !val.getPrevious) {
+                        val.getPrevious = val.get;
+                    }
+                    this.parent(name, val);
+                }
+                return this;
+            }.overloadSetter()
+        });
+    },
+    "3": function(require, module, exports, global) {
+        var Is = require("4").Is, Silence = require("5").Silence, Connector = require("6").Connector, signalFactory = require("8");
+        var isObject = function(obj) {
+            return Type.isObject(obj);
+        };
         var cloneVal = function(val) {
             switch (typeOf(val)) {
               case "array":
@@ -41,13 +83,7 @@
         var curryGetter = function(type) {
             var isPrevious = type == "_previousData" || void 0;
             return function(prop) {
-                var accessor = this.getAccessor(prop, isPrevious ? "getPrevious" : "get"), accessorName = this._accessorName;
-                if (accessor) {
-                    if (accessorName != prop) {
-                        return accessor();
-                    }
-                }
-                return this[type][prop];
+                return this._deepGet(this[type], prop, isPrevious);
             }.overloadGetter();
         };
         var curryGetData = function(type) {
@@ -66,7 +102,7 @@
             }
         }));
         var Model = new Class({
-            Implements: [ Connector, Butler, Events, Options, Silence, Signals ],
+            Implements: [ Connector, Events, Options, Silence, Signals ],
             primaryKey: undefined,
             _data: {},
             _changed: false,
@@ -81,12 +117,11 @@
                 if (instanceOf(data, this.constructor)) {
                     return data;
                 }
+                this.setOptions(options);
                 this.setup(data, options);
             },
             setup: function(data, options) {
-                this.setOptions(options);
                 this.primaryKey = this.options.primaryKey;
-                this.setupAccessors();
                 this.silence(function() {
                     this.set(this.options.defaults);
                 }.bind(this));
@@ -95,15 +130,51 @@
                 }
                 return this;
             },
-            __set: function(prop, val) {
-                var accessor = this.getAccessor(prop, "set");
-                if (accessor && this._accessorName != prop) {
-                    return accessor.apply(this, arguments);
+            _deepSet: function(object, path, val) {
+                path = typeof path == "string" ? path.split(".") : path.slice(0);
+                var key = path.pop(), len = path.length, i = 0, current;
+                while (len--) {
+                    current = path[i++];
+                    object = current in object ? object[current] : object[current] = {};
+                    if (instanceOf(object, Model)) {
+                        path = path.slice(i);
+                        path.push(key);
+                        object.set(path.join("."), val);
+                        return this;
+                    }
                 }
+                if (isObject(object)) {
+                    object[key] = val;
+                } else {
+                    throw new Error("Can not set to this path: " + path);
+                }
+                return this;
+            },
+            _deepGet: function(object, path, prev) {
+                if (typeof path == "string") {
+                    path = path.split(".");
+                }
+                for (var i = 0, l = path.length; i < l; i++) {
+                    if (!object) continue;
+                    if (hasOwnProperty.call(object, path[i])) {
+                        object = object[path[i]];
+                    } else if (instanceOf(object, Model)) {
+                        object = object[prev ? "getPrevious" : "get"](path[i]);
+                    } else {
+                        return object[path[i]];
+                    }
+                }
+                return object;
+            },
+            __set: function(prop, val) {
                 var old = this.get(prop);
                 if (!Is.Equal(old, val)) {
-                    this._changed = true;
-                    this._data[prop] = this._changedProperties[prop] = cloneVal(val);
+                    val = cloneVal(val);
+                    this._deepSet(this._data, prop, val);
+                    if (Is.Equal(this.get(prop), val)) {
+                        this._changed = true;
+                        this._deepSet(this._changedProperties, prop, val);
+                    }
                 }
                 return this;
             }.overloadSetter(),
@@ -121,9 +192,11 @@
                     prop = instanceOf(prop, Model) ? prop.getData() : prop;
                     this._set(prop, val);
                     if (!isSetting) {
-                        this.changeProperty(this._changedProperties);
-                        this.change();
-                        this._resetChanged();
+                        if (this._changed) {
+                            this._changeProperty(this._changedProperties);
+                            this.signalChange();
+                            this._resetChanged();
+                        }
                     }
                 }
                 return this;
@@ -148,7 +221,7 @@
                     len = prop.length;
                     while (len--) {
                         item = prop[i++];
-                        props[item] = defaults[item];
+                        props[item] = this._deepGet(defaults, item);
                     }
                 } else {
                     props = defaults;
@@ -166,24 +239,20 @@
             getPrevious: curryGetter("_previousData"),
             getPreviousData: curryGetData("getPrevious"),
             _resetChanged: function() {
-                if (this._changed) {
-                    this._changed = false;
-                    this._changedProperties = {};
-                }
+                this._changed = false;
+                this._changedProperties = {};
                 return this;
             },
-            change: function() {
-                if (this._changed) {
-                    this.signalChange();
-                }
+            _changeProperty: function(object, basePath) {
+                basePath = basePath ? basePath + "." : "";
+                Object.each(object, function(val, prop) {
+                    var path = basePath + prop, newVal = this.get(path), oldVal = this.getPrevious(path), newValIsObject = isObject(newVal), oldValIsObject = isObject(oldVal);
+                    this.signalChangeProperty(path, newVal, oldVal);
+                    newValIsObject && !instanceOf(object, Class) && this._changeProperty(val, path);
+                    oldValIsObject && this._changeProperty(oldVal, path);
+                }, this);
                 return this;
             },
-            changeProperty: function(prop, val) {
-                if (this._changed) {
-                    this.signalChangeProperty(prop, val, this.getPrevious(prop));
-                }
-                return this;
-            }.overloadSetter(),
             destroy: function() {
                 this.signalDestroy();
                 return this;
@@ -202,16 +271,6 @@
                     this.removeEvents("change:" + prop, callback);
                 }
                 return this;
-            }.overloadSetter(),
-            setAccessor: function(name, val) {
-                var set;
-                if (name && val) {
-                    if (val.get && !val.getPrevious) {
-                        val.getPrevious = val.get;
-                    }
-                    Butler.prototype.setAccessor.call(this, name, val);
-                }
-                return this;
             }.overloadSetter()
         });
         [ "each", "subset", "map", "filter", "every", "some", "keys", "values", "getLength", "keyOf", "contains", "toQueryString" ].each(function(method) {
@@ -221,7 +280,7 @@
         });
         exports.Model = Model;
     },
-    "3": function(require, module, exports, global) {
+    "4": function(require, module, exports, global) {
         (function(context) {
             var toString = Object.prototype.toString, hasOwnProperty = Object.prototype.hasOwnProperty, oldType = window.Type, Is = context.Is = {};
             var Type = window.Type = function(name, object) {
@@ -331,7 +390,7 @@
             })(Is);
         })(typeof exports != "undefined" ? exports : window);
     },
-    "4": function(require, module, exports, global) {
+    "5": function(require, module, exports, global) {
         var Silence = new Class({
             _silent: 0,
             silence: function(fnc) {
@@ -346,8 +405,8 @@
         });
         exports.Silence = Silence;
     },
-    "5": function(require, module, exports, global) {
-        require("6");
+    "6": function(require, module, exports, global) {
+        require("7");
         var processFn = function(type, evt, fn, obj) {
             if (type == "string") {
                 fn = obj && obj[fn] ? obj.bound(fn) : undefined;
@@ -401,72 +460,13 @@
         });
         exports.Connector = Connector;
     },
-    "6": function(require, module, exports, global) {
+    "7": function(require, module, exports, global) {
         Class.Binds = new Class({
             $bound: {},
             bound: function(name) {
                 return this.$bound[name] ? this.$bound[name] : this.$bound[name] = this[name].bind(this);
             }
         });
-    },
-    "7": function(require, module, exports, global) {
-        var Butler = new Class({
-            _accessors: {},
-            _accessorName: undefined,
-            options: {
-                accessors: {}
-            },
-            setupAccessors: function() {
-                this.setAccessor(Object.merge({}, this._accessors, this.options.accessors));
-                return this;
-            },
-            isAccessing: function() {
-                return !!this._accessorName;
-            },
-            _processAccess: function(name, fnc) {
-                var value = undefined;
-                if (name) {
-                    this._accessorName = name;
-                    value = fnc();
-                    this._accessorName = undefined;
-                }
-                return value;
-            },
-            setAccessor: function(name, obj) {
-                var accessors = {};
-                if (!!name && Type.isObject(obj)) {
-                    Object.each(obj, function(fnc, type) {
-                        if (fnc && !accessors[type]) {
-                            accessors[type] = function() {
-                                return this._processAccess(name, fnc.pass(arguments, this));
-                            }.bind(this);
-                            accessors[type]._orig = fnc;
-                        }
-                    }, this);
-                    this._accessors[name] = accessors;
-                }
-                return this;
-            }.overloadSetter(),
-            getAccessor: function(name, type) {
-                var accessors = this._accessors[name];
-                if (type) {
-                    return accessors && accessors[type] ? accessors[type] : undefined;
-                }
-                return accessors;
-            },
-            unsetAccessor: function(name, type) {
-                if (name) {
-                    if (type) {
-                        delete this._accessors[name][type];
-                    } else {
-                        delete this._accessors[name];
-                        this._accessors[name] = undefined;
-                    }
-                }
-                return this;
-            }
-        });
-        exports.Butler = Butler;
     },
     "8": function(require, module, exports, global) {
         exports = module.exports = function(names, curryFnc, stack) {
@@ -485,7 +485,64 @@
         };
     },
     "9": function(require, module, exports, global) {
-        var Model = require("2").Model, Silence = require("4").Silence, Connector = require("5").Connector, signalFactory = require("8");
+        var modelObj = require("3");
+        exports.Butler = new Class({
+            _accessorName: undefined,
+            options: {
+                accessors: {}
+            },
+            setupAccessors: function() {
+                this._accessors = new modelObj.Model;
+                this.setAccessor(this.options.accessors);
+                return this;
+            },
+            isAccessing: function() {
+                return !!this._accessorName;
+            },
+            _processAccess: function(name, fnc) {
+                var value;
+                if (name) {
+                    this._accessorName = name;
+                    value = fnc();
+                    this._accessorName = void 0;
+                }
+                return value;
+            },
+            setAccessor: function(name, obj) {
+                var accessors = {};
+                if (!!name && Type.isObject(obj)) {
+                    Object.each(obj, function(fnc, type) {
+                        var f;
+                        if (fnc && !accessors[type]) {
+                            f = accessors[type] = function() {
+                                return this._processAccess(name, fnc.pass(arguments, this));
+                            }.bind(this);
+                            f._orig = fnc;
+                        }
+                    }, this);
+                    this._accessors.set(name, accessors);
+                }
+                return this;
+            }.overloadSetter(),
+            getAccessor: function(name, type) {
+                var accessors;
+                if (name) {
+                    name = type ? name + "." + type : name;
+                    accessors = this._accessors.get(name);
+                }
+                return accessors;
+            },
+            unsetAccessor: function(name, type) {
+                if (name) {
+                    name = type ? name + "." + type : name;
+                    this._accessors.unset(name);
+                }
+                return this;
+            }
+        });
+    },
+    a: function(require, module, exports, global) {
+        var Model = require("2").Model, Silence = require("5").Silence, Connector = require("6").Connector, signalFactory = require("8");
         var Signals = new Class(signalFactory([ "empty", "sort" ], signalFactory([ "add", "remove" ], function(name) {
             return function(model) {
                 !this.isSilent() && this.fireEvent(name, [ this, model ]);
@@ -504,10 +561,10 @@
                 modelOptions: undefined
             },
             initialize: function(models, options) {
+                this.setOptions(options);
                 this.setup(models, options);
             },
             setup: function(models, options) {
-                this.setOptions(options);
                 this.primaryKey = this.options.primaryKey;
                 if (this.options.Model) {
                     this._Model = this.options.Model;
@@ -618,8 +675,8 @@
         });
         exports.Collection = Collection;
     },
-    a: function(require, module, exports, global) {
-        var Connector = require("5").Connector, Silence = require("4").Silence, signalFactory = require("8");
+    b: function(require, module, exports, global) {
+        var Connector = require("6").Connector, Silence = require("5").Silence, signalFactory = require("8");
         var eventHandler = function(handler) {
             return function() {
                 var events = this.options.events, element = this.element;

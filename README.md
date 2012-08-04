@@ -3,7 +3,7 @@ Neuro
 
 A MooTools client-side MVC.
 
-__Version: 0.2.0 (Alpha)__
+__Version: 0.2.1 (Alpha)__
 
 [![Build Status](https://secure.travis-ci.org/GCheung55/Neuro.png)](http://travis-ci.org/GCheung55/Neuro)
 
@@ -32,7 +32,7 @@ The __Model__ is a Object-like MooTools Class object that provides a basic API t
 
 #### Implements:
 * [Mixin: Connector](#mixin-connector)
-* [Mixin: CustomAccessor](#mixin-customaccessor)
+* [Mixin: Butler](#mixin-Butler)
 * [Mixin: Events](#mixin-events)
 * [Mixin: Options](#mixin-options)
 * [Mixin: Silence](#mixin-silence)
@@ -51,7 +51,7 @@ var model = new Neuro.Model(data [, options]);
     * primaryKey - (String) Define to uniquely identify a model in a collection
     * defaults - (Object) Contains the default key/value pair defaults for the Model.
     * connector - (Object) See [Mixin: Connector](#mixin-connector)
-    * accessor - (Object) See [Mixin: CustomAccessor](#mixin-customaccessor)
+    * accessor - (Object) See [Mixin: Butler](#mixin-butler)
 
 #### Returns: Model instance.
 
@@ -70,6 +70,8 @@ var model = new Neuro.Model(data [, options]);
 ---
 The way to assign values to properties the model has. __Do not__ use direct assignment else events will not be triggered or custom setters will not be used.
 
+Allows for deep object setting by using string delimited with a period.
+
 #### Syntax:
 ```javascript
 model.set(property, value);
@@ -79,7 +81,7 @@ model.set(object);
 
 #### Arguments:
 * Two Arguments (property, value)
-    1. property - (String) A key used to define a property the model has.
+    1. property - (String) A key used to define a property the model has. It can also be a dot-delimited name string that will be parsed to create an object path to the property.
     2. value - (String | Array | Number | Object | Function | Class) A value of the corresponding property.
 * One Argument (object)
     1. object (Object) An object containing sets of property/value pairs
@@ -89,6 +91,23 @@ model.set(object);
 #### Triggered Events:
 * `change:key`
 * `change`
+
+#### Examples:
+```javascript
+// set the property 'name' as an object.
+model.set('name', {});
+
+// set an object that contains all the property value pairs
+model.set({
+    name: {
+        first: 'Garrick',
+        last: 'Cheung'
+    }
+});
+
+// set a property with a dot-delimited string
+model.set('name.middle', 'T');
+```
 
 ### isSetting
 ---
@@ -109,12 +128,12 @@ Retrieve a property value the model has.
 ```javascript
 model.get(property);
 
-model.set(property1, property2);
+model.get(property1, property2);
 ```
 
 #### Arguments:
 * More than One Consecutive Argument
-    1. property1, property2... - (String) The properties used to retrieve corresponding values that the model has.
+    1. property1, property2... - (String) The properties used to retrieve corresponding values that the model has. 
 * One Argument
     1. property - (String) The property used to retrieve the corresponding value that the model has.
 
@@ -123,6 +142,21 @@ model.set(property1, property2);
     * (Object) Key/value pairs of data that the model has. Keys correspond to the arguments.
 * One Argument
     * (String) Value corresponding to the property that the model has.
+
+#### Note:
+A dot-delimited string can also be used in place of the arguments. The string will be parsed to create an object path to retrieve the value.
+
+#### Example:
+```javascript
+// Using one argument
+model.get('name');
+
+// Using multiple arguments
+model.get('name', 'age');
+
+// Using a dot-delimited string
+model.get('name.first', 'name.last');
+```
 
 ### getData
 ---
@@ -285,19 +319,19 @@ see [Mixin: Connector](#mixin-connector)
 see [Mixin: Connector](#mixin-connector)
 ### setupAccessors
 ---
-see [Mixin: CustomAccessor](#mixin-customaccessor)
+see [Mixin: Butler](#mixin-butler)
 ### isAccessing
 ---
-see [Mixin: CustomAccessor](#mixin-customaccessor)
+see [Mixin: Butler](#mixin-butler)
 ### setAccessor
 ---
-see [Mixin: CustomAccessor](#mixin-customaccessor)
+see [Mixin: Butler](#mixin-butler)
 ### getAccessor
 ---
-see [Mixin: CustomAccessor](#mixin-customaccessor)
+see [Mixin: Butler](#mixin-butler)
 ### unsetAccessor
 ---
-see [Mixin: CustomAccessor](#mixin-customaccessor)
+see [Mixin: Butler](#mixin-butler)
 ### addEvent
 ---
 see [Mixin: Events](#mixin-events)
@@ -521,7 +555,7 @@ currentCollection.replace(oldModel, newModel);
 
 ### sort
 ---
-Sort the collection. Works the same way `[Array.sort](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/sort)` would work. Triggers `sort` event.
+Sort the collection. Works the same way [Array.sort](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/sort) would work. Triggers `sort` event.
 
 #### Syntax:
 ```javascript
@@ -529,7 +563,7 @@ currentCollection.sort(function);
 ```
 
 #### Arguments:
-1. function - (Function, optional) The function acts as a comparator. Please see `[Array.sort](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/sort)` for more information.
+1. function - (Function, optional) The function acts as a comparator. Please see [Array.sort](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/sort) for more information.
 
 #### Returns: Class instance.
 
@@ -548,7 +582,7 @@ currentCollection.sort(function(modelA, modelB){
 
 ### reverse
 ---
-Reverses the order of the collection. Works the same way `[Array.reverse](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/reverse)` would work. Triggers `sort` event.
+Reverses the order of the collection. Works the same way [Array.reverse](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/reverse) would work. Triggers `sort` event.
 
 #### Syntax:
 ```javascript
@@ -934,7 +968,7 @@ myClass.fireEvent(type[, args[, delay]]);
 2. args  - (String | Array, optional) The argument(s) to pass to the function. To pass more than one argument, the arguments must be in an array.
 3. delay - (Number, optional) Delay in milliseconds to wait before executing the event (defaults to 0).
 
-### Returns: This Class instance.
+#### Returns: This Class instance.
 
 #### Example:
 ```javascript
@@ -1192,7 +1226,7 @@ currentClass.connect(targetClass[, oneWay]);
 ### disconnect
 ---
 
-## Mixin: CustomAccessor
+## Mixin: Butler
 ---
 A Utility Class. It provides a way to define custom setters/getters on a Class.
 ### options.accessors
