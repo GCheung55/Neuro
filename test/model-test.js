@@ -212,6 +212,7 @@ buster.testCase('Neuro Model', {
 
             this.mockButlerModelWithData = new testModel(this.mockData);
         },
+
         'setAccessor/getAccessor should set/get accessors that are used to set/get properties': function(){
             var accessor = {
                     set: function(key, val){
@@ -235,6 +236,42 @@ buster.testCase('Neuro Model', {
 
             assert.equals('Cheung', model.get('firstName'));
             assert.equals('Garrick', model.get('lastName'));
+        },
+
+        'process and set/get nested accessors': function(){
+            var spy = this.spy(),
+                accessors = {
+                    a: {
+                        set: function(prop, val){
+                            spy('a.set', prop, val);
+                        },
+                        b: {
+                            set: function(prop, val){
+                                spy('a.b.set', prop, val);
+                            }
+                        }
+                    }
+                },
+                model = this.mockButlerModelWithData;
+
+            // remove all the accessors
+            model._accessors._data = {};
+
+            // set the accessors
+            model.setAccessor(accessors);
+            model.setAccessor('a.b.c', {
+                set: function(prop, val){
+                    spy('a.b.c.set', prop, val)
+                }
+            });
+
+            model.set('a', 1);
+            model.set('a.b', 2);
+            model.set('a.b.c', 3);
+
+            assert.calledWith(spy, 'a.set', 'a', 1);
+            assert.calledWith(spy, 'a.b.set', 'a.b', 2);
+            assert.calledWith(spy, 'a.b.c.set', 'a.b.c', 3);
         },
 
         'unsetAccessor should unset accessor by key': function(){

@@ -3,6 +3,7 @@
 var Model = require('../model/main').Model,
     Silence = require('../../mixins/silence').Silence,
     Connector = require('../../mixins/connector').Connector,
+    Validator = require('../../mixins/validator').Validator,
     signalFactory = require('../../utils/signalFactory');
 
 var Signals = new Class(
@@ -21,7 +22,7 @@ var Signals = new Class(
 );
 
 var Collection = new Class({
-    Implements: [Connector, Events, Options, Silence, Signals],
+    Implements: [Connector, Events, Options, Silence, Signals, Validator],
 
     _models: [],
 
@@ -43,12 +44,14 @@ var Collection = new Class({
     },
 
     initialize: function(models, options){
-        this.setOptions(options);
-
         this.setup(models, options);
     },
 
     setup: function(models, options){
+        this.setOptions(options);
+
+        this.setupValidators();
+
         this.primaryKey = this.options.primaryKey;
 
         if (this.options.Model) {
@@ -253,6 +256,22 @@ var Collection = new Class({
         return this.map(function(model){
             return model.toJSON();
         });
+    },
+
+    validate: function(obj){
+        var isValid = true;
+
+        if (this.hasValidator()) {
+            if (instanceOf(obj, Model)) {
+                obj = obj.getData();
+            }
+
+            isValid = Object.every(this._validators, function(validator, name){
+                return !!validator(obj[name]);
+            });
+        }
+
+        return isValid;
     }
 });
 

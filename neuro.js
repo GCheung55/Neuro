@@ -25,7 +25,7 @@
     },
     "2": function(require, module, exports, global) {
         var Model = require("3").Model, Butler = require("9").Butler;
-        Validator = require("a").Validator;
+        Validator = require("a").Validator, signalFactory = require("8");
         var curryGetter = function(isPrevious) {
             return function(prop) {
                 var accessor = this.getAccessor(prop, isPrevious ? "getPrevious" : "get"), accessorName = this._accessorName;
@@ -35,10 +35,16 @@
                 return this.parent(prop);
             }.overloadGetter();
         };
+        var Signals = new Class(signalFactory([ "error" ], {
+            signalErrorProperty: function(prop, newVal, oldVal) {
+                !this.isSilent() && this.fireEvent("error:" + prop, [ this, prop, newVal, oldVal ]);
+                return this;
+            }
+        }));
         Model.implement(new Butler);
         exports.Model = new Class({
             Extends: Model,
-            Implements: [ Validator ],
+            Implements: [ Signals, Validator ],
             setup: function(data, options) {
                 this.setupAccessors();
                 this.setupValidators();
@@ -77,6 +83,12 @@
                 }
                 return this;
             }.overloadSetter(),
+            _errorProperty: function(object, basePath) {},
+            _resetErrored: function() {
+                this._errored = false;
+                this._erroredProperties = {};
+                return this;
+            },
             isValid: function() {
                 var isValid = (this.hasValidators() && this.validate(this.getData()), this._errored);
                 return !!(this._resetErrored(), isValid);
@@ -85,7 +97,7 @@
                 var validator = this.getValidator(prop);
                 if (validator && !validator(val)) {
                     this._errored = true;
-                    this._erroredProperties[prop] = val;
+                    this._deepSet(this._erroredProperties, prop, val);
                 }
                 return this;
             }.overloadSetter()
@@ -93,6 +105,7 @@
     },
     "3": function(require, module, exports, global) {
         var Is = require("4").Is, Silence = require("5").Silence, Connector = require("6").Connector, signalFactory = require("8");
+        var separator = ".";
         var isObject = function(obj) {
             return Type.isObject(obj);
         };
@@ -160,28 +173,28 @@
                 return this;
             },
             _deepSet: function(object, path, val) {
-                path = typeof path == "string" ? path.split(".") : path.slice(0);
+                path = typeof path == "string" ? path.split(separator) : path.slice(0);
                 var key = path.pop(), len = path.length, i = 0, current;
                 while (len--) {
                     current = path[i++];
-                    object = current in object ? object[current] : object[current] = {};
+                    object = current in object && typeOf(object[current]) != "null" ? object[current] : object[current] = {};
                     if (instanceOf(object, Model)) {
                         path = path.slice(i);
                         path.push(key);
-                        object.set(path.join("."), val);
+                        object.set(path.join(separator), val);
                         return this;
                     }
                 }
                 if (isObject(object)) {
                     object[key] = val;
                 } else {
-                    throw new Error("Can not set to this path: " + path);
+                    throw new Error("Can not set to this path: " + path.join(separator));
                 }
                 return this;
             },
             _deepGet: function(object, path, prev) {
                 if (typeof path == "string") {
-                    path = path.split(".");
+                    path = path.split(separator);
                 }
                 for (var i = 0, l = path.length; i < l; i++) {
                     if (!object) continue;
@@ -200,10 +213,8 @@
                 if (!Is.Equal(old, val)) {
                     val = cloneVal(val);
                     this._deepSet(this._data, prop, val);
-                    if (Is.Equal(this.get(prop), val)) {
-                        this._changed = true;
-                        this._deepSet(this._changedProperties, prop, val);
-                    }
+                    this._changed = true;
+                    this._deepSet(this._changedProperties, prop, val);
                 }
                 return this;
             }.overloadSetter(),
@@ -273,7 +284,7 @@
                 return this;
             },
             _changeProperty: function(object, basePath) {
-                basePath = basePath ? basePath + "." : "";
+                basePath = basePath ? basePath + separator : "";
                 Object.each(object, function(val, prop) {
                     var path = basePath + prop, newVal = this.get(path), oldVal = this.getPrevious(path), newValIsObject = isObject(newVal), oldValIsObject = isObject(oldVal);
                     this.signalChangeProperty(path, newVal, oldVal);
@@ -515,20 +526,23 @@
     },
     "9": function(require, module, exports, global) {
         var modelObj = require("3");
+        var separator = ".";
         exports.Butler = new Class({
+            _accessors: {},
             _accessorName: undefined,
             options: {
                 accessors: {}
             },
             setupAccessors: function() {
+                var accessors = this._accessors;
                 this._accessors = new modelObj.Model;
-                this.setAccessor(this.options.accessors);
+                this.setAccessor(Object.merge(accessors, this.options.accessors));
                 return this;
             },
             isAccessing: function() {
                 return !!this._accessorName;
             },
-            _processAccess: function(name, fnc) {
+            _accessFnc: function(name, fnc) {
                 var value;
                 if (name) {
                     this._accessorName = name;
@@ -537,18 +551,27 @@
                 }
                 return value;
             },
+            _decorateAccessors: function(name, obj) {
+                Object.each(obj, function(fnc, type) {
+                    var f;
+                    switch (typeOf(fnc)) {
+                      case "function":
+                        f = obj[type] = function() {
+                            return this._accessFnc(name, fnc.pass(arguments, this));
+                        }.bind(this);
+                        f._orig = fnc;
+                        break;
+                      case "object":
+                        this._decorateAccessors(name + separator + type, fnc);
+                        break;
+                    }
+                }, this);
+                return obj;
+            },
             setAccessor: function(name, obj) {
-                var accessors = {};
+                var accessors;
                 if (!!name && Type.isObject(obj)) {
-                    Object.each(obj, function(fnc, type) {
-                        var f;
-                        if (fnc && !accessors[type]) {
-                            f = accessors[type] = function() {
-                                return this._processAccess(name, fnc.pass(arguments, this));
-                            }.bind(this);
-                            f._orig = fnc;
-                        }
-                    }, this);
+                    accessors = this._decorateAccessors(name, obj);
                     this._accessors.set(name, accessors);
                 }
                 return this;
@@ -556,14 +579,14 @@
             getAccessor: function(name, type) {
                 var accessors;
                 if (name) {
-                    name = type ? name + "." + type : name;
+                    name = type ? name + separator + type : name;
                     accessors = this._accessors.get(name);
                 }
                 return accessors;
             },
             unsetAccessor: function(name, type) {
                 if (name) {
-                    name = type ? name + "." + type : name;
+                    name = type ? name + separator + type : name;
                     this._accessors.unset(name);
                 }
                 return this;
@@ -593,7 +616,7 @@
         });
     },
     b: function(require, module, exports, global) {
-        var Model = require("2").Model, Silence = require("5").Silence, Connector = require("6").Connector, signalFactory = require("8");
+        var Model = require("2").Model, Silence = require("5").Silence, Connector = require("6").Connector, Validator = require("a").Validator, signalFactory = require("8");
         var Signals = new Class(signalFactory([ "empty", "sort" ], signalFactory([ "add", "remove" ], function(name) {
             return function(model) {
                 !this.isSilent() && this.fireEvent(name, [ this, model ]);
@@ -601,7 +624,7 @@
             };
         })));
         var Collection = new Class({
-            Implements: [ Connector, Events, Options, Silence, Signals ],
+            Implements: [ Connector, Events, Options, Silence, Signals, Validator ],
             _models: [],
             _Model: Model,
             length: 0,
@@ -612,10 +635,11 @@
                 modelOptions: undefined
             },
             initialize: function(models, options) {
-                this.setOptions(options);
                 this.setup(models, options);
             },
             setup: function(models, options) {
+                this.setOptions(options);
+                this.setupValidators();
                 this.primaryKey = this.options.primaryKey;
                 if (this.options.Model) {
                     this._Model = this.options.Model;
@@ -717,6 +741,18 @@
                 return this.map(function(model) {
                     return model.toJSON();
                 });
+            },
+            validate: function(obj) {
+                var isValid = true;
+                if (this.hasValidator()) {
+                    if (instanceOf(obj, Model)) {
+                        obj = obj.getData();
+                    }
+                    isValid = Object.every(this._validators, function(validator, name) {
+                        return !!validator(obj[name]);
+                    });
+                }
+                return isValid;
             }
         });
         [ "forEach", "each", "invoke", "every", "filter", "clean", "indexOf", "map", "some", "associate", "link", "contains", "getLast", "getRandom", "flatten", "pick" ].each(function(method) {

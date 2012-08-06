@@ -1,7 +1,9 @@
 var modelObj = require('../src/model/model');
 
+var separator = '.';
+
 exports.Butler = new Class({
-    // _accessors: {
+    _accessors: {
     //     key: {
     //         // The buck stops here for this custom set method.
     //         // Any returned value goes into the ether because
@@ -18,7 +20,7 @@ exports.Butler = new Class({
 
     //         getPrevious: function(){}
     //     }
-    // },
+    },
 
     _accessorName: undefined,
 
@@ -27,9 +29,11 @@ exports.Butler = new Class({
     },
 
     setupAccessors: function(){
+        var accessors = this._accessors;
+
         this._accessors = new modelObj.Model();
 
-        this.setAccessor(this.options.accessors);
+        this.setAccessor(Object.merge(accessors, this.options.accessors));
 
         return this;
     },
@@ -42,7 +46,7 @@ exports.Butler = new Class({
      * Accessor functions pass through to trigger flags
      * to signify that an accessor is being used.
      */
-    _processAccess: function(name, fnc){
+    _accessFnc: function(name, fnc){
         var value;
 
         if (name) {
@@ -58,26 +62,40 @@ exports.Butler = new Class({
         return value;
     },
 
-    setAccessor: function(name, obj){
-        var accessors = {};
-
-        if (!!name && Type.isObject(obj)) {
-
-            /**
-             * Decorate the functions in obj so that it will be easy to prevent
-             * recursive calls to itself because the decorated function tracks
-             * the name is.
-             */
-            Object.each(obj, function(fnc, type) {
-                var f;
-                if (fnc && !accessors[type]) {
-                    f = accessors[type] = function(){
-                        return this._processAccess(name, fnc.pass(arguments, this));
+    /**
+     * Decorate the functions in obj so that it will be easy to prevent
+     * recursive calls to itself because the decorated function tracks
+     * the name is.
+     * @param  {String} name The name that will be used to prevent recursive calls.
+     *                       It can be dot-delimited during processing
+     * @param  {Object} obj  The object to process. Calls recursively to process other
+     *                       functions existing in the first object
+     * @return {Object}      obj
+     */
+    _decorateAccessors: function(name, obj){
+        Object.each(obj, function(fnc, type) {
+            var f;
+            switch(typeOf(fnc)){
+                case 'function':
+                    f = obj[type] = function(){
+                        return this._accessFnc(name, fnc.pass(arguments, this));
                     }.bind(this);
 
                     f._orig = fnc;
-                }
-            }, this);
+                    break;
+                case 'object':
+                    this._decorateAccessors(name + separator + type, fnc);
+                    break;
+            }
+        }, this);
+
+        return obj;
+    },
+
+    setAccessor: function(name, obj){
+        var accessors;
+        if (!!name && Type.isObject(obj)) {
+            accessors = this._decorateAccessors(name, obj);
 
             this._accessors.set(name, accessors);
         }
@@ -89,7 +107,7 @@ exports.Butler = new Class({
         var accessors;
         
         if (name) {
-            name = type ? name + '.' + type : name;
+            name = type ? name + separator + type : name;
 
             accessors = this._accessors.get(name);
         }
@@ -99,7 +117,7 @@ exports.Butler = new Class({
 
     unsetAccessor: function(name, type){
         if (name) {
-            name = type ? name + '.' + type : name;
+            name = type ? name + separator + type : name;
 
             this._accessors.unset(name);
         }

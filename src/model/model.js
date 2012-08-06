@@ -5,6 +5,8 @@ var Is = require('neuro-is').Is,
     Connector = require('../../mixins/connector').Connector,
     signalFactory = require('../../utils/signalFactory');
 
+var separator = '.';
+
 var isObject = function(obj){ return Type.isObject(obj); };
 
 var cloneVal = function(val){
@@ -112,7 +114,7 @@ var Model = new Class({
     },
 
     _deepSet: function(object, path, val){
-        path = (typeof path == 'string') ? path.split('.') : path.slice(0);
+        path = (typeof path == 'string') ? path.split(separator) : path.slice(0);
         var key = path.pop(),
             len = path.length,
             i = 0,
@@ -121,28 +123,28 @@ var Model = new Class({
         while (len--) {
             current = path[i++];
 
-            object = current in object ? object[current] : (object[current] = {});
+            object = current in object && typeOf(object[current]) != 'null' ? object[current] : (object[current] = {});
 
             /**
              * Since the object is a model, lets use its own set method.
+             * 
+             * Not setting previous here because that's only handled by setting data.
              */
             if (instanceOf(object, Model)) { 
                 path = path.slice(i);
                 path.push(key)
-                object.set(path.join('.'), val);
+                object.set(path.join(separator), val);
                 return this;
             }
         }
 
         /**
-         * Not setting previous here because that's only handled by setting data.
-         *
          * Class instances are typed as Objects
          */
         if (isObject(object)) {
             object[key] = val;
         } else {
-            throw new Error('Can not set to this path: ' + path);
+            throw new Error('Can not set to this path: ' + path.join(separator));
         }
 
         return this;
@@ -150,7 +152,7 @@ var Model = new Class({
 
     _deepGet: function(object, path, prev){
         if (typeof path == 'string') {
-            path = path.split('.');
+            path = path.split(separator);
         }
 
         for (var i = 0, l = path.length; i < l; i++) {
@@ -186,11 +188,8 @@ var Model = new Class({
             val = cloneVal(val);
             this._deepSet(this._data, prop, val);
             
-            // Check the value to make sure it actually did set before setting changeed to true
-            if (Is.Equal(this.get(prop), val)) {
-                this._changed = true;
-                this._deepSet(this._changedProperties, prop, val);
-            }
+            this._changed = true;
+            this._deepSet(this._changedProperties, prop, val);
         }
 
         return this;
@@ -349,7 +348,7 @@ var Model = new Class({
     //     return this;
     // }.overloadSetter(),
     _changeProperty: function(object, basePath){
-        basePath = basePath ? basePath + '.' : '';
+        basePath = basePath ? basePath + separator : '';
 
         Object.each(object, function(val, prop){
             var path = basePath + prop,
