@@ -1,10 +1,10 @@
 // (function(context){
 
 var Is = require('neuro-is').Is,
-    Silence = require('../mixins/silence').Silence,
-    Connector = require('../mixins/connector').Connector,
-    Butler = require('../mixins/butler').Butler,
-    signalFactory = require('../utils/signalFactory');
+    Silence = require('../../mixins/silence').Silence,
+    Connector = require('../../mixins/connector').Connector,
+    Butler = require('../../mixins/butler').Butler,
+    signalFactory = require('../../utils/signalFactory');
 
 var cloneVal = function(val){
     switch(typeOf(val)){
@@ -22,34 +22,8 @@ var cloneVal = function(val){
 };
 
 var curryGetter = function(type){
-    /**
-     * isPrevious is a parameter to be passed into custom getter accessors.
-     * This will allow the getter to know whether it should be retrieving from _data or _previousData.
-     * @type {Boolean}
-     */
-    var isPrevious = type == '_previousData' || void 0;
-
     return function(prop){
-        var accessor = this.getAccessor(prop, isPrevious ? 'getPrevious' : 'get'),
-            // accessing = this.isAccessing(),
-            accessorName = this._accessorName;
-
-        /**
-         * Prevent recursive get calls by checking if it's currently accessing
-         * and if the accessor name is the same as the property arg. If all positive,
-         * then return the value from _data/_previousData, otherwise return from 
-         * the accessor function. Fallback to returning from the _data/_previousData
-         * if an accessor function does not exist.
-         */
-        if (accessor) {
-            if (accessorName != prop) {
-                return accessor();
-            }
-        }
-
         return this[type][prop];
-
-        // return accessor && accessorName != prop ? accessor() : this[type][prop];
     }.overloadGetter();
 };
 
@@ -110,18 +84,13 @@ var Model = new Class({
             return data;
         }
 
+        this.setOptions(options);
+
         this.setup(data, options);
     },
 
     setup: function(data, options){
-        this.setOptions(options);
-
         this.primaryKey = this.options.primaryKey;
-
-        this.setupAccessors();
-
-        // properly set the defaults object
-        // Object.merge(this._defaults, this.options.defaults);
 
         // Set the _data defaults silently because listeners shouldn't need to know that the defaults have been defined
         this.silence(function(){
@@ -143,20 +112,6 @@ var Model = new Class({
      * @return {Class} The Model instance
      */
     __set: function(prop, val){
-        /**
-         * Use the custom setter accessor if it exists.
-         * Otherwise, set the property in the regular fashion.
-         */
-        var accessor = this.getAccessor(prop, 'set');
-        /**
-         * If the accessor is true, then run it, and return false
-         * to the if statement to prevent it from continuing to 
-         * run through the code block
-         */
-        if (accessor && this._accessorName != prop) {
-            return accessor.apply(this, arguments);
-        }
-
         // Store the older prop
         var old = this.get(prop);
 
@@ -376,28 +331,6 @@ var Model = new Class({
     unspy: function(prop, callback){
         if ((Type.isString(prop) && prop in this._data)) {
             this.removeEvents('change:' + prop, callback);
-        }
-
-        return this;
-    }.overloadSetter(),
-
-    setAccessor: function(name, val){
-        var set;
-
-        if (name && val) {
-            
-            /**
-             * Create a getPrevious method that is the get method,
-             * but passed a true arg to signify it should access _previousData
-             * while the get method gets passed a false value to signify it
-             * should access _data.
-             */
-            if (val.get && !val.getPrevious) {
-                val.getPrevious = val.get;
-            }
-
-            // Kind of hack because implementing a class only copies the methods.
-            Butler.prototype.setAccessor.call(this, name, val);
         }
 
         return this;

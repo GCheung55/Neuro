@@ -1,6 +1,6 @@
-var Connector = require('../mixins/connector').Connector,
-    Silence = require('../mixins/silence').Silence,
-    signalFactory = require('../utils/signalFactory');
+var Connector = require('../../mixins/connector').Connector,
+    Silence = require('../../mixins/silence').Silence,
+    signalFactory = require('../../utils/signalFactory');
 
 /**
  * Events are attached/detached with the returned function
@@ -67,14 +67,14 @@ var View = new Class({
     },
 
     initialize: function(options){
+        this.setOptions(options);
+        
         this.setup(options);
 
         this.signalReady();
     },
 
     setup: function(options){
-        this.setOptions(options);
-
         if (this.options.element) {
             this.setElement(this.options.element);
         }
