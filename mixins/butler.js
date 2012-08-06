@@ -41,7 +41,7 @@ var Butler = new Class({
      * to signify that an accessor is being used.
      */
     _processAccess: function(name, fnc){
-        var value = undefined;
+        var value;
 
         if (name) {
             // this._accessing++;
@@ -50,7 +50,7 @@ var Butler = new Class({
             value = fnc();
 
             // this._accessing--;
-            this._accessorName = undefined;
+            this._accessorName = void 0;
         }
 
         return value;
@@ -67,12 +67,13 @@ var Butler = new Class({
              * the name is.
              */
             Object.each(obj, function(fnc, type) {
+                var f;
                 if (fnc && !accessors[type]) {
-                    accessors[type] = function(){
+                    f = accessors[type] = function(){
                         return this._processAccess(name, fnc.pass(arguments, this));
                     }.bind(this);
 
-                    accessors[type]._orig = fnc;
+                    f._orig = fnc;
                 }
             }, this);
 
@@ -86,19 +87,22 @@ var Butler = new Class({
         var accessors = this._accessors[name];
 
         if (type) {
-            return accessors && accessors[type] ? accessors[type] : undefined;
+            return accessors && accessors[type];
         }
 
         return accessors;
     },
 
     unsetAccessor: function(name, type){
+        /**
+         * Tried using delete, but it the properties have DontDelete
+         * Reference: http://perfectionkills.com/understanding-delete/
+         */
         if (name) {
             if (type) {
-                delete this._accessors[name][type];
+                this._accessors[name][type] = void 0;
             } else {
-                delete this._accessors[name];
-                this._accessors[name] = undefined;
+                this._accessors[name] = void 0;
             }
         }
 
