@@ -226,7 +226,7 @@ var Model = new Class({
     },
 
     isSetting: function(){
-        return !! this._setting;
+        return !!this._setting;
     },
 
     /**
