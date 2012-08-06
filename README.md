@@ -32,7 +32,7 @@ The __Model__ is a Object-like MooTools Class object that provides a basic API t
 
 #### Implements:
 * [Mixin: Connector](#mixin-connector)
-* [Mixin: CustomAccessor](#mixin-customaccessor)
+* [Mixin: Butler](#mixin-butler)
 * [Mixin: Events](#mixin-events)
 * [Mixin: Options](#mixin-options)
 * [Mixin: Silence](#mixin-silence)
@@ -51,7 +51,7 @@ var model = new Neuro.Model(data [, options]);
     * primaryKey - (String) Define to uniquely identify a model in a collection
     * defaults - (Object) Contains the default key/value pair defaults for the Model.
     * connector - (Object) See [Mixin: Connector](#mixin-connector)
-    * accessor - (Object) See [Mixin: CustomAccessor](#mixin-customaccessor)
+    * accessor - (Object) See [Mixin: Butler](#mixin-butler)
 
 #### Returns: Model instance.
 
@@ -90,6 +90,26 @@ model.set(object);
 * `change:key`
 * `change`
 
+#### Examples:
+```javascript
+// set a property value
+model.('hasGlasses', true);
+
+// set the property 'name' as an object.
+model.set('name', {
+    first: 'Garrick',
+    last: 'Cheung'
+});
+
+set an object that contains all the property value pairs
+model.set({
+    name: {
+        first: 'Garrick',
+        last: 'Cheung'
+    }
+});
+```
+
 ### isSetting
 ---
 Use to check if data is currently being handled by the model to assign values to properties the model has.
@@ -109,7 +129,7 @@ Retrieve a property value the model has.
 ```javascript
 model.get(property);
 
-model.set(property1, property2);
+model.Get(property1, property2);
 ```
 
 #### Arguments:
@@ -123,6 +143,13 @@ model.set(property1, property2);
     * (Object) Key/value pairs of data that the model has. Keys correspond to the arguments.
 * One Argument
     * (String) Value corresponding to the property that the model has.
+
+#### Examples:
+```javascript
+model.get('name'); // returns value of 'name' property.
+
+model.get('name', 'age'); // returns object containing name and age properties
+```
 
 ### getData
 ---
@@ -285,19 +312,19 @@ see [Mixin: Connector](#mixin-connector)
 see [Mixin: Connector](#mixin-connector)
 ### setupAccessors
 ---
-see [Mixin: CustomAccessor](#mixin-customaccessor)
+see [Mixin: Butler](#mixin-butler)
 ### isAccessing
 ---
-see [Mixin: CustomAccessor](#mixin-customaccessor)
+see [Mixin: Butler](#mixin-butler)
 ### setAccessor
 ---
-see [Mixin: CustomAccessor](#mixin-customaccessor)
+see [Mixin: Butler](#mixin-butler)
 ### getAccessor
 ---
-see [Mixin: CustomAccessor](#mixin-customaccessor)
+see [Mixin: Butler](#mixin-butler)
 ### unsetAccessor
 ---
-see [Mixin: CustomAccessor](#mixin-customaccessor)
+see [Mixin: Butler](#mixin-butler)
 ### addEvent
 ---
 see [Mixin: Events](#mixin-events)
@@ -521,7 +548,7 @@ currentCollection.replace(oldModel, newModel);
 
 ### sort
 ---
-Sort the collection. Works the same way `[Array.sort](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/sort)` would work. Triggers `sort` event.
+Sort the collection. Works the same way [Array.sort](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/sort) would work. Triggers `sort` event.
 
 #### Syntax:
 ```javascript
@@ -529,7 +556,7 @@ currentCollection.sort(function);
 ```
 
 #### Arguments:
-1. function - (Function, optional) The function acts as a comparator. Please see `[Array.sort](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/sort)` for more information.
+1. function - (Function, optional) The function acts as a comparator. Please see [Array.sort](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/sort) for more information.
 
 #### Returns: Class instance.
 
@@ -548,7 +575,7 @@ currentCollection.sort(function(modelA, modelB){
 
 ### reverse
 ---
-Reverses the order of the collection. Works the same way `[Array.reverse](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/reverse)` would work. Triggers `sort` event.
+Reverses the order of the collection. Works the same way [Array.reverse](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/reverse) would work. Triggers `sort` event.
 
 #### Syntax:
 ```javascript
@@ -934,7 +961,7 @@ myClass.fireEvent(type[, args[, delay]]);
 2. args  - (String | Array, optional) The argument(s) to pass to the function. To pass more than one argument, the arguments must be in an array.
 3. delay - (Number, optional) Delay in milliseconds to wait before executing the event (defaults to 0).
 
-### Returns: This Class instance.
+#### Returns: This Class instance.
 
 #### Example:
 ```javascript
@@ -1192,7 +1219,7 @@ currentClass.connect(targetClass[, oneWay]);
 ### disconnect
 ---
 
-## Mixin: CustomAccessor
+## Mixin: Butler
 ---
 A Utility Class. It provides a way to define custom setters/getters on a Class.
 ### options.accessors
