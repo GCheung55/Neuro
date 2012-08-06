@@ -3,7 +3,7 @@ Neuro
 
 A MooTools client-side MVC.
 
-__Version: 0.2.0 (Alpha)__
+__Version: 0.2.1 (Alpha)__
 
 [![Build Status](https://secure.travis-ci.org/GCheung55/Neuro.png)](http://travis-ci.org/GCheung55/Neuro)
 

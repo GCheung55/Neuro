@@ -13,18 +13,57 @@
     "0": function(require, module, exports, global) {
         var Neuro = require("1");
         Neuro.Model = require("2").Model;
-        Neuro.Collection = require("9").Collection;
-        Neuro.View = require("a").View;
+        Neuro.Collection = require("a").Collection;
+        Neuro.View = require("c").View;
         exports = module.exports = Neuro;
     },
     "1": function(require, module, exports, global) {
         var Neuro = {
-            version: "0.2.0"
+            version: "0.2.1"
         };
         exports = module.exports = Neuro;
     },
     "2": function(require, module, exports, global) {
-        var Is = require("3").Is, Silence = require("4").Silence, Connector = require("5").Connector, Butler = require("7").Butler, signalFactory = require("8");
+        var Model = require("3").Model, Butler = require("8").Butler;
+        var curryGetter = function(type) {
+            return function(prop) {
+                var accessor = this.getAccessor(prop, type), accessorName = this._accessorName;
+                if (accessor && accessorName != prop) {
+                    return accessor();
+                }
+                return this.parent(prop);
+            }.overloadGetter();
+        };
+        Model.implement(new Butler);
+        exports.Model = new Class({
+            Extends: Model,
+            setup: function(data, options) {
+                this.setupAccessors();
+                this.parent(data, options);
+                return this;
+            },
+            __set: function(prop, val) {
+                var accessor = this.getAccessor(prop, "set");
+                if (accessor && this._accessorName != prop) {
+                    return accessor.apply(this, arguments);
+                }
+                return this.parent(prop, val);
+            }.overloadSetter(),
+            get: curryGetter("get"),
+            getPrevious: curryGetter("getPrevious"),
+            setAccessor: function(name, val) {
+                if (name && val) {
+                    if (val.get && !val.getPrevious) {
+                        val.getPrevious = val.get;
+                    }
+                    this.parent(name, val);
+                }
+                return this;
+            }.overloadSetter()
+        });
+    },
+    "3": function(require, module, exports, global) {
+        var Is = require("4").Is, Silence = require("5").Silence, Connector = require("6").Connector, Butler = require("8").Butler, signalFactory = require("9");
         var cloneVal = function(val) {
             switch (typeOf(val)) {
               case "array":
@@ -39,14 +78,7 @@
             return val;
         };
         var curryGetter = function(type) {
-            var isPrevious = type == "_previousData" || void 0;
             return function(prop) {
-                var accessor = this.getAccessor(prop, isPrevious ? "getPrevious" : "get"), accessorName = this._accessorName;
-                if (accessor) {
-                    if (accessorName != prop) {
-                        return accessor();
-                    }
-                }
                 return this[type][prop];
             }.overloadGetter();
         };
@@ -81,12 +113,11 @@
                 if (instanceOf(data, this.constructor)) {
                     return data;
                 }
+                this.setOptions(options);
                 this.setup(data, options);
             },
             setup: function(data, options) {
-                this.setOptions(options);
                 this.primaryKey = this.options.primaryKey;
-                this.setupAccessors();
                 this.silence(function() {
                     this.set(this.options.defaults);
                 }.bind(this));
@@ -96,10 +127,6 @@
                 return this;
             },
             __set: function(prop, val) {
-                var accessor = this.getAccessor(prop, "set");
-                if (accessor && this._accessorName != prop) {
-                    return accessor.apply(this, arguments);
-                }
                 var old = this.get(prop);
                 if (!Is.Equal(old, val)) {
                     this._changed = true;
@@ -202,16 +229,6 @@
                     this.removeEvents("change:" + prop, callback);
                 }
                 return this;
-            }.overloadSetter(),
-            setAccessor: function(name, val) {
-                var set;
-                if (name && val) {
-                    if (val.get && !val.getPrevious) {
-                        val.getPrevious = val.get;
-                    }
-                    Butler.prototype.setAccessor.call(this, name, val);
-                }
-                return this;
             }.overloadSetter()
         });
         [ "each", "subset", "map", "filter", "every", "some", "keys", "values", "getLength", "keyOf", "contains", "toQueryString" ].each(function(method) {
@@ -221,7 +238,7 @@
         });
         exports.Model = Model;
     },
-    "3": function(require, module, exports, global) {
+    "4": function(require, module, exports, global) {
         (function(context) {
             var toString = Object.prototype.toString, hasOwnProperty = Object.prototype.hasOwnProperty, oldType = window.Type, Is = context.Is = {};
             var Type = window.Type = function(name, object) {
@@ -331,7 +348,7 @@
             })(Is);
         })(typeof exports != "undefined" ? exports : window);
     },
-    "4": function(require, module, exports, global) {
+    "5": function(require, module, exports, global) {
         var Silence = new Class({
             _silent: 0,
             silence: function(fnc) {
@@ -346,8 +363,8 @@
         });
         exports.Silence = Silence;
     },
-    "5": function(require, module, exports, global) {
-        require("6");
+    "6": function(require, module, exports, global) {
+        require("7");
         var processFn = function(type, evt, fn, obj) {
             if (type == "string") {
                 fn = obj && obj[fn] ? obj.bound(fn) : undefined;
@@ -401,7 +418,7 @@
         });
         exports.Connector = Connector;
     },
-    "6": function(require, module, exports, global) {
+    "7": function(require, module, exports, global) {
         Class.Binds = new Class({
             $bound: {},
             bound: function(name) {
@@ -409,7 +426,7 @@
             }
         });
     },
-    "7": function(require, module, exports, global) {
+    "8": function(require, module, exports, global) {
         var Butler = new Class({
             _accessors: {},
             _accessorName: undefined,
@@ -424,11 +441,11 @@
                 return !!this._accessorName;
             },
             _processAccess: function(name, fnc) {
-                var value = undefined;
+                var value;
                 if (name) {
                     this._accessorName = name;
                     value = fnc();
-                    this._accessorName = undefined;
+                    this._accessorName = void 0;
                 }
                 return value;
             },
@@ -436,11 +453,12 @@
                 var accessors = {};
                 if (!!name && Type.isObject(obj)) {
                     Object.each(obj, function(fnc, type) {
+                        var f;
                         if (fnc && !accessors[type]) {
-                            accessors[type] = function() {
+                            f = accessors[type] = function() {
                                 return this._processAccess(name, fnc.pass(arguments, this));
                             }.bind(this);
-                            accessors[type]._orig = fnc;
+                            f._orig = fnc;
                         }
                     }, this);
                     this._accessors[name] = accessors;
@@ -450,17 +468,16 @@
             getAccessor: function(name, type) {
                 var accessors = this._accessors[name];
                 if (type) {
-                    return accessors && accessors[type] ? accessors[type] : undefined;
+                    return accessors && accessors[type];
                 }
                 return accessors;
             },
             unsetAccessor: function(name, type) {
                 if (name) {
                     if (type) {
-                        delete this._accessors[name][type];
+                        this._accessors[name][type] = void 0;
                     } else {
-                        delete this._accessors[name];
-                        this._accessors[name] = undefined;
+                        this._accessors[name] = void 0;
                     }
                 }
                 return this;
@@ -468,7 +485,7 @@
         });
         exports.Butler = Butler;
     },
-    "8": function(require, module, exports, global) {
+    "9": function(require, module, exports, global) {
         exports = module.exports = function(names, curryFnc, stack) {
             if (!Type.isFunction(curryFnc)) {
                 stack = curryFnc;
@@ -484,8 +501,12 @@
             return stack;
         };
     },
-    "9": function(require, module, exports, global) {
-        var Model = require("2").Model, Silence = require("4").Silence, Connector = require("5").Connector, signalFactory = require("8");
+    a: function(require, module, exports, global) {
+        var Collection = require("b").Collection;
+        exports.Collection = Collection;
+    },
+    b: function(require, module, exports, global) {
+        var Model = require("2").Model, Silence = require("5").Silence, Connector = require("6").Connector, signalFactory = require("9");
         var Signals = new Class(signalFactory([ "empty", "sort" ], signalFactory([ "add", "remove" ], function(name) {
             return function(model) {
                 !this.isSilent() && this.fireEvent(name, [ this, model ]);
@@ -504,10 +525,10 @@
                 modelOptions: undefined
             },
             initialize: function(models, options) {
+                this.setOptions(options);
                 this.setup(models, options);
             },
             setup: function(models, options) {
-                this.setOptions(options);
                 this.primaryKey = this.options.primaryKey;
                 if (this.options.Model) {
                     this._Model = this.options.Model;
@@ -618,8 +639,12 @@
         });
         exports.Collection = Collection;
     },
-    a: function(require, module, exports, global) {
-        var Connector = require("5").Connector, Silence = require("4").Silence, signalFactory = require("8");
+    c: function(require, module, exports, global) {
+        var View = require("d").View;
+        exports.View = View;
+    },
+    d: function(require, module, exports, global) {
+        var Connector = require("6").Connector, Silence = require("5").Silence, signalFactory = require("9");
         var eventHandler = function(handler) {
             return function() {
                 var events = this.options.events, element = this.element;
@@ -648,11 +673,11 @@
                 events: {}
             },
             initialize: function(options) {
+                this.setOptions(options);
                 this.setup(options);
                 this.signalReady();
             },
             setup: function(options) {
-                this.setOptions(options);
                 if (this.options.element) {
                     this.setElement(this.options.element);
                 }
