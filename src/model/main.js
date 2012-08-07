@@ -1,5 +1,6 @@
 var Model = require('./model').Model,
-    Butler = require('../../mixins/butler').Butler;
+    Butler = require('../../mixins/butler').Butler,
+    Snitch = require('../../mixins/snitch').Snitch;
 
 /**
  * Create the get/getPrevious functions with the type to define what accessor to retrieve
@@ -27,12 +28,15 @@ var curryGetter = function(type){
 };
 
 Model.implement(new Butler);
+Model.implement(new Snitch);
 
 exports.Model = new Class({
     Extends: Model,
 
     setup: function(data, options){
         this.setupAccessors();
+
+        this.setupSnitch();
 
         this.parent(data, options);
 
@@ -52,6 +56,14 @@ exports.Model = new Class({
          */
         if (accessor && this._accessorName != prop) {
             return accessor.apply(this, arguments);
+        }
+
+        /**
+         * Validate the property value. validate method will
+         * check for existence of a a validator
+         */
+        if (!this.validate(prop, val)) {
+            return this;
         }
 
         return this.parent(prop, val);
@@ -81,5 +93,9 @@ exports.Model = new Class({
         }
 
         return this;
-    }.overloadSetter()
+    }.overloadSetter(),
+
+    proof: function(){
+        return this.parent(this.getData());
+    }
 });

@@ -591,6 +591,73 @@ buster.testCase('Neuro Model', {
         }
     },
 
+    'Snitch': {
+        'setUp': function(){
+            var model = new Class({
+                Extends: Neuro.Model,
+                _validators: {
+                    a: Type.isString,
+                    b: Type.isNumber,
+                    c: Type.isArray
+                }
+            });
+
+            this.mockSnitchModel = model;
+        },
+
+        'setupSnitch should be run during instantiation': function(){
+            var model = new this.mockSnitchModel({}, {
+                validators: {
+                    d: Type.isFunction
+                }
+            });
+
+            assert.equals(Object.getLength(model._validators), 4);
+        },
+
+        'validate should test a value and return': {
+            'true': {
+                'when a validator does not exist': function(){
+                    var model = new this.mockSnitchModel();
+
+                    // no validator automatically sets value
+                    model.set('d', true);
+                    assert.equals(model.get('d'), true);
+                },
+                'when a validator exists and returns true': function(){
+                    var model = new this.mockSnitchModel();
+
+                    // check against Type.isString
+                    model.set('a', 'str');
+                    assert.equals(model.get('a'), 'str');
+                }
+            },
+            'false when a validator exists and returns false': function(){
+                var model = new this.mockSnitchModel();
+
+                // check against Type.isNumber
+                model.set('b', '1');
+                refute.equals(model.get('b'), '1');
+            }
+        },
+
+        'proof should test the model data against every validator': function(){
+            var model = new this.mockSnitchModel({
+                a: 'str',
+                b: 1,
+                c: []
+            });
+
+            assert.equals(model.proof(), true);
+
+            model.set('d', {});
+
+            model.setValidator('d', Type.isFunction);
+
+            assert.equals(model.proof(), false);
+        }
+    },
+
     'Object Methods': {
         setUp: function(){
             this.mockComparatorData = {

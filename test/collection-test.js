@@ -190,6 +190,115 @@ buster.testCase('Neuro Collection', {
         refute.calledWith(spy, collection, model2);
     },
 
+    'Snitch': {
+        setUp: function(){
+            var collection = new Class({
+                Extends: Neuro.Collection,
+                _validators: {
+                    a: Type.isString,
+                    b: Type.isNumber,
+                    c: Type.isArray
+                }
+            });
+
+            this.mockSnitchCollection = collection;
+        },
+
+        'setupSnitch should be run during instantiation': function(){
+            var collection = new this.mockSnitchCollection({}, {
+                validators: {
+                    d: Type.isFunction
+                }
+            });
+
+            assert.equals(Object.getLength(collection._validators), 4);
+        },
+
+        'validate an object against the collections _validators': function(){
+            var collection = new this.mockSnitchCollection(),
+                obj = {
+                    a: 'str', b: '1'
+                };
+
+            assert.equals(collection.validate(obj), false);
+
+            obj.b = 1;
+
+            assert.equals(collection.validate(obj), true);
+        },
+
+        'proofModel should return a boolean value when testing': {
+            'an object or array of objects': function(){
+                var collection = new this.mockSnitchCollection(),
+                    model1 = {a: 'str', b: '1', c: []},
+                    model2 = {a: 'str', b: '2', c: []};
+
+                assert.equals(collection.proofModel(model1), false);
+                assert.equals(collection.proofModel([model1, model2]), false);
+
+                model1.b = 1;
+                assert.equals(collection.proofModel(model1), true);
+                assert.equals(collection.proofModel([model1, model2]), false);
+
+                model2.b = 2;
+                assert.equals(collection.proofModel(model2), true);
+
+                assert.equals(collection.proofModel([model1, model2]), true);
+            },
+
+            'a model instance or an array of model instances': function(){
+                var collection = new this.mockSnitchCollection(),
+                    model1 = new Neuro.Model({a: 'str', b: '1', c: []}),
+                    model2 = new Neuro.Model({a: 'str', b: '2', c: []});
+
+                assert.equals(collection.proofModel(model1), false);
+                assert.equals(collection.proofModel([model1, model2]), false);
+
+                model1.set('b', 1);
+                assert.equals(collection.proofModel(model1), true);
+                assert.equals(collection.proofModel([model1, model2]), false);
+
+                model2.set('b', 2);
+                assert.equals(collection.proofModel(model2), true);
+
+                assert.equals(collection.proofModel([model1, model2]), true);
+            },
+
+            'an array of model instances and objects': function(){
+                var collection = new this.mockSnitchCollection(),
+                    model1 = new Neuro.Model({a: 'str', b: '1', c: []}),
+                    model2 = {a: 'str', b: '2', c: []};
+
+                assert.equals(collection.proofModel(model1), false);
+                assert.equals(collection.proofModel([model1, model2]), false);
+
+                model1.set('b', 1);
+                assert.equals(collection.proofModel(model1), true);
+                assert.equals(collection.proofModel([model1, model2]), false);
+
+                model2.b = 2;
+                assert.equals(collection.proofModel(model2), true);
+
+                assert.equals(collection.proofModel([model1, model2]), true);
+            }
+        },
+
+        'proof should return a boolean value when proofing a collection': function(){
+            var collection = new this.mockSnitchCollection(),
+                model1 = new Neuro.Model({a: 'str', b: 1}),
+                model2 = new Neuro.Model({a: 'str', b: 1});
+
+            collection.add([model1, model2]);
+
+            assert.equals(collection.proof(), false);
+
+            model1.set('c', []);
+            model2.set('c', []);
+
+            assert.equals(collection.proof(), true);
+        }
+    },
+
     'Array Methods': {
         'Each should loop over each Model instance': function(){
             var spy = this.spy();
