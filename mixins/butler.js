@@ -27,7 +27,11 @@ var Butler = new Class({
     },
 
     setupAccessors: function(){
-        this.setAccessor(Object.merge({}, this._accessors, this.options.accessors));
+        var accessors = this._accessors;
+
+        this._accessors = {};
+
+        this.setAccessor(Object.merge({}, accessors, this.options.accessors));
 
         return this;
     },
