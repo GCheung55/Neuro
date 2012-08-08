@@ -71,14 +71,17 @@ var Butler = new Class({
              * the name is.
              */
             Object.each(obj, function(fnc, type) {
-                var f;
-                if (fnc && !accessors[type]) {
-                    f = accessors[type] = function(){
-                        return this._processAccess(name, fnc.pass(arguments, this));
+                var orig = fnc;
+        
+                if (!fnc._orig) {
+                    fnc = function(){
+                        return this._processAccess(name, orig.pass(arguments, this));
                     }.bind(this);
 
-                    f._orig = fnc;
+                    fnc._orig = orig;
                 }
+
+                accessors[type] = fnc;
             }, this);
 
             this._accessors[name] = accessors;
