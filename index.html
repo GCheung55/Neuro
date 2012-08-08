@@ -93,6 +93,26 @@
                 </li>
               
                 <li>
+                  <a href="#neuro-model/setupvalidators">setupValidators</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/setvalidator">setValidator</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/getvalidator">getValidator</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/validate">validate</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-model/proof">proof</a>
+                </li>
+              
+                <li>
                   <a href="#neuro-model/connect">connect</a>
                 </li>
               
@@ -203,6 +223,30 @@
               
                 <li>
                   <a href="#neuro-collection/tojson">toJSON</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/setupvalidators">setupValidators</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/setvalidator">setValidator</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/getvalidator">getValidator</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/validate">validate</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/proofmodel">proofModel</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/proof">proof</a>
                 </li>
               
                 <li>
@@ -419,6 +463,47 @@
           
         </li>
       
+        <li>
+          <a href="#mixin-snitch">Mixin: Snitch</a>
+          
+            <ul>
+              
+                <li>
+                  <a href="#mixin-snitch/options-validators">options.validators</a>
+                </li>
+              
+                <li>
+                  <a href="#mixin-snitch/syntax-key-value-pairs">Syntax: key/value pairs</a>
+                </li>
+              
+                <li>
+                  <a href="#mixin-snitch/setupvalidators">setupValidators</a>
+                </li>
+              
+                <li>
+                  <a href="#mixin-snitch/setvalidator">setValidator</a>
+                </li>
+              
+                <li>
+                  <a href="#mixin-snitch/getvalidator">getValidator</a>
+                </li>
+              
+                <li>
+                  <a href="#mixin-snitch/validate">validate</a>
+                </li>
+              
+                <li>
+                  <a href="#mixin-snitch/proof">proof</a>
+                </li>
+              
+                <li>
+                  <a href="#mixin-snitch/snitch-function-proof">Snitch Function: proof</a>
+                </li>
+              
+            </ul>
+          
+        </li>
+      
     </ul>
     
       <div class="extra" id="github">
@@ -441,7 +526,7 @@
 <p>A MooTools client-side MVC.
 
 </p>
-<p><strong>Version: 0.2.1 (Alpha)</strong>
+<p><strong>Version: 0.2.2 (Alpha)</strong>
 
 </p>
 <p><a href="http://travis-ci.org/GCheung55/Neuro"><img src="https://secure.travis-ci.org/GCheung55/Neuro.png" alt="Build Status" /></a>
@@ -482,10 +567,11 @@
 <h4>Implements:</h4>
 <ul>
 <li><a href="#mixin-connector">Mixin: Connector</a></li>
-<li><a href="#mixin-Butler">Mixin: Butler</a></li>
+<li><a href="#mixin-butler">Mixin: Butler</a></li>
 <li><a href="#mixin-events">Mixin: Events</a></li>
 <li><a href="#mixin-options">Mixin: Options</a></li>
 <li><a href="#mixin-silence">Mixin: Silence</a></li>
+<li><a href="#mixin-snitch">Mixin: Snitch</a></li>
 </ul>
 <h3 id="neuro-model/constructor-initialize">constructor (initialize)</h3>
 <hr />
@@ -509,6 +595,8 @@
 <li><code>change:key: function(model, key, value, oldValue){}</code> - Triggered when a specific model data property change has occurred. The <code>key</code> refers to the specific property. All <code>change:key</code> events will be triggered before <code>change</code> is triggered.</li>
 <li><code>destroy: function(model){}</code> - Triggered when the model is destroyed.</li>
 <li><code>reset: function(model){}</code> - Triggered when the model is reset to its default values.</li>
+<li><code>error: function(model){}</code> - Triggered when the model data does not validate during the setting process.</li>
+<li><code>error:key: function(model, key, value){}</code> - Triggered when a specific model data property does not validate during the setting process.</li>
 </ul>
 <h4>Notes:</h4>
 <ul>
@@ -520,9 +608,6 @@
 <p>The way to assign values to properties the model has. <strong>Do not</strong> use direct assignment else events will not be triggered or custom setters will not be used.
 
 </p>
-<p>Allows for deep object setting by using string delimited with a period.
-
-</p>
 <h4>Syntax:</h4>
 <pre><code class="javascript">model.set(property, value);
 
@@ -530,7 +615,7 @@ model.set(object);</code></pre>
 <h4>Arguments:</h4>
 <ul>
 <li>Two Arguments (property, value)<ol>
-<li>property - (String) A key used to define a property the model has. It can also be a dot-delimited name string that will be parsed to create an object path to the property.</li>
+<li>property - (String) A key used to define a property the model has.</li>
 <li>value - (String | Array | Number | Object | Function | Class) A value of the corresponding property.</li>
 </ol>
 </li>
@@ -546,19 +631,22 @@ model.set(object);</code></pre>
 <li><code>change</code></li>
 </ul>
 <h4>Examples:</h4>
-<pre><code class="javascript"><span class="comment">// set the property 'name' as an object.</span>
-model.set(<span class="string">'name'</span>, {});
+<pre><code class="javascript"><span class="comment">// set a property value</span>
+model.(<span class="string">'hasGlasses'</span>, <span class="literal">true</span>);
 
-<span class="comment">// set an object that contains all the property value pairs</span>
+<span class="comment">// set the property 'name' as an object.</span>
+model.set(<span class="string">'name'</span>, {
+    first: <span class="string">'Garrick'</span>,
+    last: <span class="string">'Cheung'</span>
+});
+
+set an object that contains all the property value pairs
 model.set({
     name: {
         first: <span class="string">'Garrick'</span>,
         last: <span class="string">'Cheung'</span>
     }
-});
-
-<span class="comment">// set a property with a dot-delimited string</span>
-model.set(<span class="string">'name.middle'</span>, <span class="string">'T'</span>);</code></pre>
+});</code></pre>
 <h3 id="neuro-model/issetting">isSetting</h3>
 <hr />
 <p>Use to check if data is currently being handled by the model to assign values to properties the model has.
@@ -575,11 +663,11 @@ model.set(<span class="string">'name.middle'</span>, <span class="string">'T'</s
 <h4>Syntax:</h4>
 <pre><code class="javascript">model.get(property);
 
-model.get(property1, property2);</code></pre>
+model.Get(property1, property2);</code></pre>
 <h4>Arguments:</h4>
 <ul>
 <li>More than One Consecutive Argument<ol>
-<li>property1, property2... - (String) The properties used to retrieve corresponding values that the model has. </li>
+<li>property1, property2... - (String) The properties used to retrieve corresponding values that the model has.</li>
 </ol>
 </li>
 <li>One Argument<ol>
@@ -598,19 +686,10 @@ model.get(property1, property2);</code></pre>
 </ul>
 </li>
 </ul>
-<h4>Note:</h4>
-<p>A dot-delimited string can also be used in place of the arguments. The string will be parsed to create an object path to retrieve the value.
+<h4>Examples:</h4>
+<pre><code class="javascript">model.get(<span class="string">'name'</span>); <span class="comment">// returns value of 'name' property.</span>
 
-</p>
-<h4>Example:</h4>
-<pre><code class="javascript"><span class="comment">// Using one argument</span>
-model.get(<span class="string">'name'</span>);
-
-<span class="comment">// Using multiple arguments</span>
-model.get(<span class="string">'name'</span>, <span class="string">'age'</span>);
-
-<span class="comment">// Using a dot-delimited string</span>
-model.get(<span class="string">'name.first'</span>, <span class="string">'name.last'</span>);</code></pre>
+model.get(<span class="string">'name'</span>, <span class="string">'age'</span>); <span class="comment">// returns object containing name and age properties</span></code></pre>
 <h3 id="neuro-model/getdata">getData</h3>
 <hr />
 <p>Retrieve all properties/values the model has. The returned object is a clone (dereferenced) of the data the model has.
@@ -768,6 +847,34 @@ model.spy(object);</code></pre>
 </li>
 </ul>
 <h4>Returns: Model instance.</h4>
+<h3 id="neuro-model/setupvalidators">setupValidators</h3>
+<hr />
+<p>see <a href="#mixin-snitch">Mixin: Snitch</a>
+</p>
+<h3 id="neuro-model/setvalidator">setValidator</h3>
+<hr />
+<p>see <a href="#mixin-snitch">Mixin: Snitch</a>
+</p>
+<h3 id="neuro-model/getvalidator">getValidator</h3>
+<hr />
+<p>see <a href="#mixin-snitch">Mixin: Snitch</a>
+</p>
+<h3 id="neuro-model/validate">validate</h3>
+<hr />
+<p>see <a href="#mixin-snitch">Mixin: Snitch</a>
+</p>
+<h3 id="neuro-model/proof">proof</h3>
+<hr />
+<p>Method that proofs the model instance.
+
+</p>
+<p>see <a href="#mixin-snitch">Mixin: Snitch</a>
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">model.proof();</code></pre>
+<h4>Returns: (Boolean) Every property in the <code>_validators</code> object must exist in the model instances <code>_data</code> object and every function in <code>_validators</code> must return <code>true</code> in order for <code>proof</code> to return <code>true</code>, otherwise <code>false</code>.</h4>
+<h4>Note: This overrides the original <code>proof</code> method, but makes use of it to "proof" the model instance.</h4>
 <h3 id="neuro-model/connect">connect</h3>
 <hr />
 <p>see <a href="#mixin-connector">Mixin: Connector</a>
@@ -870,6 +977,7 @@ model.toQueryString();</code></pre>
 <li><a href="#mixin-events">Mixin: Events</a></li>
 <li><a href="#mixin-options">Mixin: Options</a></li>
 <li><a href="#mixin-silence">Mixin: Silence</a></li>
+<li><a href="#mixin-snitch">Mixin: Snitch</a></li>
 </ul>
 <h3 id="neuro-collection/constructor-initialize">constructor (initialize)</h3>
 <hr />
@@ -898,6 +1006,7 @@ model.toQueryString();</code></pre>
 <li><code>remove: function(collection, model){}</code> - Triggered when a specific model is removed from the collection.</li>
 <li><code>empty: function(collection){}</code> - Triggered when the collection is emptied of all models.</li>
 <li><code>sort: function(collection){}</code> - Triggered when <code>sort</code> or <code>reverse</code> occurs.</li>
+<li><code>error: function(collection, model, at){}</code> - Triggered when a model is added to the collection that does not pass validation IF validators exist in the collection instance.</li>
 </ul>
 <h4>Notes:</h4>
 <ul>
@@ -920,7 +1029,19 @@ model.toQueryString();</code></pre>
 <h4>Returns: Boolean.</h4>
 <h3 id="neuro-collection/add">add</h3>
 <hr />
-<p>Adding a model to the collection should always go through this method. It appends the model to the internal <code>_model</code> array and triggers the <code>add</code> event if the collection does not already contain the model. If an <code>Object</code> is passed in, the <code>Object</code> will be converted to a model instance before being appended to <code>_model</code>. Adding a model will increase the collections <code>length</code> property. It is possible to insert a model instance into <code>_model</code> at a specific index by passing a second argument to <code>add</code>. A <code>remove</code> method is attached to the models <code>destroy</code> event so that the model can be properly removed if the model <code>destroy</code> event is triggered.
+<p>Adding a model to the collection should always go through this method. It appends the model to the internal <code>_model</code> array and triggers the <code>add</code> event if the collection does not already contain the model.
+
+</p>
+<p>If <code>_validators</code> exist, then each model or object added must pass validation in order to be added to the collection instance. Otherwise a <code>error</code> event will be triggered. 
+
+</p>
+<p>If an <code>Object</code> is passed in, the <code>Object</code> will be converted to a model instance before being appended to <code>_model</code>. Adding a model will increase the collections <code>length</code> property. 
+
+</p>
+<p>It is possible to insert a model instance into <code>_model</code> at a specific index by passing a second argument to <code>add</code>.
+
+</p>
+<p>A <code>remove</code> method is attached to the models <code>destroy</code> event so that the model can be properly removed if the model <code>destroy</code> event is triggered.
 
 </p>
 <h4>Syntax:</h4>
@@ -938,7 +1059,8 @@ model.toQueryString();</code></pre>
 <h4>Returns: Class instance.</h4>
 <h4>Triggered Events:</h4>
 <ul>
-<li><code>add</code></li>
+<li><code>add</code><h1><code>error</code></h1>
+</li>
 </ul>
 <h4>Examples:</h4>
 <pre><code class="javascript">currentCollection.add({
@@ -1069,6 +1191,57 @@ currentCollection.sort(<span class="keyword">function</span>(modelA, modelB){
 <h4>Syntax:</h4>
 <pre><code class="javascript">currentCollection.toJSON();</code></pre>
 <h4>Returns: Object containing the collection <code>_model</code>.</h4>
+<h3 id="neuro-collection/setupvalidators">setupValidators</h3>
+<hr />
+<p>see <a href="#mixin-snitch">Mixin: Snitch</a>
+</p>
+<h3 id="neuro-collection/setvalidator">setValidator</h3>
+<hr />
+<p>see <a href="#mixin-snitch">Mixin: Snitch</a>
+</p>
+<h3 id="neuro-collection/getvalidator">getValidator</h3>
+<hr />
+<p>see <a href="#mixin-snitch">Mixin: Snitch</a>
+</p>
+<h3 id="neuro-collection/validate">validate</h3>
+<hr />
+<p>Validate every property in a model that is passed into <code>validate</code>.
+
+</p>
+<p>see <a href="#mixin-snitch">Mixin: Snitch</a>
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">collection.validate(models);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>models - (Object | Model | Array) An object, a model instance, or an array mix of both to be validated.</li>
+</ol>
+<h4>Returns: (Boolean) True if all properties in the models validate, false otherwise.</h4>
+<h3 id="neuro-collection/proofmodel">proofModel</h3>
+<hr />
+<p>Proof every property in the models that are passed into <code>proofModel</code>. Every validator property needs to exist in the model and every validator function must return <code>true</code> in order for <code>proofModel</code> to return <code>true</code>.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">collection.proofModel(models);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>model - (Object | Model | Array) An object, a model instance, or an array mix of both to be proofed.</li>
+</ol>
+<h4>Returns: (Boolean) True if all properties in the models proof, false otherwise.</h4>
+<h3 id="neuro-collection/proof">proof</h3>
+<hr />
+<p>Method that proofs the models in the collection instance.
+
+</p>
+<p>see <a href="#mixin-snitch">Mixin: Snitch</a>
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">collection.proof();</code></pre>
+<h4>Returns: (Boolean)</h4>
+<h4>Note: This overrides the original <code>proof</code> method, but makes use of it to "proof" the collections models.</h4>
 <h3 id="neuro-collection/addevent">addEvent</h3>
 <hr />
 <p>see <a href="#mixin-events">Mixin: Events</a>
@@ -1623,6 +1796,7 @@ currentClass.addEvent(<span class="string">'age'</span>, <span class="keyword">f
 <h2 id="mixin-butler">Mixin: Butler</h2>
 <hr />
 <p>A Utility Class. It provides a way to define custom setters/getters on a Class.
+
 </p>
 <h3 id="mixin-butler/options-accessors">options.accessors</h3>
 <hr />
@@ -1645,7 +1819,7 @@ currentClass.addEvent(<span class="string">'age'</span>, <span class="keyword">f
 </ol>
 <h3 id="mixin-butler/setupaccessors">setupAccessors</h3>
 <hr />
-<p>Existing accessors in <code>_accessors</code> need to be decorated so they are merged with <code>options.accessors</code> before being sent to <code>setAccessor</code>.
+<p>Existing accessors in <code>_accessors</code> are merged with <code>options.accessors</code> before being sent to <code>setAccessor</code>. This should be called in the <code>initailize</code> or <code>setup</code> method.
 
 </p>
 <h4>Syntax:</h4>
@@ -1661,7 +1835,7 @@ currentClass.addEvent(<span class="string">'age'</span>, <span class="keyword">f
 <h4>Returns: Boolean</h4>
 <h3 id="mixin-butler/setaccessor">setAccessor</h3>
 <hr />
-<p>A method to decorate custom setters/getters that will allow the use of <code>isAccessing</code> to prevent recursive calls to the same custom setter/getter.
+<p>A method to decorate custom setters/getters that will allow the use of <code>isAccessing</code> to prevent recursive calls to the same custom setter/getter. The decorated custom setters/getters is an object of name/function pairs that is stored in <code>_accessors</code> by name.
 
 </p>
 <h4>Syntax:</h4>
@@ -1692,6 +1866,9 @@ currentClass.setAccessor(obj);</code></pre>
 });
 
 <span class="keyword">var</span> currentClass = <span class="keyword">new</span> klass();
+
+<span class="comment">// manually executed because klass doesn't have an initialize or setup method to execute setupAccessors.</span>
+currentClass.setupAccessors();
 
 <span class="keyword">var</span> fullNameAccessor = currentClass.getAccessor(<span class="string">'fullName'</span>);
 
@@ -1758,7 +1935,7 @@ fullNameAccessors returns and object where the set function is the decorated fun
 </p>
 <pre><code class="javascript">currentClass.unsetAccessor(<span class="string">'fullName'</span>, <span class="string">'set'</span>);</code></pre>
 <h2 id="mixin-silent">Mixin: Silent</h2>
-<p><strong>Silent</strong> is a MooTools Class object without a constructor. It is used as a mixin for other Class objects, providing a solution to disable before a function executes, and re-enabling afterwards.
+<p>A Utility Class. It provides a solution to disable before a function executes, and re-enabling afterwards.
 
 </p>
 <h3 id="mixin-silent/issilent">isSilent</h3>
@@ -1781,6 +1958,151 @@ fullNameAccessors returns and object where the set function is the decorated fun
 <li>function - (Function) The function that will be executed once events have been prevented. The function is bound to the model instance before execution.</li>
 </ol>
 <h4>Returns: Class instance.</h4>
+<h2 id="mixin-snitch">Mixin: Snitch</h2>
+<hr />
+<p>A Utility Class. Use this class to set/get validator functions. A <code>validate</code> method offers a way to easily retrieve a validator to test a value. A <code>proof</code> method is a simple object spec test that tests an object for existence of keys and runs validation tests on the values of those keys.
+
+</p>
+<h3 id="mixin-snitch/options-validators">options.validators</h3>
+<hr />
+<p>A key/value object where the key is the property name and value is a function. The function will be passed an argument to test against and should return a boolean.
+
+</p>
+<h3 id="mixin-snitch/syntax-key-value-pairs">Syntax: key/value pairs</h3>
+<pre><code class="javascript">{
+    name: <span class="keyword">function</span>,
+    name: <span class="function"><span class="keyword">function</span>
+}</span></code></pre>
+<h4>Arguments</h4>
+<ol>
+<li>name - (String) Name of the validator function</li>
+<li>function - (Function) The function will be passed an argument to test against and should return a <code>Boolean</code></li>
+</ol>
+<h3 id="mixin-snitch/setupvalidators">setupValidators</h3>
+<hr />
+<p>Existing validators in <code>_validators</code> are merged with <code>options.validators</code> to be attached by <code>setValidator</code>. This should be called in the <code>initailize</code> or <code>setup</code> method.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentClass.setupValidators();</code></pre>
+<h4>Returns: Class instance.</h4>
+<h3 id="mixin-snitch/setvalidator">setValidator</h3>
+<hr />
+<p>Set functions by property. The function will be decorated to be bound to the class instance. 
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentClass.setValidator(name, <span class="keyword">function</span>)
+
+currentClass.setValidator(obj);</code></pre>
+<h4>Arguments:</h4>
+<ul>
+<li>Two Arugments:<ol>
+<li>name - (String) Name of the validator.</li>
+<li>function - (Function) The validation function to test against a passed parameter.</li>
+</ol>
+</li>
+<li>One Argument:<ol>
+<li>obj - (Object) Name/function object.</li>
+</ol>
+</li>
+</ul>
+<h4>Returns: Class instance.</h4>
+<h4>Note: The original undecorated function is stored on the decorated function in the <code>_orig</code> attribute.</h4>
+<h4>Example:</h4>
+<pre><code class="javascript"><span class="keyword">var</span> klass = <span class="keyword">new</span> Class({
+    Implements: Snitch,
+
+    options: {
+        validators: {
+            fullName: Type.isString <span class="comment">// Type.isString is a method in MooTools-Core that tests arguments whether they are strings or not by returning a boolean</span>
+        }
+    }
+});
+
+<span class="keyword">var</span> currentClass = <span class="keyword">new</span> klass();
+
+<span class="comment">// manually executed because klass doesn't have an initialize or setup method to execute setupValidators.</span>
+currentClass.setupValidators();
+
+<span class="comment">// returns the validation function</span>
+<span class="keyword">var</span> fullNameValidator = currentClass.getValidator(<span class="string">'fullName'</span>);
+
+<span class="comment">// the undecorated original function</span>
+fullNameValidator._orig;</code></pre>
+<h3 id="mixin-snitch/getvalidator">getValidator</h3>
+<hr />
+<p>Retrieve a stored validation function by property name.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentClass.getValidator(name[, name]);</code></pre>
+<h4>Arguments</h4>
+<ol>
+<li>name - (String) The name of the validator to return. Consecutive names will return an object of name/function matches.</li>
+</ol>
+<h4>Returns:</h4>
+<ul>
+<li>More than One Consecutive Argument<ul>
+<li>(Object) Name/function pairs containing matches validator functions and their corresponding names. An unexisting validator will return <code>undefined</code> in place of the function.</li>
+</ul>
+</li>
+<li>One argument<ul>
+<li>(Function) Validation function corresponding to the name.</li>
+</ul>
+</li>
+</ul>
+<h4>Example:</h4>
+<pre><code class="javascript">currentClass.getValidator(<span class="string">'fullName'</span>); <span class="comment">// returns function or undefined</span>
+
+currentClass.getValidator(<span class="string">'age'</span>, <span class="string">'fullName'</span>); <span class="comment">// returns an object containing age and fullName properties</span></code></pre>
+<h3 id="mixin-snitch/validate">validate</h3>
+<hr />
+<p>Convenient method to retrieve a validator by property to test the value against. By default it always returns true. If a validator exists, it returns the results of validation.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentClass.validate(property, value);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>property - (String) Name of the validator to retrieve.</li>
+<li>value - (Mixed) Value to validate by the retrieved validator.</li>
+</ol>
+<h4>Returns:</h4>
+<ul>
+<li>(Boolean) Value of whether validation has passed or not.</li>
+</ul>
+<h3 id="mixin-snitch/proof">proof</h3>
+<hr />
+<p>"Proof" an object where every item that exists in <code>_validators</code> exists in the object and every validation function returns a <code>true</code> value. This causes <code>_validators</code> to act like a spec. By default, <code>proof</code> returns true in case there are no defined validators. It is a convenient method that utilizes <code>Snitch Function: proof</code>;
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentClass.proof(obj);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>obj - (Object) The object that will be tested against every validator in <code>_validators</code>. Every property in <code>_validators</code> just exist in obj and every function must pass in order for proof to return true.</li>
+</ol>
+<h4>Returns:</h4>
+<ul>
+<li>(Boolean) Value of whether the object has passed validation and item existence.</li>
+</ul>
+<h3 id="mixin-snitch/snitch-function-proof">Snitch Function: proof</h3>
+<hr />
+<p>Generic method to proof an object with validators.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">Snitch.proof(obj, validators);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>obj - (Object) Object of key/value pairs that will be compared against<code>validators</code></li>
+<li>validators - (Object) Object of key/function pairs that will be used to compare against <code>obj</code> where each key has to exist in the <code>obj</code> and the <code>obj</code> property value passes the validator function.</li>
+</ol>
+<h4>Returns:</h4>
+<ul>
+<li>(Boolean) Value of whether the object has passed validation and item existence.</li>
+</ul>
 
   </div>
 </div></body>
