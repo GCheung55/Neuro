@@ -1,6 +1,7 @@
 var Model = require('./model').Model,
     Butler = require('../../mixins/butler').Butler,
-    Snitch = require('../../mixins/snitch').Snitch;
+    Snitch = require('../../mixins/snitch').Snitch,
+    signalFactory = require('../../utils/signalFactory');
 
 /**
  * Create the get/getPrevious functions with the type to define what accessor to retrieve
@@ -29,14 +30,28 @@ var curryGetter = function(type){
 
 Model.implement(new Butler);
 Model.implement(new Snitch);
+Model.implement(
+    signalFactory(
+        ['error'],
+        {
+            signalErrorProperty: function(prop, val){
+                !this.isSilent() && this.fireEvent('error:' + prop, [this, prop, val]);
+            }
+        }
+    )
+);
 
 exports.Model = new Class({
     Extends: Model,
 
+    _errored: false,
+
+    _erroredProperties: {},
+
     setup: function(data, options){
         this.setupAccessors();
 
-        this.setupSnitch();
+        this.setupValidators();
 
         this.parent(data, options);
 
@@ -63,15 +78,52 @@ exports.Model = new Class({
          * check for existence of a a validator
          */
         if (!this.validate(prop, val)) {
+            this._errored = true;
+            this._erroredProperties[prop] = val;
             return this;
         }
 
         return this.parent(prop, val);
     }.overloadSetter(),
 
+    set: function(prop, val){
+        this.parent(prop, val);
+
+        if (!this.isSetting() && this._errored) {
+            // Signal any errored properties
+            this._onErrorProperty(this._erroredProperties);
+
+            // Signal error
+            this.signalError();
+
+            // reset errored and errored properties
+            this._resetErrored();
+        }
+
+        return this;
+    },
+
     get: curryGetter('get'),
 
     getPrevious: curryGetter('getPrevious'),
+
+    _resetErrored: function(){
+        if (this._errored) {
+            // reset the errored
+            this._errored = false;
+
+            // reset errored properties
+            this._erroredProperties = {};
+        }
+
+        return this;
+    },
+
+    _onErrorProperty: function(prop, val){
+        this.signalErrorProperty(prop, val);
+
+        return this;
+    }.overloadSetter(),
 
     setAccessor: function(name, val){
         if (name && val) {
