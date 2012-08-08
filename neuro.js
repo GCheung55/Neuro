@@ -13,8 +13,15 @@
     "0": function(require, module, exports, global) {
         var Neuro = require("1");
         Neuro.Model = require("2").Model;
-        Neuro.Collection = require("a").Collection;
-        Neuro.View = require("c").View;
+        Neuro.Collection = require("b").Collection;
+        Neuro.View = require("d").View;
+        Neuro.Is = require("4").Is;
+        Neuro.Mixins = {
+            Butler: require("8").Butler,
+            Connector: require("6").Connector,
+            Silence: require("5").Silence,
+            Snitch: require("f").Snitch
+        };
         exports = module.exports = Neuro;
     },
     "1": function(require, module, exports, global) {
@@ -24,7 +31,7 @@
         exports = module.exports = Neuro;
     },
     "2": function(require, module, exports, global) {
-        var Model = require("3").Model, Butler = require("8").Butler;
+        var Model = require("3").Model, Butler = require("8").Butler, Snitch = require("a").Snitch, signalFactory = require("9");
         var curryGetter = function(type) {
             return function(prop) {
                 var accessor = this.getAccessor(prop, type), accessorName = this._accessorName;
@@ -35,10 +42,19 @@
             }.overloadGetter();
         };
         Model.implement(new Butler);
+        Model.implement(new Snitch);
+        Model.implement(signalFactory([ "error" ], {
+            signalErrorProperty: function(prop, val) {
+                !this.isSilent() && this.fireEvent("error:" + prop, [ this, prop, val ]);
+            }
+        }));
         exports.Model = new Class({
             Extends: Model,
+            _errored: false,
+            _erroredProperties: {},
             setup: function(data, options) {
                 this.setupAccessors();
+                this.setupValidators();
                 this.parent(data, options);
                 return this;
             },
@@ -47,10 +63,35 @@
                 if (accessor && this._accessorName != prop) {
                     return accessor.apply(this, arguments);
                 }
+                if (!this.validate(prop, val)) {
+                    this._errored = true;
+                    this._erroredProperties[prop] = val;
+                    return this;
+                }
                 return this.parent(prop, val);
             }.overloadSetter(),
+            set: function(prop, val) {
+                this.parent(prop, val);
+                if (!this.isSetting() && this._errored) {
+                    this._onErrorProperty(this._erroredProperties);
+                    this.signalError();
+                    this._resetErrored();
+                }
+                return this;
+            },
             get: curryGetter("get"),
             getPrevious: curryGetter("getPrevious"),
+            _resetErrored: function() {
+                if (this._errored) {
+                    this._errored = false;
+                    this._erroredProperties = {};
+                }
+                return this;
+            },
+            _onErrorProperty: function(prop, val) {
+                this.signalErrorProperty(prop, val);
+                return this;
+            }.overloadSetter(),
             setAccessor: function(name, val) {
                 if (name && val) {
                     if (val.get && !val.getPrevious) {
@@ -59,7 +100,10 @@
                     this.parent(name, val);
                 }
                 return this;
-            }.overloadSetter()
+            }.overloadSetter(),
+            proof: function() {
+                return this.parent(this.getData());
+            }
         });
     },
     "3": function(require, module, exports, global) {
@@ -91,14 +135,8 @@
                 return obj;
             };
         };
-        var Signals = new Class(signalFactory([ "change", "destroy", "reset" ], {
-            signalChangeProperty: function(prop, newVal, oldVal) {
-                !this.isSilent() && this.fireEvent("change:" + prop, [ this, prop, newVal, oldVal ]);
-                return this;
-            }
-        }));
         var Model = new Class({
-            Implements: [ Connector, Butler, Events, Options, Silence, Signals ],
+            Implements: [ Connector, Butler, Events, Options, Silence ],
             primaryKey: undefined,
             _data: {},
             _changed: false,
@@ -147,9 +185,9 @@
                     !isSetting && this._setPrevious(this.getData());
                     prop = instanceOf(prop, Model) ? prop.getData() : prop;
                     this._set(prop, val);
-                    if (!isSetting) {
-                        this.changeProperty(this._changedProperties);
-                        this.change();
+                    if (!isSetting && this._changed) {
+                        this._onChangeProperty(this._changedProperties);
+                        this.signalChange();
                         this._resetChanged();
                     }
                 }
@@ -199,13 +237,7 @@
                 }
                 return this;
             },
-            change: function() {
-                if (this._changed) {
-                    this.signalChange();
-                }
-                return this;
-            },
-            changeProperty: function(prop, val) {
+            _onChangeProperty: function(prop, val) {
                 if (this._changed) {
                     this.signalChangeProperty(prop, val, this.getPrevious(prop));
                 }
@@ -231,6 +263,12 @@
                 return this;
             }.overloadSetter()
         });
+        Model.implement(signalFactory([ "change", "destroy", "reset" ], {
+            signalChangeProperty: function(prop, newVal, oldVal) {
+                !this.isSilent() && this.fireEvent("change:" + prop, [ this, prop, newVal, oldVal ]);
+                return this;
+            }
+        }));
         [ "each", "subset", "map", "filter", "every", "some", "keys", "values", "getLength", "keyOf", "contains", "toQueryString" ].each(function(method) {
             Model.implement(method, function() {
                 return Object[method].apply(Object, [ this._data ].append(Array.from(arguments)));
@@ -434,7 +472,9 @@
                 accessors: {}
             },
             setupAccessors: function() {
-                this.setAccessor(Object.merge({}, this._accessors, this.options.accessors));
+                var accessors = this._accessors;
+                this._accessors = {};
+                this.setAccessor(Object.merge({}, accessors, this.options.accessors));
                 return this;
             },
             isAccessing: function() {
@@ -453,13 +493,14 @@
                 var accessors = {};
                 if (!!name && Type.isObject(obj)) {
                     Object.each(obj, function(fnc, type) {
-                        var f;
-                        if (fnc && !accessors[type]) {
-                            f = accessors[type] = function() {
-                                return this._processAccess(name, fnc.pass(arguments, this));
+                        var orig = fnc;
+                        if (!fnc._orig) {
+                            fnc = function() {
+                                return this._processAccess(name, orig.pass(arguments, this));
                             }.bind(this);
-                            f._orig = fnc;
+                            fnc._orig = orig;
                         }
+                        accessors[type] = fnc;
                     }, this);
                     this._accessors[name] = accessors;
                 }
@@ -502,19 +543,92 @@
         };
     },
     a: function(require, module, exports, global) {
-        var Collection = require("b").Collection;
-        exports.Collection = Collection;
+        var Snitch = new Class({
+            _validators: {},
+            options: {
+                validators: {}
+            },
+            setupValidators: function() {
+                var validators = this._validators;
+                this._validators = {};
+                this.setValidator(Object.merge({}, validators, this.options.validators));
+                return this;
+            },
+            setValidator: function(prop, fnc) {
+                var orig = fnc;
+                if (!fnc._orig) {
+                    fnc = fnc.bind(this);
+                    fnc._orig = orig;
+                }
+                this._validators[prop] = fnc;
+                return this;
+            }.overloadSetter(),
+            getValidator: function(prop) {
+                return this._validators[prop];
+            }.overloadGetter(),
+            validate: function(prop, val) {
+                var validator = this.getValidator(prop), pass = true;
+                if (validator) {
+                    pass = validator(val);
+                }
+                return pass;
+            },
+            proof: function(obj) {
+                return Snitch.proof(obj, this._validators, this);
+            }
+        });
+        Snitch.proof = function(obj, validators) {
+            return Object.every(validators, function(fnc, prop) {
+                return prop in obj && fnc(obj[prop]);
+            });
+        };
+        exports.Snitch = Snitch;
     },
     b: function(require, module, exports, global) {
-        var Model = require("2").Model, Silence = require("5").Silence, Connector = require("6").Connector, signalFactory = require("9");
-        var Signals = new Class(signalFactory([ "empty", "sort" ], signalFactory([ "add", "remove" ], function(name) {
-            return function(model) {
-                !this.isSilent() && this.fireEvent(name, [ this, model ]);
+        var Collection = require("c").Collection, Model = require("2").Model, Snitch = require("a").Snitch;
+        var validateFnc = function(val, prop) {
+            return this.parent(prop, val);
+        };
+        Collection.implement(new Snitch);
+        exports.Collection = new Class({
+            Extends: Collection,
+            setup: function(models, options) {
+                this.setupValidators();
+                this.parent(models, options);
                 return this;
-            };
-        })));
+            },
+            _add: function(model, at) {
+                if (!this.validate(instanceOf(model, Model) ? model.getData() : model)) {
+                    this.signalError(model, at);
+                } else {
+                    this.parent(model, at);
+                }
+                return this;
+            },
+            validate: function(models) {
+                models = Array.from(models);
+                return models.every(function(model) {
+                    return instanceOf(model, Model) ? model.every(validateFnc, this) : Object.every(model, validateFnc, this);
+                }, this);
+            },
+            proofModel: function(models) {
+                models = Array.from(models);
+                return models.every(function(model) {
+                    return Snitch.proof(instanceOf(model, Model) ? model.getData() : model, this._validators, this);
+                }, this);
+            },
+            proof: function() {
+                return this.proofModel(this._models);
+            },
+            signalError: function(model, at) {
+                !this.isSilent() && this.fireEvent("error", [ this, model, at ]);
+            }
+        });
+    },
+    c: function(require, module, exports, global) {
+        var Model = require("2").Model, Silence = require("5").Silence, Connector = require("6").Connector, signalFactory = require("9");
         var Collection = new Class({
-            Implements: [ Connector, Events, Options, Silence, Signals ],
+            Implements: [ Connector, Events, Options, Silence ],
             _models: [],
             _Model: Model,
             length: 0,
@@ -632,6 +746,12 @@
                 });
             }
         });
+        Collection.implement(signalFactory([ "empty", "sort" ], signalFactory([ "add", "remove" ], function(name) {
+            return function(model) {
+                !this.isSilent() && this.fireEvent(name, [ this, model ]);
+                return this;
+            };
+        })));
         [ "forEach", "each", "invoke", "every", "filter", "clean", "indexOf", "map", "some", "associate", "link", "contains", "getLast", "getRandom", "flatten", "pick" ].each(function(method) {
             Collection.implement(method, function() {
                 return Array.prototype[method].apply(this._models, arguments);
@@ -639,11 +759,11 @@
         });
         exports.Collection = Collection;
     },
-    c: function(require, module, exports, global) {
-        var View = require("d").View;
+    d: function(require, module, exports, global) {
+        var View = require("e").View;
         exports.View = View;
     },
-    d: function(require, module, exports, global) {
+    e: function(require, module, exports, global) {
         var Connector = require("6").Connector, Silence = require("5").Silence, signalFactory = require("9");
         var eventHandler = function(handler) {
             return function() {
@@ -731,5 +851,47 @@
             }
         });
         exports.View = View;
+    },
+    f: function(require, module, exports, global) {
+        var Snitch = new Class({
+            _validators: {},
+            options: {
+                validators: {}
+            },
+            setupValidators: function() {
+                var validators = this._validators;
+                this._validators = {};
+                this.setValidator(Object.merge({}, validators, this.options.validators));
+                return this;
+            },
+            setValidator: function(prop, fnc) {
+                var orig = fnc;
+                if (!fnc._orig) {
+                    fnc = fnc.bind(this);
+                    fnc._orig = orig;
+                }
+                this._validators[prop] = fnc;
+                return this;
+            }.overloadSetter(),
+            getValidator: function(prop) {
+                return this._validators[prop];
+            }.overloadGetter(),
+            validate: function(prop, val) {
+                var validator = this.getValidator(prop), pass = true;
+                if (validator) {
+                    pass = validator(val);
+                }
+                return pass;
+            },
+            proof: function(obj) {
+                return Snitch.proof(obj, this._validators, this);
+            }
+        });
+        Snitch.proof = function(obj, validators) {
+            return Object.every(validators, function(fnc, prop) {
+                return prop in obj && fnc(obj[prop]);
+            });
+        };
+        exports.Snitch = Snitch;
     }
 });
