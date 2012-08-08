@@ -36,6 +36,7 @@ The __Model__ is a Object-like MooTools Class object that provides a basic API t
 * [Mixin: Events](#mixin-events)
 * [Mixin: Options](#mixin-options)
 * [Mixin: Silence](#mixin-silence)
+* [Mixin: Snitch](#mixin-snitch)
 
 ### constructor (initialize)
 ---
@@ -60,6 +61,8 @@ var model = new Neuro.Model(data [, options]);
 * `change:key: function(model, key, value, oldValue){}` - Triggered when a specific model data property change has occurred. The `key` refers to the specific property. All `change:key` events will be triggered before `change` is triggered.
 * `destroy: function(model){}` - Triggered when the model is destroyed.
 * `reset: function(model){}` - Triggered when the model is reset to its default values.
+* `error: function(model){}` - Triggered when the model data does not validate during the setting process.
+* `error:key: function(model, key, value){}` - Triggered when a specific model data property does not validate during the setting process.
 
 #### Notes:
 * Method names and properties prefixed with `_` is considered private and should not be used or directly interacted with.
@@ -304,6 +307,33 @@ model.spy(property, function);
 
 #### Returns: Model instance.
 
+### setupValidators
+---
+see [Mixin: Snitch](#mixin-snitch)
+### setValidator
+---
+see [Mixin: Snitch](#mixin-snitch)
+### getValidator
+---
+see [Mixin: Snitch](#mixin-snitch)
+### validate
+---
+see [Mixin: Snitch](#mixin-snitch)
+### proof
+---
+Method that proofs the model instance.
+
+see [Mixin: Snitch](#mixin-snitch)
+
+#### Syntax:
+```javascript
+model.proof();
+```
+
+#### Returns: (Boolean) Every property in the `_validators` object must exist in the model instances `_data` object and every function in `_validators` must return `true` in order for `proof` to return `true`, otherwise `false`.
+
+#### Note: This overrides the original `proof` method, but makes use of it to "proof" the model instance.
+
 ### connect
 ---
 see [Mixin: Connector](#mixin-connector)
@@ -390,6 +420,7 @@ The __Collection__ is an Array-like MooTools Class object that provides a basic 
 * [Mixin: Events](#mixin-events)
 * [Mixin: Options](#mixin-options)
 * [Mixin: Silence](#mixin-silence)
+* [Mixin: Snitch](#mixin-snitch)
 
 ### constructor (initialize)
 ---
@@ -417,6 +448,7 @@ var collection = new Neuro.Collection(data [, options]);
 * `remove: function(collection, model){}` - Triggered when a specific model is removed from the collection.
 * `empty: function(collection){}` - Triggered when the collection is emptied of all models.
 * `sort: function(collection){}` - Triggered when `sort` or `reverse` occurs.
+* `error: function(collection, model, at){}` - Triggered when a model is added to the collection that does not pass validation IF validators exist in the collection instance.
 
 #### Notes:
 * Method names and properties prefixed with `_` is considered private and should not be used or directly interacted with.
@@ -441,7 +473,15 @@ currentCollection.hasModel(model);
 
 ### add
 ---
-Adding a model to the collection should always go through this method. It appends the model to the internal `_model` array and triggers the `add` event if the collection does not already contain the model. If an `Object` is passed in, the `Object` will be converted to a model instance before being appended to `_model`. Adding a model will increase the collections `length` property. It is possible to insert a model instance into `_model` at a specific index by passing a second argument to `add`. A `remove` method is attached to the models `destroy` event so that the model can be properly removed if the model `destroy` event is triggered.
+Adding a model to the collection should always go through this method. It appends the model to the internal `_model` array and triggers the `add` event if the collection does not already contain the model.
+
+If `_validators` exist, then each model or object added must pass validation in order to be added to the collection instance. Otherwise a `error` event will be triggered. 
+
+If an `Object` is passed in, the `Object` will be converted to a model instance before being appended to `_model`. Adding a model will increase the collections `length` property. 
+
+It is possible to insert a model instance into `_model` at a specific index by passing a second argument to `add`.
+
+A `remove` method is attached to the models `destroy` event so that the model can be properly removed if the model `destroy` event is triggered.
 
 #### Syntax:
 ```javascript
@@ -459,6 +499,7 @@ currentCollection.add(models, at);
 
 #### Triggered Events:
 * `add`
+# `error`
 
 #### Examples:
 ```javascript
@@ -613,6 +654,59 @@ currentCollection.toJSON();
 
 #### Returns: Object containing the collection `_model`.
 
+### setupValidators
+---
+see [Mixin: Snitch](#mixin-snitch)
+### setValidator
+---
+see [Mixin: Snitch](#mixin-snitch)
+### getValidator
+---
+see [Mixin: Snitch](#mixin-snitch)
+### validate
+---
+Validate every property in a model that is passed into `validate`.
+
+see [Mixin: Snitch](#mixin-snitch)
+
+#### Syntax:
+```javascript
+collection.validate(models);
+```
+
+#### Arguments:
+1. models - (Object | Model | Array) An object, a model instance, or an array mix of both to be validated.
+
+#### Returns: (Boolean) True if all properties in the models validate, false otherwise.
+
+### proofModel
+---
+Proof every property in the models that are passed into `proofModel`. Every validator property needs to exist in the model and every validator function must return `true` in order for `proofModel` to return `true`.
+
+#### Syntax:
+```javascript
+collection.proofModel(models);
+```
+
+#### Arguments:
+1. model - (Object | Model | Array) An object, a model instance, or an array mix of both to be proofed.
+
+#### Returns: (Boolean) True if all properties in the models proof, false otherwise.
+
+### proof
+---
+Method that proofs the models in the collection instance.
+
+see [Mixin: Snitch](#mixin-snitch)
+
+#### Syntax:
+```javascript
+collection.proof();
+```
+
+#### Returns: (Boolean)
+
+#### Note: This overrides the original `proof` method, but makes use of it to "proof" the collections models.
 ### addEvent
 ---
 see [Mixin: Events](#mixin-events)
@@ -1222,6 +1316,7 @@ currentClass.connect(targetClass[, oneWay]);
 ## Mixin: Butler
 ---
 A Utility Class. It provides a way to define custom setters/getters on a Class.
+
 ### options.accessors
 ---
 A key/value object where the key is the name of the setter and value is an object containing overriding set/get methods.
@@ -1242,7 +1337,7 @@ name: {
 
 ### setupAccessors
 ---
-Existing accessors in `_accessors` need to be decorated so they are merged with `options.accessors` before being sent to `setAccessor`.
+Existing accessors in `_accessors` are merged with `options.accessors` before being sent to `setAccessor`. This should be called in the `initailize` or `setup` method.
 
 #### Syntax:
 ```javascript
@@ -1264,7 +1359,7 @@ currentClass.isAccessing();
 
 ### setAccessor
 ---
-A method to decorate custom setters/getters that will allow the use of `isAccessing` to prevent recursive calls to the same custom setter/getter.
+A method to decorate custom setters/getters that will allow the use of `isAccessing` to prevent recursive calls to the same custom setter/getter. The decorated custom setters/getters is an object of name/function pairs that is stored in `_accessors` by name.
 
 #### Syntax:
 ```javascript
@@ -1297,6 +1392,9 @@ var klass = new Class({
 });
 
 var currentClass = new klass();
+
+// manually executed because klass doesn't have an initialize or setup method to execute setupAccessors.
+currentClass.setupAccessors();
 
 var fullNameAccessor = currentClass.getAccessor('fullName');
 
@@ -1377,7 +1475,7 @@ currentClass.unsetAccessor('fullName', 'set');
 ```
 
 ## Mixin: Silent
-__Silent__ is a MooTools Class object without a constructor. It is used as a mixin for other Class objects, providing a solution to disable before a function executes, and re-enabling afterwards.
+A Utility Class. It provides a solution to disable before a function executes, and re-enabling afterwards.
 
 ### isSilent
 ---
@@ -1403,3 +1501,152 @@ currentClass.silence(function);
 1. function - (Function) The function that will be executed once events have been prevented. The function is bound to the model instance before execution.
 
 #### Returns: Class instance.
+
+## Mixin: Snitch
+---
+A Utility Class. Use this class to set/get validator functions. A `validate` method offers a way to easily retrieve a validator to test a value. A `proof` method is a simple object spec test that tests an object for existence of keys and runs validation tests on the values of those keys.
+
+### options.validators
+---
+A key/value object where the key is the property name and value is a function. The function will be passed an argument to test against and should return a boolean.
+
+### Syntax: key/value pairs
+```javascript
+{
+    name: function,
+    name: function
+}
+```
+
+#### Arguments
+1. name - (String) Name of the validator function
+2. function - (Function) The function will be passed an argument to test against and should return a `Boolean`
+
+### setupValidators
+---
+Existing validators in `_validators` are merged with `options.validators` to be attached by `setValidator`. This should be called in the `initailize` or `setup` method.
+
+#### Syntax:
+```javascript
+currentClass.setupValidators();
+```
+
+#### Returns: Class instance.
+
+### setValidator
+---
+Set functions by property. The function will be decorated to be bound to the class instance. 
+
+#### Syntax:
+```javascript
+currentClass.setValidator(name, function)
+
+currentClass.setValidator(obj);
+```
+
+#### Arguments:
+* Two Arugments:
+    1. name - (String) Name of the validator.
+    2. function - (Function) The validation function to test against a passed parameter.
+* One Argument:
+    1. obj - (Object) Name/function object.
+
+#### Returns: Class instance.
+
+#### Note: The original undecorated function is stored on the decorated function in the `_orig` attribute.
+
+#### Example:
+```javascript
+var klass = new Class({
+    Implements: Snitch,
+
+    options: {
+        validators: {
+            fullName: Type.isString // Type.isString is a method in MooTools-Core that tests arguments whether they are strings or not by returning a boolean
+        }
+    }
+});
+
+var currentClass = new klass();
+
+// manually executed because klass doesn't have an initialize or setup method to execute setupValidators.
+currentClass.setupValidators();
+
+// returns the validation function
+var fullNameValidator = currentClass.getValidator('fullName');
+
+// the undecorated original function
+fullNameValidator._orig;
+```
+
+### getValidator
+---
+Retrieve a stored validation function by property name.
+
+#### Syntax:
+```javascript
+currentClass.getValidator(name[, name]);
+```
+
+#### Arguments
+1. name - (String) The name of the validator to return. Consecutive names will return an object of name/function matches.
+
+#### Returns:
+* More than One Consecutive Argument
+    * (Object) Name/function pairs containing matches validator functions and their corresponding names. An unexisting validator will return `undefined` in place of the function.
+* One argument
+    * (Function) Validation function corresponding to the name.
+
+#### Example:
+```javascript
+currentClass.getValidator('fullName'); // returns function or undefined
+
+currentClass.getValidator('age', 'fullName'); // returns an object containing age and fullName properties
+```
+
+### validate
+---
+Convenient method to retrieve a validator by property to test the value against. By default it always returns true. If a validator exists, it returns the results of validation.
+
+#### Syntax:
+```javascript
+currentClass.validate(property, value);
+```
+
+#### Arguments:
+1. property - (String) Name of the validator to retrieve.
+2. value - (Mixed) Value to validate by the retrieved validator.
+
+#### Returns:
+* (Boolean) Value of whether validation has passed or not.
+
+### proof
+---
+"Proof" an object where every item that exists in `_validators` exists in the object and every validation function returns a `true` value. This causes `_validators` to act like a spec. By default, `proof` returns true in case there are no defined validators. It is a convenient method that utilizes `Snitch Function: proof`;
+
+#### Syntax:
+```javascript
+currentClass.proof(obj);
+```
+
+#### Arguments:
+1. obj - (Object) The object that will be tested against every validator in `_validators`. Every property in `_validators` just exist in obj and every function must pass in order for proof to return true.
+
+#### Returns:
+* (Boolean) Value of whether the object has passed validation and item existence.
+
+### Snitch Function: proof
+---
+Generic method to proof an object with validators.
+
+#### Syntax:
+```javascript
+Snitch.proof(obj, validators);
+```
+
+#### Arguments:
+1. obj - (Object) Object of key/value pairs that will be compared against`validators`
+2. validators - (Object) Object of key/function pairs that will be used to compare against `obj` where each key has to exist in the `obj` and the `obj` property value passes the validator function.
+
+#### Returns:
+* (Boolean) Value of whether the object has passed validation and item existence.
