@@ -12,7 +12,7 @@ exports.Collection = new Class({
     Extends: Collection,
 
     setup: function(models, options){
-        this.setupSnitch();
+        this.setupValidators();
 
         this.parent(models, options);
 
@@ -23,7 +23,11 @@ exports.Collection = new Class({
         /**
          * Validate data, not a model instance.
          */
-        this.validate( instanceOf(model, Model) ? model.getData() : model ) && this.parent(model, at)
+        if (!this.validate( instanceOf(model, Model) ? model.getData() : model )) {
+            this.signalError(model, at);
+        } else {
+            this.parent(model, at)
+        }
 
         return this
     },
@@ -68,5 +72,9 @@ exports.Collection = new Class({
      */
     proof: function(){
         return this.proofModel(this._models);
+    },
+
+    signalError: function(model, at){
+        !this.isSilent() && this.fireEvent('error', [this, model, at]);
     }
 });
