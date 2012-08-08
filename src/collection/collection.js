@@ -3,23 +3,8 @@ var Model = require('../model/main').Model,
     Connector = require('../../mixins/connector').Connector,
     signalFactory = require('../../utils/signalFactory');
 
-var Signals = new Class(
-    signalFactory(
-        ['empty', 'sort'],
-        signalFactory(
-            ['add', 'remove'],
-            function(name){
-                return function(model){
-                    !this.isSilent() && this.fireEvent(name, [this, model]);
-                    return this;
-                };
-            }
-        )
-    )
-);
-
 var Collection = new Class({
-    Implements: [Connector, Events, Options, Silence, Signals],
+    Implements: [Connector, Events, Options, Silence],
 
     _models: [],
 
@@ -42,7 +27,7 @@ var Collection = new Class({
 
     initialize: function(models, options){
         this.setOptions(options);
-        
+
         this.setup(models, options);
     },
 
@@ -253,6 +238,21 @@ var Collection = new Class({
         });
     }
 });
+
+Collection.implement(
+    signalFactory(
+        ['empty', 'sort'],
+        signalFactory(
+            ['add', 'remove'],
+            function(name){
+                return function(model){
+                    !this.isSilent() && this.fireEvent(name, [this, model]);
+                    return this;
+                };
+            }
+        )
+    )
+);
 
 ['forEach', 'each', 'invoke', 'every', 'filter', 'clean', 'indexOf', 'map', 'some', 'associate', 'link', 'contains', 'getLast', 'getRandom', 'flatten', 'pick'].each(function(method){
     Collection.implement(method, function(){
