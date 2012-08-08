@@ -4,6 +4,8 @@ Neuro.Model = require('./model/main').Model;
 Neuro.Collection = require('./collection/main').Collection;
 Neuro.View = require('./view/main').View;
 
+Neuro.Is = require('neuro-is').Is;
+
 //Mixins
 Neuro.Mixins = {
     Butler: require('../mixins/butler').Butler,

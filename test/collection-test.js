@@ -227,7 +227,7 @@ buster.testCase('Neuro Collection', {
             assert.equals(collection.validate(obj), true);
         },
 
-        'trigger error event when an object or model is added to the collection and does not pass validation': function(){
+        'trigger error event when an object or model is trying to be added to the collection and does not pass validation': function(){
             var spy = this.spy(),
                 collection = new this.mockSnitchCollection(),
                 obj = {
@@ -238,7 +238,15 @@ buster.testCase('Neuro Collection', {
 
             collection.add(obj);
 
-            assert.calledWith(spy, collection, obj, undefined);
+            assert.equals(collection.hasModel(obj), false);
+
+            obj.b = 1;
+
+            collection.add(obj);
+
+            assert.equals(Neuro.Is.Equal(obj, collection.get(0).getData()), true);
+
+            assert.calledOnceWith(spy, collection, obj, undefined);
         },
 
         'proofModel should return a boolean value when testing': {
