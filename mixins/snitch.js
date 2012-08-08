@@ -12,11 +12,11 @@ var Snitch = new Class({
 
     options: {
         validators: {
-
+            // key: function(){}
         }
     },
 
-    setupSnitch: function(){
+    setupValidators: function(){
         // reference the validators
         var validators = this._validators;
 
@@ -56,14 +56,14 @@ var Snitch = new Class({
             pass = true;
 
         if (validator) {
-            pass = validator.call(this, val);
+            pass = validator(val);
         }
 
         return pass;
     },
 
     /**
-     * Proof the object that it has every item that this.validators has
+     * Proof the object that it has every item that this._validators has
      * and that every validator passes.
      * @param  {Object} obj        Object to validate
      * @return {Boolean}           The answer to whether the object passes or not
@@ -80,10 +80,10 @@ var Snitch = new Class({
  * @param  {Object} validators Object to validate against
  * @return {Boolean}           The answer to whether the object passes or not
  */
-Snitch.proof = function(obj, validators, bind){
+Snitch.proof = function(obj, validators){
     return Object.every(validators, function(fnc, prop){
         return (prop in obj) && fnc(obj[prop]);
-    }, bind);
+    });
 };
 
 exports.Snitch = Snitch;
