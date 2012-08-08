@@ -41,20 +41,8 @@ var curryGetData = function(type){
     };
 };
 
-var Signals = new Class(
-    signalFactory(
-        ['change', 'destroy', 'reset'],
-        {
-            signalChangeProperty: function(prop, newVal, oldVal){
-                !this.isSilent() && this.fireEvent('change:' + prop, [this, prop, newVal, oldVal]);
-                return this;
-            }
-        }
-    )
-);
-
 var Model = new Class({
-    Implements: [Connector, Butler, Events, Options, Silence, Signals],
+    Implements: [Connector, Butler, Events, Options, Silence],
 
     primaryKey: undefined,
 
@@ -165,12 +153,12 @@ var Model = new Class({
 
             this._set(prop, val);
 
-            if (!isSetting) {
+            if (!isSetting && this._changed) {
                 // Signal any changed properties
-                this.changeProperty(this._changedProperties);
+                this._onChangeProperty(this._changedProperties);
 
                 // Signal change
-                this.change();
+                this.signalChange();
                 
                 // reset changed and changed properties
                 this._resetChanged();
@@ -268,24 +256,11 @@ var Model = new Class({
     },
 
     /**
-     * Signal to 'change' listener if model has changed
-     *
-     * @return {[type]}
-     */
-    change: function(){
-        if (this._changed) {
-            this.signalChange();
-        }
-
-        return this;
-    },
-
-    /**
      * Signal to 'change:prop' listener if model property has changed
      * @param  {String} prop Name of property
      * @return {[type]}
      */
-    changeProperty: function(prop, val){
+    _onChangeProperty: function(prop, val){
         if (this._changed) {
             this.signalChangeProperty(prop, val, this.getPrevious(prop));
         }
@@ -336,6 +311,18 @@ var Model = new Class({
         return this;
     }.overloadSetter()
 });
+
+Model.implement(
+    signalFactory(
+        ['change', 'destroy', 'reset'],
+        {
+            signalChangeProperty: function(prop, newVal, oldVal){
+                !this.isSilent() && this.fireEvent('change:' + prop, [this, prop, newVal, oldVal]);
+                return this;
+            }
+        }
+    )
+);
 
 ['each', 'subset', 'map', 'filter', 'every', 'some', 'keys', 'values', 'getLength', 'keyOf', 'contains', 'toQueryString'].each(function(method){
     Model.implement(method, function(){
