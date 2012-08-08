@@ -12,16 +12,16 @@ buster.testCase('Neuro Mixin: Snitch', {
         });
     },
 
-    'setupSnitch should merge options.validators with _validators': function(){
+    'setupValidators should merge options.validators with _validators': function(){
         var snitch = new this.mockSnitch();
         
-        snitch.setupSnitch();
+        snitch.setupValidators();
 
         assert.equals(Object.getLength(snitch._validators), 3);
 
         snitch.options.validators.d = Type.isFunction;
 
-        snitch.setupSnitch();
+        snitch.setupValidators();
 
         assert.equals(Object.getLength(snitch._validators), 4);
     },
@@ -29,7 +29,7 @@ buster.testCase('Neuro Mixin: Snitch', {
     'setValidator should set the function bound to "this" in _validators': {
         'when passed an object': function(){
             var _this,
-                snitch = new this.mockSnitch().setupSnitch();
+                snitch = new this.mockSnitch().setupValidators();
 
             snitch.setValidator({
                 d: function(){_this = this;}
@@ -42,7 +42,7 @@ buster.testCase('Neuro Mixin: Snitch', {
 
         'when passed a property and function': function(){
             var _this,
-                snitch = new this.mockSnitch().setupSnitch();
+                snitch = new this.mockSnitch().setupValidators();
 
             snitch.setValidator('d', function(){_this = this;});
 
@@ -54,7 +54,7 @@ buster.testCase('Neuro Mixin: Snitch', {
 
     'getValidator should': {
         'return a function corresponding to a key in _validators': function(){
-            var snitch = new this.mockSnitch().setupSnitch(),
+            var snitch = new this.mockSnitch().setupValidators(),
                 result;
 
             result = snitch.getValidator('a');
@@ -63,7 +63,7 @@ buster.testCase('Neuro Mixin: Snitch', {
         },
 
         'return undefined if a corresponding key is not found in _valiators': function(){
-            var snitch = new this.mockSnitch().setupSnitch(),
+            var snitch = new this.mockSnitch().setupValidators(),
                 result;
 
             result = snitch.getValidator('d');
@@ -73,7 +73,7 @@ buster.testCase('Neuro Mixin: Snitch', {
 
         'return an object': {
             'containing key/value pairs where keys correspond to each key passed and value is a function (if found) or undefined (if not found)': function(){
-                var snitch = new this.mockSnitch().setupSnitch(),
+                var snitch = new this.mockSnitch().setupValidators(),
                     result;
 
                 result = snitch.getValidator('a', 'd');
@@ -85,7 +85,7 @@ buster.testCase('Neuro Mixin: Snitch', {
 
     'validate': {
         'should return a boolean result when value is tested against a validator': function(){
-            var snitch = new this.mockSnitch().setupSnitch();
+            var snitch = new this.mockSnitch().setupValidators();
 
             assert.equals(snitch.validate('a', 'str'), true);
 
@@ -93,7 +93,7 @@ buster.testCase('Neuro Mixin: Snitch', {
         },
 
         'should return a boolean true result when a validator does not exist': function(){
-            var snitch = new this.mockSnitch().setupSnitch();
+            var snitch = new this.mockSnitch().setupValidators();
 
             assert.equals(snitch.validate('d', {}), true);
         }
@@ -101,7 +101,7 @@ buster.testCase('Neuro Mixin: Snitch', {
 
     'proof': {
         'function should test an object param against a validator param': function(){
-            var snitch = new this.mockSnitch().setupSnitch(),
+            var snitch = new this.mockSnitch().setupValidators(),
                 obj = {a: 'str', b: 1};
 
             // False because the object doesn't pass the validators.
@@ -116,7 +116,7 @@ buster.testCase('Neuro Mixin: Snitch', {
         },
 
         'method should test an object param against the internal _validators': function(){
-            var snitch = new this.mockSnitch().setupSnitch(),
+            var snitch = new this.mockSnitch().setupValidators(),
                 obj = {a: 'str', b: 1};
 
             // False because the object doesn't pass the validators.

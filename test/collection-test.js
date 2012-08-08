@@ -204,7 +204,7 @@ buster.testCase('Neuro Collection', {
             this.mockSnitchCollection = collection;
         },
 
-        'setupSnitch should be run during instantiation': function(){
+        'setupValidators should be run during instantiation': function(){
             var collection = new this.mockSnitchCollection({}, {
                 validators: {
                     d: Type.isFunction
@@ -225,6 +225,20 @@ buster.testCase('Neuro Collection', {
             obj.b = 1;
 
             assert.equals(collection.validate(obj), true);
+        },
+
+        'trigger error event when an object or model is added to the collection and does not pass validation': function(){
+            var spy = this.spy(),
+                collection = new this.mockSnitchCollection(),
+                obj = {
+                    a: 'str', b: '1'
+                };
+
+            collection.addEvent('error', spy);
+
+            collection.add(obj);
+
+            assert.calledWith(spy, collection, obj, undefined);
         },
 
         'proofModel should return a boolean value when testing': {

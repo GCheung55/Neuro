@@ -605,7 +605,7 @@ buster.testCase('Neuro Model', {
             this.mockSnitchModel = model;
         },
 
-        'setupSnitch should be run during instantiation': function(){
+        'setupValidators should be run during instantiation': function(){
             var model = new this.mockSnitchModel({}, {
                 validators: {
                     d: Type.isFunction
@@ -615,16 +615,16 @@ buster.testCase('Neuro Model', {
             assert.equals(Object.getLength(model._validators), 4);
         },
 
-        'validate should test a value and return': {
+        'set should set a property when validation is': {
             'true': {
-                'when a validator does not exist': function(){
+                'where a validator does not exist': function(){
                     var model = new this.mockSnitchModel();
 
                     // no validator automatically sets value
                     model.set('d', true);
                     assert.equals(model.get('d'), true);
                 },
-                'when a validator exists and returns true': function(){
+                'where a validator exists and returns true': function(){
                     var model = new this.mockSnitchModel();
 
                     // check against Type.isString
@@ -632,12 +632,20 @@ buster.testCase('Neuro Model', {
                     assert.equals(model.get('a'), 'str');
                 }
             },
-            'false when a validator exists and returns false': function(){
-                var model = new this.mockSnitchModel();
+            'false where a validator exists and returns false and trigger error and errorProperty events': function(){
+                var spyError = this.spy(),
+                    spyErrorProperty = this.spy(),
+                    model = new this.mockSnitchModel();
+
+                model.addEvent('error', spyError),
+                model.addEvent('error:b', spyErrorProperty);
 
                 // check against Type.isNumber
                 model.set('b', '1');
                 refute.equals(model.get('b'), '1');
+
+                assert.calledWith(spyError, model);
+                assert.calledWith(spyErrorProperty, model, 'b', '1');
             }
         },
 
