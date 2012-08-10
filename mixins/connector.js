@@ -4,6 +4,9 @@ require('../lib/class-extras/Source/Class.Binds.js');
  * Connector: the event binder. By setting connector options in the Class,
  * Classes that implement Connector will be able to bind their events with a target Classes
  * methods and vice versa.
+ *
+ * Thank you, Christoph Pojer (https://github.com/cpojer/) for PowerTools! Class.Binds
+ * 
  * @type {Class}
  */
 

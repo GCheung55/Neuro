@@ -1229,18 +1229,34 @@ A Utility Class. It allows automatic attachment/detachment of event listeners be
 ---
 A key/value object to map events to functions or method names on the target class that will be connected with. The value can also be an object that contains more key/value pairs. This allows to attach sub-events, such as `change:key`. __Note:__ An asterisk (*) as the sub-event refers to the parent event only.
 
+__Note:__ Using a nested object in `options.connector` as the map is possible via a `name` param when using `connect` or `disconnect`. Doing so means that connecting/disconnecting the class will __ALWAYS__ have to designate the `name` param. If you don't, then issues will occur because then Connector will treat nested objects key/value pairs as sub-events.
+
+#### Implements: [PowerTools! Class.Binds](https://github.com/cpojer/mootools-class-extras/blob/master/Source/Class.Binds.js)
+
 #### Syntax: key/value pairs
 ```javascript
-event: method
+// Shallow object
+{
+    event: method
+}
+
+// Nested object
+{
+    name: object
+}
 ```
 
 #### Arguments
-1. event - (String) The name of the event to be attached. It becomes the parent event if the events corresponding value is an object.
-2. method - (String, Function, Array, Object)
-    * String - Refers to a method on the target class. The method will be bound to the target class and attached as the event handler.
-    * Function - The function will be bound to the current class and attached as the event handler
-    * Array - Can contain a mix of `String` (name of method to retrieve said method from target class) or `Function` to be attached as the event handler
-    * Object - Contains key/value pairs where `key` will refer to the sub-event and value refers to `String`, `Function`, or `Array` to attach as event handlers. The sub-event will be prepended by the `event` with a `:`.
+* Shallow object
+    1. event - (String) The name of the event to be attached. It becomes the parent event if the events corresponding value is an object.
+    2. method - (String, Function, Array, Object)
+        * String - Refers to a method on the target class. The method will be bound to the target class and attached as the event handler.
+        * Function - The function will be bound to the current class and attached as the event handler
+        * Array - Can contain a mix of `String` (name of method to retrieve said method from target class) or `Function` to be attached as the event handler
+        * Object - Contains key/value pairs where `key` will refer to the sub-event and value refers to `String`, `Function`, or `Array` to attach as event handlers. The sub-event will be prepended by the `event` with a `:`.
+* Nested Object
+    1. name - (String) Name of the object that would be used as the map during connect/disconnect
+    2. object - (Object) The shallow object that is used as the map during connect/disconnect
 
 #### Examples
 The following will show what key/value pairs will look like and what they look like when attached manually instead of with connector.
@@ -1299,19 +1315,138 @@ currentClass.addEvent('age', function(){/*... other code here ...*/});
 
 ### connect
 ---
-Connects two classes by using `options.connector` as the map to either attach event listeners to functions on `options.connector` or methods on the target class where the method names are retrieved from `options.connector`. Default behavior is to connect two classes. Connect one way by passing a second argument as `true`.
+Connects two classes by using `options.connector` as the map to either attach event listeners to functions on `options.connector` or methods on the target class where the method names are retrieved from `options.connector`. Default behavior is to connect one class. Connect both ways by passing a second argument as `true`.
+
+A name of a specific object in `options.connector` can be passed as the second argument and that object will be used as the map. If connecting both ways, the same `name` will be used.
 
 #### Syntax
 ```javascript
-currentClass.connect(targetClass[, oneWay]);
+currentClass.connect(targetClass[, twoWay]);
+
+currentClass.connect(targetClass[, name[, twoWay]]);
 ```
 
 #### Arguments
 1. class - (Class) The class containing the methods that will be attached as event handlers to event listeners on the current class.
+2. name - (String, optional) Name of a specific object in `options.connector` to be used as the map.
 2. oneWay - (Boolean, optional, `false` by default) Set to true will only connect `this` class with the target class and will not have the target class connect with `this` class.
+
+#### Returns: Class instance.
+
+#### Examples:
+```javascript
+// Using options.connector object by default
+currentClass.options.connector = {
+    'add': 'doAddStuff'
+};
+
+targetClass.options.connector = {
+    'remove': 'doRemoveStuff'
+};
+
+/**
+ * Bind one way.
+ *
+ * Basically does currentClass.addEvent('add', targetClass.doAddStuf.bind(targetClass));
+ */
+currentClass.connect(targetClass);
+
+/**
+ * Bind both ways.
+ * Basically does:
+ * 
+ * currentClass.addEvent('add', targetClass.doAddStuf.bind(targetClass))
+ * and
+ *
+ * targetClass.addEvent('remove', currentClass.doRemoveStuff.bind(currentClass));
+ */
+currentclass.connect(targetClass, true);
+
+// Using specific object that is nested in options.connector
+currentClass.options.connector = {
+    'classSpecific': {
+        'add': 'doAddStuff'
+    }
+};
+
+targetClass.options.connector = {
+    'classSpecific': {
+        'remove': 'doRemoveStuff'
+    }
+};
+
+/**
+ * Bind one way.
+ *
+ * Basically does currentClass.addEvent('add', targetClass.doAddStuf.bind(targetClass));
+ */
+currentClass.connect(targetClass, 'classSpecific');
+
+/**
+ * Bind both ways.
+ * Basically does:
+ * 
+ * currentClass.addEvent('add', targetClass.doAddStuf.bind(targetClass))
+ * and
+ *
+ * targetClass.addEvent('remove', currentClass.doRemoveStuff.bind(currentClass));
+ */
+currentclass.connect(targetClass, 'classSpecific', true);
+
+```
 
 ### disconnect
 ---
+Does the opposite of what `connect` does. Takes the same arguments.
+
+### bound
+---
+A method provided by [PowerTools! Class.Binds](https://github.com/cpojer/mootools-class-extras/blob/master/Source/Class.Binds.js).
+
+> Provides an alternative way to bind class methods. Stores references to bound methods internally without any manual setup and does not modify the original methods.
+
+The retrieved function is bound to the class instance.
+
+#### Syntax:
+```javascript
+currentClass.bound(methodName);
+```
+
+#### Arguments:
+1. methodName - (String) Name of the method that has been bound to the class instance and stored.
+
+#### Examples: (Slightly modified from [PowerTools! Class.Binds](https://github.com/cpojer/mootools-class-extras/))
+```javascript
+
+var currentClass = new Class({
+    Implements: Connector,
+
+    initialize: function(element){
+        this.element = document.id(element);
+
+        this.attach();
+    },
+
+    attach: function(){
+        // Add the click method as event listener
+        this.element.addEvent('click', this.bound('click'));
+    },
+
+    detach: function(){
+        // Retrieves the same reference to the click method and removes the listener
+        this.element.removeEvent('click', this.bound('click'));
+    },
+
+    click: function(event){
+        event.preventDefault();
+
+        // doSomething
+        this.refersToTheClassInstance();
+    }
+});
+
+```
+
 
 ## Mixin: Butler
 ---
