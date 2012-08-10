@@ -26,7 +26,7 @@
     },
     "1": function(require, module, exports, global) {
         var Neuro = {
-            version: "0.2.1"
+            version: "0.2.2"
         };
         exports = module.exports = Neuro;
     },
@@ -439,10 +439,17 @@
         };
         var curryConnection = function(str) {
             var methodStr = str == "connect" ? "addEvent" : "removeEvent";
-            return function(obj, oneWay) {
+            return function(obj, key, twoWay) {
                 var map = this.options.connector;
+                if (Type.isBoolean(key)) {
+                    twoWay = key;
+                    key = undefined;
+                }
+                if (key) {
+                    map = map[key];
+                }
                 process.call(this, methodStr, map, obj);
-                !oneWay && obj && obj[str](this, true);
+                twoWay && obj && obj[str](this, key, false);
                 return this;
             };
         };

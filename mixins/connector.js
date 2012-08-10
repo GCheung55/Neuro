@@ -59,21 +59,32 @@ var process = function(methodStr, map, obj){
 var curryConnection = function(str){
     var methodStr = str == 'connect' ? 'addEvent' : 'removeEvent';
 
-    return function(obj, oneWay){
-        // if (obj && typeOf(obj[str]) == 'function') {
-            var map = this.options.connector;
+    return function(obj, key, twoWay){
+        var map = this.options.connector;
 
-            process.call(this, methodStr, map, obj);
+        // If key is a boolean, then it's actually the value
+        // for twoWay
+        if (Type.isBoolean(key)) {
+            twoWay = key;
+            key = undefined;
+        }
 
-            /**
-             * Connecting is a two way street. Connect/disconnect will
-             * first connect/disconnect 'this' with obj's methods. 
-             * Next it will attempt to connect/disconnect obj with 'this' methods
-             *
-             * oneWay will prevent a loop.
-             */
-            !oneWay && obj && obj[str](this, true);
-        // }
+        // Key cannot be an empty string.
+        if (key) {
+            map = map[key];
+        }
+
+        process.call(this, methodStr, map, obj);
+
+        /**
+         * Connecting is a two way street. Connect/disconnect will
+         * first connect/disconnect 'this' with obj's methods. 
+         * Next it will attempt to connect/disconnect obj with 'this' methods
+         *
+         * twoWay enables two-way connecting, but is false on the second connect
+         * to prevent looping.
+         */
+        twoWay && obj && obj[str](this, key, false);
 
         return this;
     };
@@ -84,20 +95,22 @@ var Connector = new Class({
 
     options: {
         connector: {
-            // 'thisEvent': 'otherObjMethod',
-            // model
-            // 'change': 'someMethodName'
-            // 'change': function(){},
-            // 'change': {
-            //     '*': 'updateAll',
-            //     'name': 'updateName',
-            //     'age': function(){}
-            // },
-            // 'change': {
-            //      '*': ['someMethod', 'someOtherMethod'],
-            //      'name': ['updateName', 'updateFullName']
-            // },
-            // 'change': [{'*': ['someMethod']}, {'*': ['someOtherMethod']}],
+            // key: {
+            //     'thisEvent': 'otherObjMethod',
+            //     model
+            //     'change': 'someMethodName'
+            //     'change': function(){},
+            //     'change': {
+            //         '*': 'updateAll',
+            //         'name': 'updateName',
+            //         'age': function(){}
+            //     },
+            //     'change': {
+            //          '*': ['someMethod', 'someOtherMethod'],
+            //          'name': ['updateName', 'updateFullName']
+            //     },
+            //     'change': [{'*': ['someMethod']}, {'*': ['someOtherMethod']}],
+            // }
         }
     },
 
