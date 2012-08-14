@@ -10,6 +10,10 @@ var Collection = new Class({
 
     _Model: Model,
 
+    _active: 0,
+    
+    _changed: false,
+
     length: 0,
 
     primaryKey: undefined,
@@ -65,6 +69,54 @@ var Collection = new Class({
         return !!has;
     },
 
+    resetChange: function(){
+        this._changed = false;
+    },
+
+    attachModelEvents: function(model){
+        model.addEvents({
+            // Remove the model if it destroys itself.
+            'destroy': this.bound('remove'),
+            // trigger change if a model changes
+            'change': this.bound('signalChangeModel')
+        });
+
+        return this;
+    },
+
+    detachModelEvents: function(model){
+        model.removeEvents({
+            'destroy': this.bound('remove'),
+            'change': this.bound('signalChangeModel')
+        });
+
+        return this;
+    },
+
+    /**
+     * Method to mark the collection as active.
+     * During the activity (add/remove/replace), triggered 
+     * events could also execute other activities. This 
+     * will prevent signaling change until the collection 
+     * has become inactive.
+     *
+     * @param  {Function} fnc Function to execute.
+     * @return {Class}     Class instance
+     */
+    act: function(fnc){
+        this._active++;
+
+        fnc.call(this);
+
+        this._active--;
+
+        return this;
+    },
+
+    isActive: function(){
+        return !!this._active;
+    },
+
     /**
      * Private add method
      * @param  {Class} model A Model instance
@@ -75,8 +127,8 @@ var Collection = new Class({
         model = new this._Model(model, this.options.modelOptions);
 
         if (!this.hasModel(model)) {
-            // Remove the model if it destroys itself.
-            model.addEvent('destroy', this.bound('remove'));
+            // Attach events to the model that will signal collection events
+            this.attachModelEvents(model);
 
             // If _models is empty, then we make sure to push instead of splice.
             at = this.length == 0 ? void 0 : at;
@@ -88,6 +140,8 @@ var Collection = new Class({
             }
 
             this.length = this._models.length;
+
+            this._changed = true;
 
             this.signalAdd(model);
         }
@@ -106,13 +160,24 @@ var Collection = new Class({
      * collectionInstance.add([model, model], at);
      */
     add: function(models, at){
+        var currentLen = this.length;
+
         models = Array.from(models);
 
-        var len = models.length,
-            i = 0;
+        this.act(function(){
+            var len = models.length,
+                i = 0;
 
-        while(len--){
-            this._add(models[i++], at);
+            while(len--){
+                this._add(models[i++], at);
+            }
+        });
+
+        // Signal change when the collection of models change
+        if (!this.isActive() && this._changed) {
+            this.signalChange();
+
+            this.resetChange();
         }
 
         return this;
@@ -150,11 +215,13 @@ var Collection = new Class({
     _remove: function(model){
         if (this.hasModel(model)) {
             // Clean up when removing so that it doesn't try removing itself from the collection
-            model.removeEvent('destroy', this.bound('remove'));
+            this.detachModelEvents(model);
 
             this._models.erase(model);
 
             this.length = this._models.length;
+
+            this._changed = true;
             
             this.signalRemove(model);
         }
@@ -172,15 +239,26 @@ var Collection = new Class({
      * collectionInstance.remove([model, model]);
      */
     remove: function(models){
+        var currentLen = this.length;
+
         // Cloning after converting to an Array because it should be dereferenced
         // in order to continue the while loop when erasing from this._models
         models = Array.from(models).slice();
 
-        var l = models.length,
-            i = 0;
+        this.act(function(){
+            var l = models.length,
+                i = 0;
 
-        while(l--){
-            this._remove(models[i++]);
+            while(l--){
+                this._remove(models[i++]);
+            }
+        });
+
+        // Signal change when the collection of models change
+        if (!this.isActive() && this._changed) {
+             this.signalChange();
+
+             this.resetChange();
         }
 
         return this;
@@ -199,9 +277,13 @@ var Collection = new Class({
             index = this.indexOf(oldModel);
 
             if (index > -1) {
-                this.add(newModel, index);
+                this.act(function(){
+                    this.add(newModel, index);
 
-                this.remove(oldModel);
+                    this.remove(oldModel);
+                });
+
+                !this.isActive() && this.signalChange() && this.resetChange();
             }
         }
 
@@ -241,9 +323,9 @@ var Collection = new Class({
 
 Collection.implement(
     signalFactory(
-        ['empty', 'sort'],
+        ['empty', 'sort', 'change'],
         signalFactory(
-            ['add', 'remove'],
+            ['add', 'remove', 'change:model'],
             function(name){
                 return function(model){
                     !this.isSilent() && this.fireEvent(name, [this, model]);

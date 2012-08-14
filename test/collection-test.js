@@ -135,6 +135,47 @@ buster.testCase('Neuro Collection', {
         assert.calledWith(spy, collection, model);
     },
 
+    'should trigger a function that has been attached to the change event': function(){
+        var spy = this.spy(),
+            collection = this.mockCollection.addEvent('change', spy);
+
+        collection.add(this.mockData);
+
+        assert.calledWith(spy, collection);
+    },
+
+    'should trigger a function that has been attached to the change event once': function(){
+        var spy = this.spy(),
+            collection = this.mockCollection.addEvent('change', spy),
+            addFnc =  function(collection){
+                var data = Object.clone(this.mockData);
+                data.a = 'rts';
+                collection.silence(function(){
+                    this.add(data);
+                });
+            }.bind(this);
+
+        collection.addEvent('add', addFnc);
+
+        collection.add(this.mockData);
+
+        assert.equals(collection.length, 2);
+
+        assert.calledOnceWith(spy, collection);
+    },
+
+    'should trigger a function that has been attached to the change:model event': function(){
+        var spy = this.spy(),
+            collection = this.mockCollection.addEvent('change:model', spy),
+            model;
+
+        collection.add(this.mockData);
+
+        model = collection.get(0).set('a', 'rts');
+
+        assert.calledWith(spy, collection, model);
+    },
+
     'should trigger a function that has been attached to the empty event': function(){
         var spy = this.spy(),
             collection = this.mockCollection.addEvent('empty', spy);
