@@ -39,6 +39,37 @@ buster.testCase('Neuro Collection', {
         assert.equals(model.getData(), collection.get(0).getData());
     },
 
+    'should add a model at an index': {
+        'of 0 if no models exist in the Collection': function(){
+            var collection = this.mockCollection,
+                model = new Neuro.Model(this.mockData);
+
+            collection.add(model, 5);
+
+            assert.same(collection.length, 1);
+
+            assert.equals(model, collection.get(0));
+
+            assert.equals(model.getData(), collection.get(0).getData());
+        },
+        'in the Collection': function(){
+            var collection = this.mockCollection,
+                model = new Neuro.Model(this.mockData),
+                model2 = new Neuro.Model(this.mockData);
+
+            model2.set('a', 'rts');
+
+            collection.add(model);
+
+            // add at beginning
+            collection.add(model2);
+
+            assert.same(collection.length, 2);
+
+            assert.equals(model2, collection.get(1));
+        }
+    },
+
     'should check the primaryKey, if defined, to decide whether a model instance can be added': function(){
         var model = new Neuro.Model(this.mockData),
             collection = new Neuro.Collection([this.mockData], {primaryKey: 'a'});
@@ -108,6 +139,16 @@ buster.testCase('Neuro Collection', {
         var collection = this.mockCollection.add([this.mockData, this.mockData]);
 
         assert.same(JSON.encode(collection), '[{"a":"str","b":[],"c":{}},{"a":"str","b":[],"c":{}}]');
+    },
+
+    'should trigger a function that has been attached to the add event': function(){
+        var spy = this.spy(),
+            collection = this.mockCollection.addEvent('add', spy);
+
+        collection.add(this.mockData);
+
+        assert.called(spy);
+        assert.calledWith(spy, collection, collection.get(0));
     },
 
     'should trigger a function that has been attached to the add event': function(){

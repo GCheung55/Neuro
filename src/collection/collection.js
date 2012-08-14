@@ -143,7 +143,8 @@ var Collection = new Class({
 
             this._changed = true;
 
-            this.signalAdd(model);
+            // if at is undefined, then it would be at the end of the array, thus this.length-1
+            this.signalAdd(model, at != void 0 ? at : this.length - 1);
         }
 
         return this;
@@ -327,8 +328,11 @@ Collection.implement(
         signalFactory(
             ['add', 'remove', 'change:model'],
             function(name){
-                return function(model){
-                    !this.isSilent() && this.fireEvent(name, [this, model]);
+                return function(){
+                    // var args = Array.from(arguments);
+                    // args.splice(-2, 0, this, model);
+                    Array.prototype.unshift.call(arguments, this);
+                    !this.isSilent() && this.fireEvent(name, arguments);
                     return this;
                 };
             }
