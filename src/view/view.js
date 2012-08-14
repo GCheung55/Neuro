@@ -31,20 +31,8 @@ var eventHandler = function(handler){
     }
 };
 
-var Signals = new Class(
-    signalFactory(
-        ['ready', 'render', 'dispose', 'destroy'],
-        {
-            signalInject: function(reference, where){
-                !this.isSilent() && this.fireEvent('inject', [this, reference, where]);
-                return this;
-            }
-        }
-    )
-);
-
 var View = new Class({
-    Implements: [Connector, Events, Options, Silence, Signals],
+    Implements: [Connector, Events, Options, Silence],
 
     /**
      * Root element - contains all the elements that is to be created
@@ -173,5 +161,17 @@ var View = new Class({
         return this;
     }
 });
+
+View.implement(
+    signalFactory(
+        ['ready', 'render', 'dispose', 'destroy'],
+        {
+            signalInject: function(reference, where){
+                !this.isSilent() && this.fireEvent('inject', [this, reference, where]);
+                return this;
+            }
+        }
+    )
+);
 
 exports.View = View;
