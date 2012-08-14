@@ -9,6 +9,10 @@
  * @param  {Object, optional} stack The object that will contain all the signal functions. One will be generated if not passed as an argument
  * @return {Object} Return the stack object containing all the functions.
  */
+var prefix = 'signal',
+    hyphen = '-',
+    colon = ':';
+
 exports = module.exports = function(names, curryFnc, stack){
     if (!Type.isFunction(curryFnc)) {
         stack = curryFnc;
@@ -18,8 +22,11 @@ exports = module.exports = function(names, curryFnc, stack){
     stack = stack || {};
     
     Array.from(names).each(function(name){
-        stack['signal' + name.capitalize()] = curryFnc ? curryFnc(name) : function(){
-            !this.isSilent() && this.fireEvent(name, this);
+        // Convert name to camelCase
+        var property = (prefix + hyphen + name.replace(colon, hyphen)).camelCase();
+
+        stack[property] = curryFnc ? curryFnc(name) : function(){
+            !this.isSilent() && this.fireEvent(name, [this]);
             return this;
         };
     });
