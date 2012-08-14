@@ -26,7 +26,7 @@
     },
     "1": function(require, module, exports, global) {
         var Neuro = {
-            version: "0.2.2"
+            version: "0.2.3"
         };
         exports = module.exports = Neuro;
     },
@@ -534,6 +534,7 @@
         exports.Butler = Butler;
     },
     "9": function(require, module, exports, global) {
+        var prefix = "signal", hyphen = "-", colon = ":";
         exports = module.exports = function(names, curryFnc, stack) {
             if (!Type.isFunction(curryFnc)) {
                 stack = curryFnc;
@@ -541,8 +542,9 @@
             }
             stack = stack || {};
             Array.from(names).each(function(name) {
-                stack["signal" + name.capitalize()] = curryFnc ? curryFnc(name) : function() {
-                    !this.isSilent() && this.fireEvent(name, this);
+                var property = (prefix + hyphen + name.replace(colon, hyphen)).camelCase();
+                stack[property] = curryFnc ? curryFnc(name) : function() {
+                    !this.isSilent() && this.fireEvent(name, [ this ]);
                     return this;
                 };
             });
@@ -638,6 +640,8 @@
             Implements: [ Connector, Events, Options, Silence ],
             _models: [],
             _Model: Model,
+            _active: 0,
+            _changed: false,
             length: 0,
             primaryKey: undefined,
             options: {
@@ -670,10 +674,36 @@
                 }
                 return !!has;
             },
+            resetChange: function() {
+                this._changed = false;
+            },
+            attachModelEvents: function(model) {
+                model.addEvents({
+                    destroy: this.bound("remove"),
+                    change: this.bound("signalChangeModel")
+                });
+                return this;
+            },
+            detachModelEvents: function(model) {
+                model.removeEvents({
+                    destroy: this.bound("remove"),
+                    change: this.bound("signalChangeModel")
+                });
+                return this;
+            },
+            act: function(fnc) {
+                this._active++;
+                fnc.call(this);
+                this._active--;
+                return this;
+            },
+            isActive: function() {
+                return !!this._active;
+            },
             _add: function(model, at) {
                 model = new this._Model(model, this.options.modelOptions);
                 if (!this.hasModel(model)) {
-                    model.addEvent("destroy", this.bound("remove"));
+                    this.attachModelEvents(model);
                     at = this.length == 0 ? void 0 : at;
                     if (at != void 0) {
                         this._models.splice(at, 0, model);
@@ -681,15 +711,23 @@
                         this._models.push(model);
                     }
                     this.length = this._models.length;
+                    this._changed = true;
                     this.signalAdd(model);
                 }
                 return this;
             },
             add: function(models, at) {
+                var currentLen = this.length;
                 models = Array.from(models);
-                var len = models.length, i = 0;
-                while (len--) {
-                    this._add(models[i++], at);
+                this.act(function() {
+                    var len = models.length, i = 0;
+                    while (len--) {
+                        this._add(models[i++], at);
+                    }
+                });
+                if (!this.isActive() && this._changed) {
+                    this.signalChange();
+                    this.resetChange();
                 }
                 return this;
             },
@@ -706,18 +744,26 @@
             },
             _remove: function(model) {
                 if (this.hasModel(model)) {
-                    model.removeEvent("destroy", this.bound("remove"));
+                    this.detachModelEvents(model);
                     this._models.erase(model);
                     this.length = this._models.length;
+                    this._changed = true;
                     this.signalRemove(model);
                 }
                 return this;
             },
             remove: function(models) {
+                var currentLen = this.length;
                 models = Array.from(models).slice();
-                var l = models.length, i = 0;
-                while (l--) {
-                    this._remove(models[i++]);
+                this.act(function() {
+                    var l = models.length, i = 0;
+                    while (l--) {
+                        this._remove(models[i++]);
+                    }
+                });
+                if (!this.isActive() && this._changed) {
+                    this.signalChange();
+                    this.resetChange();
                 }
                 return this;
             },
@@ -726,8 +772,11 @@
                 if (oldModel && newModel && this.hasModel(oldModel) && !this.hasModel(newModel)) {
                     index = this.indexOf(oldModel);
                     if (index > -1) {
-                        this.add(newModel, index);
-                        this.remove(oldModel);
+                        this.act(function() {
+                            this.add(newModel, index);
+                            this.remove(oldModel);
+                        });
+                        !this.isActive() && this.signalChange() && this.resetChange();
                     }
                 }
                 return this;
@@ -753,7 +802,7 @@
                 });
             }
         });
-        Collection.implement(signalFactory([ "empty", "sort" ], signalFactory([ "add", "remove" ], function(name) {
+        Collection.implement(signalFactory([ "empty", "sort", "change" ], signalFactory([ "add", "remove", "change:model" ], function(name) {
             return function(model) {
                 !this.isSilent() && this.fireEvent(name, [ this, model ]);
                 return this;
@@ -787,14 +836,8 @@
                 return this;
             };
         };
-        var Signals = new Class(signalFactory([ "ready", "render", "dispose", "destroy" ], {
-            signalInject: function(reference, where) {
-                !this.isSilent() && this.fireEvent("inject", [ this, reference, where ]);
-                return this;
-            }
-        }));
         var View = new Class({
-            Implements: [ Connector, Events, Options, Silence, Signals ],
+            Implements: [ Connector, Events, Options, Silence ],
             options: {
                 element: undefined,
                 events: {}
@@ -857,6 +900,12 @@
                 return this;
             }
         });
+        View.implement(signalFactory([ "ready", "render", "dispose", "destroy" ], {
+            signalInject: function(reference, where) {
+                !this.isSilent() && this.fireEvent("inject", [ this, reference, where ]);
+                return this;
+            }
+        }));
         exports.View = View;
     },
     f: function(require, module, exports, global) {
