@@ -444,6 +444,8 @@ var collection = new Neuro.Collection(data [, options]);
 #### Returns: Class instance.
 
 #### Events:
+* `change: function(collection){}` - Triggered when there is a change in the collection (`add`, `remove`, `replace`).
+* `change:model: function(collection, model){}` - Triggered when there is a change in a model. Does not trigger the `change` event on the collection.
 * `add: function(collection, model){}` - Triggered when a model is added to the collection.
 * `remove: function(collection, model){}` - Triggered when a specific model is removed from the collection.
 * `empty: function(collection){}` - Triggered when the collection is emptied of all models.
@@ -473,7 +475,7 @@ currentCollection.hasModel(model);
 
 ### add
 ---
-Adding a model to the collection should always go through this method. It appends the model to the internal `_model` array and triggers the `add` event if the collection does not already contain the model.
+Adding a model to the collection should always go through this method. It appends the model to the internal `_model` array and triggers the `add` event if the collection does not already contain the model. `change` event is triggered afterwards.
 
 If `_validators` exist, then each model or object added must pass validation in order to be added to the collection instance. Otherwise a `error` event will be triggered. 
 
@@ -499,7 +501,9 @@ currentCollection.add(models, at);
 
 #### Triggered Events:
 * `add`
-# `error`
+* `error`
+* `change`
+
 
 #### Examples:
 ```javascript
@@ -540,7 +544,9 @@ currentCollection.get(0, 2, 3); // returns an array of model instances where eac
 
 ### remove
 ---
-Remove a model or models from the collection. It will trigger the `remove` event for each individual model removed. The collection should remove the model only if it exists on the collection. Removing the model from the collection will also remove the `remove` method from the models `destroy` event.
+Remove a model or models from the collection. It will trigger the `remove` event for each individual model removed. `change` event is triggered afterwards.
+
+The collection should remove the model only if it exists on the collection. Removing the model from the collection will also remove the `remove` method from the models `destroy` event.
 
 #### Syntax:
 ```javascript
@@ -554,6 +560,7 @@ currentCollection.remove(model);
 
 #### Triggered Events:
 * `remove`
+* `change`
 
 #### Examples:
 ```javascript
@@ -570,7 +577,7 @@ currentCollection.remove([model]); // remove an array of models.
 
 ### replace
 ---
-Replace an existing model in the collection with a new one if the old model exists and the new model does not exist in the collection `_model` array. This will trigger `add` and `remove` events.
+Replace an existing model in the collection with a new one if the old model exists and the new model does not exist in the collection `_model` array. This will trigger `add` and `remove` events. `change` event is triggered afterwards.
 
 #### Syntax:
 ```javascript
@@ -586,6 +593,7 @@ currentCollection.replace(oldModel, newModel);
 #### Triggered Events:
 * `add`
 * `remove`
+* `change`
 
 ### sort
 ---
@@ -653,6 +661,60 @@ currentCollection.toJSON();
 ```
 
 #### Returns: Object containing the collection `_model`.
+
+### attachModelEvents
+---
+Attach handlers to the model `destroy` and `change` listeners. The model `destroy` event will trigger the collection `remove` method. The model `change` event will trigger the collection `change:model` event. This is automatically used during `add` to help clean up if the model is destroyed and to notify listeners of the collection that a model changed.
+
+#### Syntax:
+```javascript
+currentCollection.attachModelEvents(model);
+```
+
+#### Arguments:
+* model - (Model) A model instance to attach events to.
+
+#### Examples:
+```javascript
+var model = new Neuro.Model();
+
+currentCollection.add(model); // Events attached to the model
+
+currentCollection.length; // Return 1, meaning there is one model existing
+
+model.destroy(); // currentCollection is notified that to remove the model since `destroy` event was triggered
+
+currentCollection.length // Return 0, the model was removed when it was destroyed.
+```
+
+#### Returns: Class instance.
+
+### detachModelEvents
+---
+Detach handlers to the model `destroy` and `change` listeners. If the model `destroy` event is triggered, the collection is notified and removes the model from the collection. The `destroy` and `change`events are removed from the model during execution of `remove` method.
+
+#### Syntax:
+```javascript
+currentCollection.detachModelEvents(model);
+```
+
+#### Arguments:
+* model - (Model) A model instance to attach events to.
+
+#### Examples:
+```javascript
+var model = new Neuro.Model();
+
+currentCollection.add(model); // Events attached to the model
+
+currentCollection.length; // Return 1, meaning there is one model existing
+
+model.destroy(); // currentCollection is notified that to remove the model since `destroy` event was triggered
+
+currentCollection.length // Return 0, the model was removed when it was destroyed.
+```
+
+#### Returns: Class instance.
 
 ### setupValidators
 ---
@@ -1317,7 +1379,7 @@ currentClass.addEvent('age', function(){/*... other code here ...*/});
 ---
 Connects two classes by using `options.connector` as the map to either attach event listeners to functions on `options.connector` or methods on the target class where the method names are retrieved from `options.connector`. Default behavior is to connect one class. Connect both ways by passing a second argument as `true`.
 
-A name of a specific object in `options.connector` can be passed as the second argument and that object will be used as the map. If connecting both ways, the same `name` will be used.
+A name of a specific object in `options.connector` can be passed as the second argument and that object will be used as the map. If connecting both ways, the same `name` will be used. Connect both ways by passing a third argument as `true`.
 
 #### Syntax
 ```javascript
