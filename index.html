@@ -226,6 +226,14 @@
                 </li>
               
                 <li>
+                  <a href="#neuro-collection/attachmodelevents">attachModelEvents</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-collection/detachmodelevents">detachModelEvents</a>
+                </li>
+              
+                <li>
                   <a href="#neuro-collection/setupvalidators">setupValidators</a>
                 </li>
               
@@ -409,6 +417,10 @@
                   <a href="#mixin-connector/disconnect">disconnect</a>
                 </li>
               
+                <li>
+                  <a href="#mixin-connector/bound">bound</a>
+                </li>
+              
             </ul>
           
         </li>
@@ -526,7 +538,7 @@
 <p>A MooTools client-side MVC.
 
 </p>
-<p><strong>Version: 0.2.2 (Alpha)</strong>
+<p><strong>Version: 0.2.3 (Alpha)</strong>
 
 </p>
 <p><a href="http://travis-ci.org/GCheung55/Neuro"><img src="https://secure.travis-ci.org/GCheung55/Neuro.png" alt="Build Status" /></a>
@@ -1002,6 +1014,8 @@ model.toQueryString();</code></pre>
 <h4>Returns: Class instance.</h4>
 <h4>Events:</h4>
 <ul>
+<li><code>change: function(collection){}</code> - Triggered when there is a change in the collection (<code>add</code>, <code>remove</code>, <code>replace</code>).</li>
+<li><code>change:model: function(collection, model){}</code> - Triggered when there is a change in a model. Does not trigger the <code>change</code> event on the collection.</li>
 <li><code>add: function(collection, model){}</code> - Triggered when a model is added to the collection.</li>
 <li><code>remove: function(collection, model){}</code> - Triggered when a specific model is removed from the collection.</li>
 <li><code>empty: function(collection){}</code> - Triggered when the collection is emptied of all models.</li>
@@ -1029,7 +1043,7 @@ model.toQueryString();</code></pre>
 <h4>Returns: Boolean.</h4>
 <h3 id="neuro-collection/add">add</h3>
 <hr />
-<p>Adding a model to the collection should always go through this method. It appends the model to the internal <code>_model</code> array and triggers the <code>add</code> event if the collection does not already contain the model.
+<p>Adding a model to the collection should always go through this method. It appends the model to the internal <code>_model</code> array and triggers the <code>add</code> event if the collection does not already contain the model. <code>change</code> event is triggered afterwards.
 
 </p>
 <p>If <code>_validators</code> exist, then each model or object added must pass validation in order to be added to the collection instance. Otherwise a <code>error</code> event will be triggered. 
@@ -1059,8 +1073,9 @@ model.toQueryString();</code></pre>
 <h4>Returns: Class instance.</h4>
 <h4>Triggered Events:</h4>
 <ul>
-<li><code>add</code><h1><code>error</code></h1>
-</li>
+<li><code>add</code></li>
+<li><code>error</code></li>
+<li><code>change</code></li>
 </ul>
 <h4>Examples:</h4>
 <pre><code class="javascript">currentCollection.add({
@@ -1093,7 +1108,10 @@ currentCollection.add(
 currentCollection.get(<span class="number">0</span>, <span class="number">2</span>, <span class="number">3</span>); <span class="comment">// returns an array of model instances where each model corresponds to each index argument</span></code></pre>
 <h3 id="neuro-collection/remove">remove</h3>
 <hr />
-<p>Remove a model or models from the collection. It will trigger the <code>remove</code> event for each individual model removed. The collection should remove the model only if it exists on the collection. Removing the model from the collection will also remove the <code>remove</code> method from the models <code>destroy</code> event.
+<p>Remove a model or models from the collection. It will trigger the <code>remove</code> event for each individual model removed. <code>change</code> event is triggered afterwards.
+
+</p>
+<p>The collection should remove the model only if it exists on the collection. Removing the model from the collection will also remove the <code>remove</code> method from the models <code>destroy</code> event.
 
 </p>
 <h4>Syntax:</h4>
@@ -1106,6 +1124,7 @@ currentCollection.get(<span class="number">0</span>, <span class="number">2</spa
 <h4>Triggered Events:</h4>
 <ul>
 <li><code>remove</code></li>
+<li><code>change</code></li>
 </ul>
 <h4>Examples:</h4>
 <pre><code class="javascript"><span class="keyword">var</span> model = <span class="keyword">new</span> Neuro.Model({id: <span class="number">1</span>, name: <span class="string">'Garrick'</span>});
@@ -1119,7 +1138,7 @@ currentCollection.remove(model);
 currentCollection.remove([model]); <span class="comment">// remove an array of models.</span></code></pre>
 <h3 id="neuro-collection/replace">replace</h3>
 <hr />
-<p>Replace an existing model in the collection with a new one if the old model exists and the new model does not exist in the collection <code>_model</code> array. This will trigger <code>add</code> and <code>remove</code> events.
+<p>Replace an existing model in the collection with a new one if the old model exists and the new model does not exist in the collection <code>_model</code> array. This will trigger <code>add</code> and <code>remove</code> events. <code>change</code> event is triggered afterwards.
 
 </p>
 <h4>Syntax:</h4>
@@ -1134,6 +1153,7 @@ currentCollection.remove([model]); <span class="comment">// remove an array of m
 <ul>
 <li><code>add</code></li>
 <li><code>remove</code></li>
+<li><code>change</code></li>
 </ul>
 <h3 id="neuro-collection/sort">sort</h3>
 <hr />
@@ -1191,6 +1211,50 @@ currentCollection.sort(<span class="keyword">function</span>(modelA, modelB){
 <h4>Syntax:</h4>
 <pre><code class="javascript">currentCollection.toJSON();</code></pre>
 <h4>Returns: Object containing the collection <code>_model</code>.</h4>
+<h3 id="neuro-collection/attachmodelevents">attachModelEvents</h3>
+<hr />
+<p>Attach handlers to the model <code>destroy</code> and <code>change</code> listeners. The model <code>destroy</code> event will trigger the collection <code>remove</code> method. The model <code>change</code> event will trigger the collection <code>change:model</code> event. This is automatically used during <code>add</code> to help clean up if the model is destroyed and to notify listeners of the collection that a model changed.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentCollection.attachModelEvents(model);</code></pre>
+<h4>Arguments:</h4>
+<ul>
+<li>model - (Model) A model instance to attach events to.</li>
+</ul>
+<h4>Examples:</h4>
+<pre><code class="javascript"><span class="keyword">var</span> model = <span class="keyword">new</span> Neuro.Model();
+
+currentCollection.add(model); <span class="comment">// Events attached to the model</span>
+
+currentCollection.length; <span class="comment">// Return 1, meaning there is one model existing</span>
+
+model.destroy(); <span class="comment">// currentCollection is notified that to remove the model since `destroy` event was triggered</span>
+
+currentCollection.length <span class="comment">// Return 0, the model was removed when it was destroyed.</span></code></pre>
+<h4>Returns: Class instance.</h4>
+<h3 id="neuro-collection/detachmodelevents">detachModelEvents</h3>
+<hr />
+<p>Detach handlers to the model <code>destroy</code> and <code>change</code> listeners. If the model <code>destroy</code> event is triggered, the collection is notified and removes the model from the collection. The <code>destroy</code> and <code>change</code>events are removed from the model during execution of <code>remove</code> method.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentCollection.detachModelEvents(model);</code></pre>
+<h4>Arguments:</h4>
+<ul>
+<li>model - (Model) A model instance to attach events to.</li>
+</ul>
+<h4>Examples:</h4>
+<pre><code class="javascript"><span class="keyword">var</span> model = <span class="keyword">new</span> Neuro.Model();
+
+currentCollection.add(model); <span class="comment">// Events attached to the model</span>
+
+currentCollection.length; <span class="comment">// Return 1, meaning there is one model existing</span>
+
+model.destroy(); <span class="comment">// currentCollection is notified that to remove the model since `destroy` event was triggered</span>
+
+currentCollection.length <span class="comment">// Return 0, the model was removed when it was destroyed.</span></code></pre>
+<h4>Returns: Class instance.</h4>
 <h3 id="neuro-collection/setupvalidators">setupValidators</h3>
 <hr />
 <p>see <a href="#mixin-snitch">Mixin: Snitch</a>
@@ -1730,10 +1794,23 @@ myWidget.show(); <span class="comment">// fires the event and alerts 'Lets show 
 <p>A key/value object to map events to functions or method names on the target class that will be connected with. The value can also be an object that contains more key/value pairs. This allows to attach sub-events, such as <code>change:key</code>. <strong>Note:</strong> An asterisk (*) as the sub-event refers to the parent event only.
 
 </p>
+<p><strong>Note:</strong> Using a nested object in <code>options.connector</code> as the map is possible via a <code>name</code> param when using <code>connect</code> or <code>disconnect</code>. Doing so means that connecting/disconnecting the class will <strong>ALWAYS</strong> have to designate the <code>name</code> param. If you don't, then issues will occur because then Connector will treat nested objects key/value pairs as sub-events.
+
+</p>
+<h4>Implements: <a href="https://github.com/cpojer/mootools-class-extras/blob/master/Source/Class.Binds.js">PowerTools! Class.Binds</a></h4>
 <h4>Syntax: key/value pairs</h4>
-<pre><code class="javascript">event: method</code></pre>
+<pre><code class="javascript"><span class="comment">// Shallow object</span>
+{
+    event: method
+}
+
+<span class="comment">// Nested object</span>
+{
+    name: object
+}</code></pre>
 <h4>Arguments</h4>
-<ol>
+<ul>
+<li>Shallow object<ol>
 <li>event - (String) The name of the event to be attached. It becomes the parent event if the events corresponding value is an object.</li>
 <li>method - (String, Function, Array, Object)<ul>
 <li>String - Refers to a method on the target class. The method will be bound to the target class and attached as the event handler.</li>
@@ -1743,6 +1820,13 @@ myWidget.show(); <span class="comment">// fires the event and alerts 'Lets show 
 </ul>
 </li>
 </ol>
+</li>
+<li>Nested Object<ol>
+<li>name - (String) Name of the object that would be used as the map during connect/disconnect</li>
+<li>object - (Object) The shallow object that is used as the map during connect/disconnect</li>
+</ol>
+</li>
+</ul>
 <h4>Examples</h4>
 <p>The following will show what key/value pairs will look like and what they look like when attached manually instead of with connector.
 
@@ -1781,18 +1865,133 @@ currentClass.addEvent(<span class="string">'age'</span>, targetClass.otherDoneMe
 currentClass.addEvent(<span class="string">'age'</span>, <span class="keyword">function</span>(){<span class="comment">/*... other code here ...*/</span>});</code></pre>
 <h3 id="mixin-connector/connect">connect</h3>
 <hr />
-<p>Connects two classes by using <code>options.connector</code> as the map to either attach event listeners to functions on <code>options.connector</code> or methods on the target class where the method names are retrieved from <code>options.connector</code>. Default behavior is to connect two classes. Connect one way by passing a second argument as <code>true</code>.
+<p>Connects two classes by using <code>options.connector</code> as the map to either attach event listeners to functions on <code>options.connector</code> or methods on the target class where the method names are retrieved from <code>options.connector</code>. Default behavior is to connect one class. Connect both ways by passing a second argument as <code>true</code>.
+
+</p>
+<p>A name of a specific object in <code>options.connector</code> can be passed as the second argument and that object will be used as the map. If connecting both ways, the same <code>name</code> will be used. Connect both ways by passing a third argument as <code>true</code>.
 
 </p>
 <h4>Syntax</h4>
-<pre><code class="javascript">currentClass.connect(targetClass[, oneWay]);</code></pre>
+<pre><code class="javascript">currentClass.connect(targetClass[, twoWay]);
+
+currentClass.connect(targetClass[, name[, twoWay]]);</code></pre>
 <h4>Arguments</h4>
 <ol>
 <li>class - (Class) The class containing the methods that will be attached as event handlers to event listeners on the current class.</li>
+<li>name - (String, optional) Name of a specific object in <code>options.connector</code> to be used as the map.</li>
 <li>oneWay - (Boolean, optional, <code>false</code> by default) Set to true will only connect <code>this</code> class with the target class and will not have the target class connect with <code>this</code> class.</li>
 </ol>
+<h4>Returns: Class instance.</h4>
+<h4>Examples:</h4>
+<pre><code class="javascript"><span class="comment">// Using options.connector object by default</span>
+currentClass.options.connector = {
+    <span class="string">'add'</span>: <span class="string">'doAddStuff'</span>
+};
+
+targetClass.options.connector = {
+    <span class="string">'remove'</span>: <span class="string">'doRemoveStuff'</span>
+};
+
+<span class="comment">/**
+ * Bind one way.
+ *
+ * Basically does currentClass.addEvent('add', targetClass.doAddStuf.bind(targetClass));
+ */</span>
+currentClass.connect(targetClass);
+
+<span class="comment">/**
+ * Bind both ways.
+ * Basically does:
+ * 
+ * currentClass.addEvent('add', targetClass.doAddStuf.bind(targetClass))
+ * and
+ *
+ * targetClass.addEvent('remove', currentClass.doRemoveStuff.bind(currentClass));
+ */</span>
+currentclass.connect(targetClass, <span class="literal">true</span>);
+
+<span class="comment">// Using specific object that is nested in options.connector</span>
+currentClass.options.connector = {
+    <span class="string">'classSpecific'</span>: {
+        <span class="string">'add'</span>: <span class="string">'doAddStuff'</span>
+    }
+};
+
+targetClass.options.connector = {
+    <span class="string">'classSpecific'</span>: {
+        <span class="string">'remove'</span>: <span class="string">'doRemoveStuff'</span>
+    }
+};
+
+<span class="comment">/**
+ * Bind one way.
+ *
+ * Basically does currentClass.addEvent('add', targetClass.doAddStuf.bind(targetClass));
+ */</span>
+currentClass.connect(targetClass, <span class="string">'classSpecific'</span>);
+
+<span class="comment">/**
+ * Bind both ways.
+ * Basically does:
+ * 
+ * currentClass.addEvent('add', targetClass.doAddStuf.bind(targetClass))
+ * and
+ *
+ * targetClass.addEvent('remove', currentClass.doRemoveStuff.bind(currentClass));
+ */</span>
+currentclass.connect(targetClass, <span class="string">'classSpecific'</span>, <span class="literal">true</span>);</code></pre>
 <h3 id="mixin-connector/disconnect">disconnect</h3>
 <hr />
+<p>Does the opposite of what <code>connect</code> does. Takes the same arguments.
+
+</p>
+<h3 id="mixin-connector/bound">bound</h3>
+<hr />
+<p>A method provided by <a href="https://github.com/cpojer/mootools-class-extras/blob/master/Source/Class.Binds.js">PowerTools! Class.Binds</a>.
+
+</p>
+<blockquote>
+<p>Provides an alternative way to bind class methods. Stores references to bound methods internally without any manual setup and does not modify the original methods.
+
+</p>
+</blockquote>
+<p>The retrieved function is bound to the class instance.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">currentClass.bound(methodName);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>methodName - (String) Name of the method that has been bound to the class instance and stored.</li>
+</ol>
+<h4>Examples: (Slightly modified from <a href="https://github.com/cpojer/mootools-class-extras/">PowerTools! Class.Binds</a>)</h4>
+<pre><code class="javascript">
+<span class="keyword">var</span> currentClass = <span class="keyword">new</span> Class({
+    Implements: Connector,
+
+    initialize: <span class="keyword">function</span>(element){
+        <span class="keyword">this</span>.element = document.id(element);
+
+        <span class="keyword">this</span>.attach();
+    },
+
+    attach: <span class="keyword">function</span>(){
+        <span class="comment">// Add the click method as event listener</span>
+        <span class="keyword">this</span>.element.addEvent(<span class="string">'click'</span>, <span class="keyword">this</span>.bound(<span class="string">'click'</span>));
+    },
+
+    detach: <span class="keyword">function</span>(){
+        <span class="comment">// Retrieves the same reference to the click method and removes the listener</span>
+        <span class="keyword">this</span>.element.removeEvent(<span class="string">'click'</span>, <span class="keyword">this</span>.bound(<span class="string">'click'</span>));
+    },
+
+    click: <span class="keyword">function</span>(event){
+        event.preventDefault();
+
+        <span class="comment">// doSomething</span>
+        <span class="keyword">this</span>.refersToTheClassInstance();
+    }
+});</code></pre>
 <h2 id="mixin-butler">Mixin: Butler</h2>
 <hr />
 <p>A Utility Class. It provides a way to define custom setters/getters on a Class.
