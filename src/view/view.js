@@ -111,7 +111,7 @@ var View = new Class({
      * the render process.
      */
     render: function(data){
-        this.signalRender();
+        this.signalRender.apply(this, arguments);
         return this;
     },
 
@@ -164,13 +164,7 @@ var View = new Class({
 
 View.implement(
     signalFactory(
-        ['ready', 'render', 'dispose', 'destroy'],
-        {
-            signalInject: function(reference, where){
-                !this.isSilent() && this.fireEvent('inject', [this, reference, where]);
-                return this;
-            }
-        }
+        ['ready', 'render', 'dispose', 'destroy', 'inject']
     )
 );
 

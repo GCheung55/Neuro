@@ -324,19 +324,7 @@ var Collection = new Class({
 
 Collection.implement(
     signalFactory(
-        ['empty', 'sort', 'change'],
-        signalFactory(
-            ['add', 'remove', 'change:model'],
-            function(name){
-                return function(){
-                    // var args = Array.from(arguments);
-                    // args.splice(-2, 0, this, model);
-                    Array.prototype.unshift.call(arguments, this);
-                    !this.isSilent() && this.fireEvent(name, arguments);
-                    return this;
-                };
-            }
-        )
+        ['empty', 'sort', 'change', 'add', 'remove', 'change:model']
     )
 );
 

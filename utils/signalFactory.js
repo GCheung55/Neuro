@@ -26,7 +26,8 @@ exports = module.exports = function(names, curryFnc, stack){
         var property = (prefix + hyphen + name.replace(colon, hyphen)).camelCase();
 
         stack[property] = curryFnc ? curryFnc(name) : function(){
-            !this.isSilent() && this.fireEvent(name, [this]);
+            Array.prototype.unshift.call(arguments, this);
+            !this.isSilent() && this.fireEvent(name, arguments);
             return this;
         };
     });
