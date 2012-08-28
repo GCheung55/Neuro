@@ -8,7 +8,7 @@ var Collection = new Class({
 
     _models: [],
 
-    _Model: Model,
+    // _Model: Model,
 
     _active: 0,
     
@@ -24,7 +24,7 @@ var Collection = new Class({
         // onEmpty: function(){},
         // onSort: function(){},
         primaryKey: undefined,
-        Model: undefined,
+        Model: Model,
         // Model Options
         modelOptions: undefined
     },
@@ -38,9 +38,7 @@ var Collection = new Class({
     setup: function(models, options){
         this.primaryKey = this.options.primaryKey;
 
-        if (this.options.Model) {
-            this._Model = this.options.Model;
-        }
+        this._Model = this.options.Model;
 
         if (models) {
             this.add(models);
