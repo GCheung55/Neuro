@@ -30,7 +30,7 @@ __Extensions:__
 ## Installation
 Neuro is written as a CommonJS module and is available as an NPM package.
 
-### Node.js + NPM:
+### Node.js + NPM
 ---
 Install [Node.js + NPM](http://nodejs.org/) and run the following command to install Neuro:
 ```javascript
@@ -42,7 +42,7 @@ Afterwards, all you need to do to use Neuro is the following line in your script
 var Neuro = require('Neuro');
 ```
 
-### Script Tags:
+### Script Tags
 ---
 
 There are pre-built scripts of Neuro at your disposal as well. All you need is the following code to load:
@@ -51,10 +51,12 @@ There are pre-built scripts of Neuro at your disposal as well. All you need is t
 ```
 
 Choose between two files:
+
 * neuro.js - Packaged with WrapUp which exposes the `Neuro` object in the window global object
+
 * neuro-min.js - Same as `neuro.js` but Uglified (obfuscated and compressed).
 
-### Build Your Own:
+### Build Your Own
 ---
 Don't need everything in the Neuro object? Just want Neuro.Model? No problem! The pre-built files are created with [WrapUp](https://github.com/kamicane/wrapup). So you can easily create your own as well!
 
