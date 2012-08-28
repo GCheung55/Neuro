@@ -36,6 +36,11 @@
     <ul id="sections">
       
         <li>
+          <a href="#installation">Installation</a>
+          
+        </li>
+      
+        <li>
           <a href="#neuro-model">Neuro Model</a>
           
             <ul>
@@ -562,8 +567,8 @@
 
 </p>
 <ul>
-<li>uncoupled coding but allow for a coupled organization if necessary</li>
 <li>provide base for applications</li>
+<li>provide a clean/clear API</li>
 </ul>
 <p><strong>Extensions:</strong>
 
@@ -572,6 +577,30 @@
 <li><a href="http://github.com/gcheung55/neuro-sync">Neuro-Sync</a> - Extends Neuro with a CRUD API</li>
 <li><a href="http://github.com/gcheung55/neuro-company">Neuro-Company</a> - Extends Neuro with an Observer API</li>
 </ul>
+<h2 id="installation">Installation</h2>
+<p>Neuro is written as a CommonJS module and is available as an NPM package.
+
+</p>
+<p><strong>Node.js + NPM:</strong>
+
+</p>
+<p>Install <a href="http://nodejs.org/">Node.js + NPM</a> and run the following command to install Neuro:
+</p>
+<pre><code class="javascript">npm install Neuro</code></pre>
+<p>Afterwards, all you need to do to use Neuro is the following line:
+</p>
+<pre><code class="javascript"><span class="keyword">var</span> Neuro = require(<span class="string">'Neuro'</span>);</code></pre>
+<p><strong>Script Tags:</strong>
+
+</p>
+<p>There are pre-built scripts of Neuro at your disposal as well. All you need is the following code to load:
+</p>
+<pre><code class="html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"/path/to/neuro.js"</span></span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span></span></code></pre>
+<p>Choose between two files:
+<em> ./neuro.js - Packaged with WrapUp which exposes the <code>Neuro</code> object in the window global object
+</em> ./neuro-min.js - Same as <code>neuro.js</code> but Uglified (obfuscated and compressed).
+
+</p>
 <h2 id="neuro-model">Neuro Model</h2>
 <p>The <strong>Model</strong> is a Object-like MooTools Class object that provides a basic API to interact with data. You can use Model by itself or extend other Class objects with it. It implements <code>each</code>, <code>filter</code>, and other convenient methods from <code>Object</code>.
 
