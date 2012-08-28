@@ -26,7 +26,7 @@
     },
     "1": function(require, module, exports, global) {
         var Neuro = {
-            version: "0.2.3"
+            version: "0.2.4"
         };
         exports = module.exports = Neuro;
     },
@@ -544,7 +544,8 @@
             Array.from(names).each(function(name) {
                 var property = (prefix + hyphen + name.replace(colon, hyphen)).camelCase();
                 stack[property] = curryFnc ? curryFnc(name) : function() {
-                    !this.isSilent() && this.fireEvent(name, [ this ]);
+                    Array.prototype.unshift.call(arguments, this);
+                    !this.isSilent() && this.fireEvent(name, arguments);
                     return this;
                 };
             });
@@ -712,7 +713,7 @@
                     }
                     this.length = this._models.length;
                     this._changed = true;
-                    this.signalAdd(model);
+                    this.signalAdd(model, at != void 0 ? at : this.length - 1);
                 }
                 return this;
             },
@@ -802,12 +803,7 @@
                 });
             }
         });
-        Collection.implement(signalFactory([ "empty", "sort", "change" ], signalFactory([ "add", "remove", "change:model" ], function(name) {
-            return function(model) {
-                !this.isSilent() && this.fireEvent(name, [ this, model ]);
-                return this;
-            };
-        })));
+        Collection.implement(signalFactory([ "empty", "sort", "change", "add", "remove", "change:model" ]));
         [ "forEach", "each", "invoke", "every", "filter", "clean", "indexOf", "map", "some", "associate", "link", "contains", "getLast", "getRandom", "flatten", "pick" ].each(function(method) {
             Collection.implement(method, function() {
                 return Array.prototype[method].apply(this._models, arguments);
@@ -872,7 +868,7 @@
                 return this;
             },
             render: function(data) {
-                this.signalRender();
+                this.signalRender.apply(this, arguments);
                 return this;
             },
             inject: function(reference, where) {
@@ -900,12 +896,7 @@
                 return this;
             }
         });
-        View.implement(signalFactory([ "ready", "render", "dispose", "destroy" ], {
-            signalInject: function(reference, where) {
-                !this.isSilent() && this.fireEvent("inject", [ this, reference, where ]);
-                return this;
-            }
-        }));
+        View.implement(signalFactory([ "ready", "render", "dispose", "destroy", "inject" ]));
         exports.View = View;
     },
     f: function(require, module, exports, global) {
