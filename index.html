@@ -38,6 +38,22 @@
         <li>
           <a href="#installation">Installation</a>
           
+            <ul>
+              
+                <li>
+                  <a href="#installation/node-js-npm">Node.js + NPM:</a>
+                </li>
+              
+                <li>
+                  <a href="#installation/script-tags">Script Tags:</a>
+                </li>
+              
+                <li>
+                  <a href="#installation/build-your-own">Build Your Own:</a>
+                </li>
+              
+            </ul>
+          
         </li>
       
         <li>
@@ -581,24 +597,39 @@
 <p>Neuro is written as a CommonJS module and is available as an NPM package.
 
 </p>
-<p><strong>Node.js + NPM:</strong>
-
-</p>
+<h3 id="installation/node-js-npm">Node.js + NPM:</h3>
+<hr />
 <p>Install <a href="http://nodejs.org/">Node.js + NPM</a> and run the following command to install Neuro:
 </p>
-<pre><code class="javascript">npm install Neuro</code></pre>
-<p>Afterwards, all you need to do to use Neuro is the following line:
+<pre><code class="javascript">$ npm install Neuro</code></pre>
+<p>Afterwards, all you need to do to use Neuro is the following line in your scripts:
 </p>
 <pre><code class="javascript"><span class="keyword">var</span> Neuro = require(<span class="string">'Neuro'</span>);</code></pre>
-<p><strong>Script Tags:</strong>
-
-</p>
+<h3 id="installation/script-tags">Script Tags:</h3>
+<hr />
 <p>There are pre-built scripts of Neuro at your disposal as well. All you need is the following code to load:
 </p>
 <pre><code class="html"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"/path/to/neuro.js"</span></span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span></span></code></pre>
 <p>Choose between two files:
-<em> ./neuro.js - Packaged with WrapUp which exposes the <code>Neuro</code> object in the window global object
-</em> ./neuro-min.js - Same as <code>neuro.js</code> but Uglified (obfuscated and compressed).
+<em> neuro.js - Packaged with WrapUp which exposes the <code>Neuro</code> object in the window global object
+</em> neuro-min.js - Same as <code>neuro.js</code> but Uglified (obfuscated and compressed).
+
+</p>
+<h3 id="installation/build-your-own">Build Your Own:</h3>
+<hr />
+<p>Don't need everything in the Neuro object? Just want Neuro.Model? No problem! The pre-built files are created with <a href="https://github.com/kamicane/wrapup">WrapUp</a>. So you can easily create your own as well!
+
+</p>
+<p>Install Wrapup.
+</p>
+<pre><code class="javascript">$ npm install -g wrapup</code></pre>
+<p>With Neuro installed (either locally or globally with the <code>-g</code> flag), create a <code>main.js</code> file. This file will be used to generate your own custom version of Neuro. We'll place it in a <code>js/neuro</code> folder. For this example, we're just going to have Neuro.Model available. Create the <code>main.js</code> file with the following:
+</p>
+<pre><code class="javascript">exports.Model = require(<span class="string">'Neuro/src/model/main'</span>).Model;</code></pre>
+<p>Finally, we want to create the built file. Run this command while in the <code>js/neuro</code> folder:
+</p>
+<pre><code>wrup -r Neuro ./main<span class="variable">.js</span> -o ./neuro<span class="variable">.js</span></code></pre>
+<p>And voila, a custom <code>neuro.js</code> file is created with <code>Neuro</code> object containing only the <code>Model</code> class.
 
 </p>
 <h2 id="neuro-model">Neuro Model</h2>
