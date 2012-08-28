@@ -19,13 +19,61 @@ __Dependencies:__
 
 __Focus:__
 
-* uncoupled coding but allow for a coupled organization if necessary
 * provide base for applications
+* provide a clean/clear API
 
 __Extensions:__
 
 * [Neuro-Sync](http://github.com/gcheung55/neuro-sync) - Extends Neuro with a CRUD API
 * [Neuro-Company](http://github.com/gcheung55/neuro-company) - Extends Neuro with an Observer API
+
+## Installation
+Neuro is written as a CommonJS module and is available as an NPM package.
+
+### Node.js + NPM:
+---
+Install [Node.js + NPM](http://nodejs.org/) and run the following command to install Neuro:
+```javascript
+$ npm install Neuro
+```
+
+Afterwards, all you need to do to use Neuro is the following line in your scripts:
+```javascript
+var Neuro = require('Neuro');
+```
+
+### Script Tags:
+---
+
+There are pre-built scripts of Neuro at your disposal as well. All you need is the following code to load:
+```html
+<script type="text/javascript" src="/path/to/neuro.js"></script>
+```
+
+Choose between two files:
+* neuro.js - Packaged with WrapUp which exposes the `Neuro` object in the window global object
+* neuro-min.js - Same as `neuro.js` but Uglified (obfuscated and compressed).
+
+### Build Your Own:
+---
+Don't need everything in the Neuro object? Just want Neuro.Model? No problem! The pre-built files are created with [WrapUp](https://github.com/kamicane/wrapup). So you can easily create your own as well!
+
+Install Wrapup.
+```javascript
+$ npm install -g wrapup
+```
+
+With Neuro installed (either locally or globally with the `-g` flag), create a `main.js` file. This file will be used to generate your own custom version of Neuro. We'll place it in a `js/neuro` folder. For this example, we're just going to have Neuro.Model available. Create the `main.js` file with the following:
+```javascript
+exports.Model = require('Neuro/src/model/main').Model;
+```
+
+Finally, we want to create the built file. Run this command while in the `js/neuro` folder:
+```
+wrup -r Neuro ./main.js -o ./neuro.js 
+```
+
+And voila, a custom `neuro.js` file is created with `Neuro` object containing only the `Model` class.
 
 ## Neuro Model
 The __Model__ is a Object-like MooTools Class object that provides a basic API to interact with data. You can use Model by itself or extend other Class objects with it. It implements `each`, `filter`, and other convenient methods from `Object`.
