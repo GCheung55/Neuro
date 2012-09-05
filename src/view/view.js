@@ -154,7 +154,7 @@ var View = new Class({
         var element = this.element;
         
         if (element){
-            element && (this.detachEvents(), element.destroy(), this.element = undefined);
+            element && (element.destroy(), this.element = undefined);
             
             this.signalDestroy();
         }
