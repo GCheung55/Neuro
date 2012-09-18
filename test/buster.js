@@ -16,7 +16,7 @@ config["Neuro"] = {
     ]
 };
 
-config["patternLexer"] = {
+config["Router"] = {
     rootPath: "../",
     environment: "browser",
     sources: [
