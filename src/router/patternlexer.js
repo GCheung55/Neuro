@@ -1,3 +1,5 @@
+var typecastArrayValues = require('./utils').typecastArrayValues;
+
 /**
  * Code from Crossroads.js by Miller Medeiros
  * date - Jul 29, 2012
@@ -165,22 +167,22 @@ function interpolate(pattern, replacements) {
     }
 
     var replaceFn = function(match, prop){
-            var val;
-            if (prop in replacements) {
-                // make sure value is a string see #gh-54
-                val = String(replacements[prop]);
-                if (match.indexOf('*') === -1 && val.indexOf('/') !== -1) {
-                    throw new Error('Invalid value "'+ val +'" for segment "'+ match +'".');
-                }
+        var val;
+        if (prop in replacements) {
+            // make sure value is a string see #gh-54
+            val = String(replacements[prop]);
+            if (match.indexOf('*') === -1 && val.indexOf('/') !== -1) {
+                throw new Error('Invalid value "'+ val +'" for segment "'+ match +'".');
             }
-            else if (match.indexOf('{') !== -1) {
-                throw new Error('The segment '+ match +' is required.');
-            }
-            else {
-                val = '';
-            }
-            return val;
-        };
+        }
+        else if (match.indexOf('{') !== -1) {
+            throw new Error('The segment '+ match +' is required.');
+        }
+        else {
+            val = '';
+        }
+        return val;
+    };
 
     if (! TOKENS.OS.trail) {
         TOKENS.OS.trail = new RegExp('(?:'+ TOKENS.OS.id +')+$');

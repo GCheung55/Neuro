@@ -15,3 +15,15 @@ config["Neuro"] = {
         "test/view-test.js"
     ]
 };
+
+config["patternLexer"] = {
+    rootPath: "../",
+    environment: "browser",
+    sources: [
+        "test/assets/js/mootools-core.js",
+        "neuro.js"
+    ],
+    tests: [
+        "test/router/*-test.js"
+    ]
+};
