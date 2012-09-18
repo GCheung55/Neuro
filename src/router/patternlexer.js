@@ -1,9 +1,10 @@
 var typecastArrayValues = require('./utils').typecastArrayValues;
 
 /**
- * Code from Crossroads.js by Miller Medeiros
+ * A pattern lexer ported from Crossroads.js by Miller Medeiros (https://github.com/millermedeiros/crossroads.js)
  * date - Jul 29, 2012
  * crossroads.js commit - 3b413b0b506b0c04f80b03194d4c1abaeccc9574
+ * @type {Class}
  */
 
     //match chars that should be escaped on string regexp
