@@ -101,6 +101,9 @@
                 }
                 return this;
             }.overloadSetter(),
+            validate: function(prop, val) {
+                return (this.getValidator("*") || this.parent).call(this, prop, val);
+            },
             proof: function() {
                 return this.parent(this.getData());
             }
@@ -553,6 +556,16 @@
         };
     },
     a: function(require, module, exports, global) {
+        var asterisk = "*";
+        var normalizeValidators = function(arg) {
+            var obj = {};
+            if (typeOf(arg) == "function") {
+                obj[asterisk] = arg;
+            } else {
+                obj = arg;
+            }
+            return obj;
+        };
         var Snitch = new Class({
             _validators: {},
             options: {
@@ -561,12 +574,12 @@
             setupValidators: function() {
                 var validators = this._validators;
                 this._validators = {};
-                this.setValidator(Object.merge({}, validators, this.options.validators));
+                this.setValidator(Object.merge({}, normalizeValidators(validators), normalizeValidators(this.options.validators)));
                 return this;
             },
             setValidator: function(prop, fnc) {
                 var orig = fnc;
-                if (!fnc._orig) {
+                if (fnc && !fnc._orig) {
                     fnc = fnc.bind(this);
                     fnc._orig = orig;
                 }
@@ -584,7 +597,11 @@
                 return pass;
             },
             proof: function(obj) {
-                return Snitch.proof(obj, this._validators, this);
+                var validators = Object.clone(this._validators), global = validators[asterisk], pass = global ? global(obj) : true;
+                delete validators[asterisk];
+                return [ pass, Snitch.proof(obj, validators) ].every(function(bool) {
+                    return bool;
+                });
             }
         });
         Snitch.proof = function(obj, validators) {
@@ -608,7 +625,7 @@
                 return this;
             },
             _add: function(model, at) {
-                if (!this.validate(instanceOf(model, Model) ? model.getData() : model)) {
+                if (!this.validate(model)) {
                     this.signalError(model, at);
                 } else {
                     this.parent(model, at);
@@ -616,15 +633,17 @@
                 return this;
             },
             validate: function(models) {
+                var globalValidateFnc = this.getValidator("*");
                 models = Array.from(models);
                 return models.every(function(model) {
-                    return instanceOf(model, Model) ? model.every(validateFnc, this) : Object.every(model, validateFnc, this);
+                    var isInstance = instanceOf(model, Model);
+                    return globalValidateFnc ? globalValidateFnc(isInstance ? model.getData() : model) : isInstance ? model.every(validateFnc, this) : Object.every(model, validateFnc, this);
                 }, this);
             },
             proofModel: function(models) {
                 models = Array.from(models);
                 return models.every(function(model) {
-                    return Snitch.proof(instanceOf(model, Model) ? model.getData() : model, this._validators, this);
+                    return Snitch.proof(instanceOf(model, Model) ? model.getData() : model, this._validators);
                 }, this);
             },
             proof: function() {
@@ -640,14 +659,13 @@
         var Collection = new Class({
             Implements: [ Connector, Events, Options, Silence ],
             _models: [],
-            _Model: Model,
             _active: 0,
             _changed: false,
             length: 0,
             primaryKey: undefined,
             options: {
                 primaryKey: undefined,
-                Model: undefined,
+                Model: Model,
                 modelOptions: undefined
             },
             initialize: function(models, options) {
@@ -656,9 +674,7 @@
             },
             setup: function(models, options) {
                 this.primaryKey = this.options.primaryKey;
-                if (this.options.Model) {
-                    this._Model = this.options.Model;
-                }
+                this._Model = this.options.Model;
                 if (models) {
                     this.add(models);
                 }
@@ -890,7 +906,7 @@
             destroy: function() {
                 var element = this.element;
                 if (element) {
-                    element && (this.detachEvents(), element.destroy(), this.element = undefined);
+                    element && (element.destroy(), this.element = undefined);
                     this.signalDestroy();
                 }
                 return this;
@@ -900,6 +916,16 @@
         exports.View = View;
     },
     f: function(require, module, exports, global) {
+        var asterisk = "*";
+        var normalizeValidators = function(arg) {
+            var obj = {};
+            if (typeOf(arg) == "function") {
+                obj[asterisk] = arg;
+            } else {
+                obj = arg;
+            }
+            return obj;
+        };
         var Snitch = new Class({
             _validators: {},
             options: {
@@ -908,12 +934,12 @@
             setupValidators: function() {
                 var validators = this._validators;
                 this._validators = {};
-                this.setValidator(Object.merge({}, validators, this.options.validators));
+                this.setValidator(Object.merge({}, normalizeValidators(validators), normalizeValidators(this.options.validators)));
                 return this;
             },
             setValidator: function(prop, fnc) {
                 var orig = fnc;
-                if (!fnc._orig) {
+                if (fnc && !fnc._orig) {
                     fnc = fnc.bind(this);
                     fnc._orig = orig;
                 }
@@ -931,7 +957,11 @@
                 return pass;
             },
             proof: function(obj) {
-                return Snitch.proof(obj, this._validators, this);
+                var validators = Object.clone(this._validators), global = validators[asterisk], pass = global ? global(obj) : true;
+                delete validators[asterisk];
+                return [ pass, Snitch.proof(obj, validators) ].every(function(bool) {
+                    return bool;
+                });
             }
         });
         Snitch.proof = function(obj, validators) {
