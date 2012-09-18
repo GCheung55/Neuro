@@ -597,11 +597,14 @@
                 return pass;
             },
             proof: function(obj) {
-                var validators = Object.clone(this._validators), global = validators[asterisk], pass = global ? global(obj) : true;
-                delete validators[asterisk];
-                return [ pass, Snitch.proof(obj, validators) ].every(function(bool) {
-                    return bool;
-                });
+                var validators = Object.clone(this._validators), global = validators[asterisk], keys;
+                if (global) {
+                    delete validators[asterisk];
+                    keys = Object.keys(obj);
+                    return global(obj) && Object.keys(validators).every(keys.contains.bind(keys));
+                } else {
+                    return Snitch.proof(obj, validators);
+                }
             }
         });
         Snitch.proof = function(obj, validators) {
@@ -957,11 +960,14 @@
                 return pass;
             },
             proof: function(obj) {
-                var validators = Object.clone(this._validators), global = validators[asterisk], pass = global ? global(obj) : true;
-                delete validators[asterisk];
-                return [ pass, Snitch.proof(obj, validators) ].every(function(bool) {
-                    return bool;
-                });
+                var validators = Object.clone(this._validators), global = validators[asterisk], keys;
+                if (global) {
+                    delete validators[asterisk];
+                    keys = Object.keys(obj);
+                    return global(obj) && Object.keys(validators).every(keys.contains.bind(keys));
+                } else {
+                    return Snitch.proof(obj, validators);
+                }
             }
         });
         Snitch.proof = function(obj, validators) {

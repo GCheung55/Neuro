@@ -145,14 +145,19 @@ buster.testCase('Neuro Mixin: Snitch', {
                 // Passes because the obj has the missing property
                 assert.equals(snitch.proof(obj), true);
             },
-            'separately test the whole object against the global (*) validator if it exists': function(){
+            '=>separately test the whole object against the global (*) validator if it exists': function(){
                 var snitch = new this.mockSnitch().setupValidators(),
                     obj = {a: 'str', b: 1},
                     spy = this.spy();
 
                 snitch.setValidator('*', function(obj){
                     spy(obj);
-                    return true;
+
+                    var result = Object.every(obj, function(val, key){
+                        return this.validate(key, val);
+                    }, this);
+
+                    return result;
                 });
 
                 // False because the object doesn't pass the validators.

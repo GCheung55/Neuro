@@ -91,16 +91,21 @@ var Snitch = new Class({
     proof: function(obj){
         var validators = Object.clone(this._validators),
             // Store the global validator
-            global = validators[asterisk], 
-            // // If global validator exists, test the object against it, otherwise set the default result to true
-            pass = global ? global(obj) : true;
+            global = validators[asterisk], keys;
 
-        // Delete it from the validators object because it should be tested against the whole obj
-        // instead of individual properties in the obj
-        delete validators[asterisk];
-
-        // result and Snitch.proof must return true in order to pass proofing
-        return [pass, Snitch.proof(obj, validators)].every(function(bool){ return bool; });
+        // If global validator exists, test the object against it
+        if (global) {
+            // remove '*' validator from validators obj otherwise comparing keys will not pass
+            delete validators[asterisk];
+            
+            // retrieve keys of obj for comparison;
+            keys = Object.keys(obj);
+            // return global(obj) && Object.every(validators, function(val, prop){ return prop in obj;});
+            return global(obj) && Object.keys(validators).every( keys.contains.bind(keys) );
+        } else {
+            // result and Snitch.proof must return true in order to pass proofing
+            return Snitch.proof(obj, validators);
+        }
     }
 });
 
