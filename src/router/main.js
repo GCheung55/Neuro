@@ -110,14 +110,13 @@ var Router = new Class({
 
     _getMatchedRoutes : function (request) {
         var res = [],
-            routes = this._models,
             n = this.length,
-            route,
-            i = 0;
+            i = 0,
+            route;
 
         //should be decrement loop since higher priorities are added at the end of array
         while (n--) {
-            route = routes[i++];
+            route = this.get(i++);
             if ((!res.length || this.options.greedy || route.get('greedy')) && route.match(request)) {
                 res.push({
                     route : route,

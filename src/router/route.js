@@ -38,10 +38,8 @@ var Route = new Class({
                         var obj = {},
                             lexer = this.getLexer();
 
-                        obj[prop] = value;
-
-                        obj._matchRegexp = value;
-                        obj._optionalparamsIds = obj._paramsIds = void 0;
+                        obj[prop] = obj._matchRegexp = value;
+                        obj._optionalParamsIds = obj._paramsIds = void 0;
 
                         if (typeOf(value) != 'regexp') {
                             obj._paramsIds = lexer.getParamIds(value);
@@ -56,11 +54,9 @@ var Route = new Class({
             rules: {
                 set: function(prop, value){
                     // Validate that it is an object
-                    if (!this.validate(prop, value)) {
-                        value = {};
+                    if (this.validate(prop, value)) {
+                        this.set(prop, new Model(value));
                     }
-
-                    this.set(prop, new Model(value));
                 }
             },
             callback: {
@@ -74,19 +70,13 @@ var Route = new Class({
 
         validators: {
             pattern: function(val){
-                var type = typeOf(val);
-                return type == 'null' || type == 'regexp' || type == 'string';
+                return ['null', 'regexp', 'string'].contains(typeOf(val));
             },
             priority: Type.isNumber,
             normalizer: Type.isFunction,
             greedy: Type.isBoolean,
             rules: Type.isObject
         }
-    },
-
-    setup: function(data, options){
-        this.parent(data, options);
-        return this;
     },
 
     match: function(request){
@@ -101,7 +91,8 @@ var Route = new Class({
             values = this._getParamsObject(request);
 
         return rules.every(function(rule, key){
-            return !!this._isValidParam(request, key, values);
+            // normalize_ isn't a validation rule... (#39)
+            return !(key != 'normalize_' && !this._isValidParam(request, key, values));
         }, this);
     },
 
@@ -154,34 +145,29 @@ var Route = new Class({
                     o[param +'_'] = val;
                     //update vals_ array as well since it will be used
                     //during dispatch
-                    val = decodeQueryString(val);
-                    values[n] = val;
+                    values[n] = val = decodeQueryString(val);
                 }
                 // IE will capture optional groups as empty strings while other
                 // browsers will capture `undefined` so normalize behavior.
                 // see: #gh-58, #gh-59, #gh-60
                 if ( _hasOptionalGroupBug && val === '' && _optionalParamsIds && _optionalParamsIds.indexOf(param) !== -1 ) {
-                    val = void 0;
-                    values[n] = val;
+                    values[n] = val = void 0;
                 }
                 o[param] = val;
             }
             //alias to paths and for RegExp pattern
             o[n] = val;
         }
-        o.request_ = shouldTypecast? typecastValue(request) : request;
+        o.request_ = shouldTypecast ? typecastValue(request) : request;
         o.vals_ = values;
         return o;
     },
 
     _getParamsArray: function(request){
         var rules = this.get('rules'),
-            // use rules normalize if it exists
-            norm = rules && rules.get('normalize_'),
+            // use rules normalize if it exists, otherwise use the default
+            norm = (rules && rules.get('normalize_')) || this.get('normalizer'),
             params;
-
-        // Use the stored normalizer
-        norm = norm || this.get('normalizer'); // default normalize
 
         if (norm && Type.isFunction(norm)) {
             params = norm(request, this._getParamsObject(request));
@@ -194,7 +180,7 @@ var Route = new Class({
     interpolate: function(replacements){
         var str = this.getLexer().interpolate(this.get('pattern'), replacements);
 
-        if (! this._validateParams(str) ) {
+        if (!this._validateParams(str)) {
             throw new Error('Generated string doesn\'t validate against `Route.rules`.');
         }
 
