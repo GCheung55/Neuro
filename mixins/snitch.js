@@ -1,3 +1,17 @@
+var asterisk = '*';
+
+var normalizeValidators = function(arg){
+    var obj = {};
+
+    if (typeOf(arg) == 'function') {
+        obj[asterisk] = arg;
+    } else {
+        obj = arg;
+    }
+
+    return obj;
+};
+
 /**
  * A utility class. The spec runner. Validate individual properties or proof
  * an object against the entire spec.
@@ -24,14 +38,20 @@ var Snitch = new Class({
         this._validators = {};
 
         // process the validators
-        this.setValidator(Object.merge({}, validators, this.options.validators));
+        this.setValidator(
+            Object.merge(
+                {}, 
+                normalizeValidators(validators), 
+                normalizeValidators(this.options.validators)
+            )
+        );
         return this;
     },
 
     setValidator: function(prop, fnc){
         var orig = fnc;
         
-        if (!fnc._orig) {
+        if (fnc && !fnc._orig) {
             fnc = fnc.bind(this);
             fnc._orig = orig;
         }
@@ -69,7 +89,18 @@ var Snitch = new Class({
      * @return {Boolean}           The answer to whether the object passes or not
      */
     proof: function(obj){
-        return Snitch.proof(obj, this._validators, this);
+        var validators = Object.clone(this._validators),
+            // Store the global validator
+            global = validators[asterisk], 
+            // // If global validator exists, test the object against it, otherwise set the default result to true
+            pass = global ? global(obj) : true;
+
+        // Delete it from the validators object because it should be tested against the whole obj
+        // instead of individual properties in the obj
+        delete validators[asterisk];
+
+        // result and Snitch.proof must return true in order to pass proofing
+        return [pass, Snitch.proof(obj, validators)].every(function(bool){ return bool; });
     }
 });
 

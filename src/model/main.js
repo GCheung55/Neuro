@@ -147,6 +147,12 @@ exports.Model = new Class({
         return this;
     }.overloadSetter(),
 
+    validate: function(prop, val){
+        // If the global validator exists, then all validation pipes through it
+        // Otherwise, use the prop referenced validator
+        return (this.getValidator('*') || this.parent).call(this, prop, val);
+    },
+
     proof: function(){
         return this.parent(this.getData());
     }

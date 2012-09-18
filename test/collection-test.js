@@ -281,16 +281,31 @@ buster.testCase('Neuro Collection', {
 
     'Snitch': {
         setUp: function(){
+            var validators = {
+                a: Type.isString,
+                b: Type.isNumber,
+                c: Type.isArray
+            };
+
             var collection = new Class({
                 Extends: Neuro.Collection,
-                _validators: {
-                    a: Type.isString,
-                    b: Type.isNumber,
-                    c: Type.isArray
-                }
+                _validators: validators
             });
 
             this.mockSnitchCollection = collection;
+
+            var collectionB = new Class({
+                Extends: Neuro.Collection,
+                _validators: {
+                    '*': function(obj){
+                        return Object.every(obj, function(val, prop){
+                            return validators[prop] && validators[prop](val);
+                        });
+                    }
+                }
+            });
+
+            this.mockSnitchCollectionB = collectionB;
         },
 
         'setupValidators should be run during instantiation': function(){
@@ -303,17 +318,32 @@ buster.testCase('Neuro Collection', {
             assert.equals(Object.getLength(collection._validators), 4);
         },
 
-        'validate an object against the collections _validators': function(){
-            var collection = new this.mockSnitchCollection(),
-                obj = {
-                    a: 'str', b: '1'
-                };
+        'validate an object against the collections _validators': {
+            'where each property of a model is tested for each validator that exists': function(){
+                var collection = new this.mockSnitchCollection(),
+                    obj = {
+                        a: 'str', b: '1'
+                    };
 
-            assert.equals(collection.validate(obj), false);
+                assert.equals(collection.validate(obj), false);
 
-            obj.b = 1;
+                obj.b = 1;
 
-            assert.equals(collection.validate(obj), true);
+                assert.equals(collection.validate(obj), true);
+            },
+            'where the entire model is tested against the global (*) validator': function(){
+                var collection = new this.mockSnitchCollectionB(),
+                    obj = {
+                        a: 'str',
+                        b: '1'
+                    };
+
+                assert.equals(collection.validate(obj), false);
+
+                obj.b = 1;
+
+                assert.equals(collection.validate(obj), true);
+            }
         },
 
         'trigger error event when an object or model is trying to be added to the collection and does not pass validation': function(){

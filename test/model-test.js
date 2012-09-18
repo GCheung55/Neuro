@@ -631,16 +631,29 @@ buster.testCase('Neuro Model', {
 
     'Snitch': {
         'setUp': function(){
+            var validators = {
+                a: Type.isString,
+                b: Type.isNumber,
+                c: Type.isArray
+            };
+
             var model = new Class({
                 Extends: Neuro.Model,
-                _validators: {
-                    a: Type.isString,
-                    b: Type.isNumber,
-                    c: Type.isArray
-                }
+                _validators: validators
             });
 
             this.mockSnitchModel = model;
+
+            var modelB = new Class({
+                Extends: Neuro.Model,
+                _validators: {
+                    '*': function(prop, val){
+                        return validators[prop] && validators[prop](val) || true
+                    }
+                }
+            });
+
+            this.mockSnitchModelB = modelB;
         },
 
         'setupValidators should be run during instantiation': function(){
@@ -668,23 +681,31 @@ buster.testCase('Neuro Model', {
                     // check against Type.isString
                     model.set('a', 'str');
                     assert.equals(model.get('a'), 'str');
+                },
+                'where a global (*) validator exists and returns true': function(){
+                    var model = new this.mockSnitchModelB();
+
+                    // Unset the existing validator
+                    model.set('a', 'str');
+                    assert.equals(model.get('a'), 'str');
                 }
-            },
-            'false where a validator exists and returns false and trigger error and errorProperty events': function(){
-                var spyError = this.spy(),
-                    spyErrorProperty = this.spy(),
-                    model = new this.mockSnitchModel();
-
-                model.addEvent('error', spyError),
-                model.addEvent('error:b', spyErrorProperty);
-
-                // check against Type.isNumber
-                model.set('b', '1');
-                refute.equals(model.get('b'), '1');
-
-                assert.calledWith(spyError, model);
-                assert.calledWith(spyErrorProperty, model, 'b', '1');
             }
+        },
+
+        'set should not set a property when validation is false where a validator exists and returns false and trigger error and errorProperty events': function(){
+            var spyError = this.spy(),
+                spyErrorProperty = this.spy(),
+                model = new this.mockSnitchModel();
+
+            model.addEvent('error', spyError),
+            model.addEvent('error:b', spyErrorProperty);
+
+            // check against Type.isNumber
+            model.set('b', '1');
+            refute.equals(model.get('b'), '1');
+
+            assert.calledWith(spyError, model);
+            assert.calledWith(spyErrorProperty, model, 'b', '1');
         },
 
         'proof should test the model data against every validator': function(){

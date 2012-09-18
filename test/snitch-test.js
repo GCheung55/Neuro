@@ -12,18 +12,33 @@ buster.testCase('Neuro Mixin: Snitch', {
         });
     },
 
-    'setupValidators should merge options.validators with _validators': function(){
-        var snitch = new this.mockSnitch();
-        
-        snitch.setupValidators();
+    'setupValidators should': {
+        'normalize the validators function into an object where * is the key to the function': function(){
+            var snitch = new this.mockSnitch(),
+                spy = this.spy();
 
-        assert.equals(Object.getLength(snitch._validators), 3);
+            snitch._validators = spy;
 
-        snitch.options.validators.d = Type.isFunction;
+            snitch.setupValidators();
 
-        snitch.setupValidators();
+            assert.equals(Object.getLength(snitch._validators), 1);
 
-        assert.equals(Object.getLength(snitch._validators), 4);
+            assert(typeOf(snitch._validators['*']) == 'function');
+        },
+
+        'merge options.validators with _validators': function(){
+            var snitch = new this.mockSnitch();
+            
+            snitch.setupValidators();
+
+            assert.equals(Object.getLength(snitch._validators), 3);
+
+            snitch.options.validators.d = Type.isFunction;
+
+            snitch.setupValidators();
+
+            assert.equals(Object.getLength(snitch._validators), 4);
+        }
     },
 
     'setValidator should set the function bound to "this" in _validators': {
@@ -115,19 +130,44 @@ buster.testCase('Neuro Mixin: Snitch', {
             assert.equals(this.snitch.proof(obj, snitch._validators), true);
         },
 
-        'method should test an object param against the internal _validators': function(){
-            var snitch = new this.mockSnitch().setupValidators(),
-                obj = {a: 'str', b: 1};
+        'method should': {
+            'test an object param against the internal _validators': function(){
+                var snitch = new this.mockSnitch().setupValidators(),
+                    obj = {a: 'str', b: 1};
 
-            // False because the object doesn't pass the validators.
-            // obj is missing a property
-            assert.equals(snitch.proof(obj), false);
+                // False because the object doesn't pass the validators.
+                // obj is missing a property
+                assert.equals(snitch.proof(obj), false);
 
-            // Add missing property
-            obj.c = [];
+                // Add missing property
+                obj.c = [];
 
-            // Passes because the obj has the missing property
-            assert.equals(snitch.proof(obj), true);
+                // Passes because the obj has the missing property
+                assert.equals(snitch.proof(obj), true);
+            },
+            'separately test the whole object against the global (*) validator if it exists': function(){
+                var snitch = new this.mockSnitch().setupValidators(),
+                    obj = {a: 'str', b: 1},
+                    spy = this.spy();
+
+                snitch.setValidator('*', function(obj){
+                    spy(obj);
+                    return true;
+                });
+
+                // False because the object doesn't pass the validators.
+                // obj is missing a property
+                assert.equals(snitch.proof(obj), false);
+
+                // Pass the * test because the whole object is sent to validate
+                assert.calledOnceWith(spy, obj);
+
+                // Add missing property
+                obj.c = [];
+
+                // Passes because the obj has the missing property
+                assert.equals(snitch.proof(obj), true);
+            }
         }
     }
 });

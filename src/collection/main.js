@@ -23,7 +23,7 @@ exports.Collection = new Class({
         /**
          * Validate data, not a model instance.
          */
-        if (!this.validate( instanceOf(model, Model) ? model.getData() : model )) {
+        if (!this.validate(model)) {
             this.signalError(model, at);
         } else {
             this.parent(model, at)
@@ -38,12 +38,19 @@ exports.Collection = new Class({
      * @return {Boolean} True if all properties in the models validate
      */
     validate: function(models){
+        var globalValidateFnc = this.getValidator('*');
+
         models = Array.from(models);
 
         return models.every(function(model){
-            return instanceOf(model, Model) 
-                ? model.every(validateFnc, this) 
-                : Object.every(model, validateFnc, this);
+            var isInstance = instanceOf(model, Model);
+
+            // If the global validator exists, then all validation pipes through it
+            // Otherwise, use the prop referenced validator
+            return globalValidateFnc
+                ? globalValidateFnc(isInstance ? model.getData() : model)
+                : (isInstance ? model.every(validateFnc, this) : Object.every(model, validateFnc, this));
+
         }, this);
     },
 
@@ -61,7 +68,7 @@ exports.Collection = new Class({
                 instanceOf(model, Model)
                     ? model.getData()
                     : model,
-                this._validators, this
+                this._validators
             );
         }, this);
     },
