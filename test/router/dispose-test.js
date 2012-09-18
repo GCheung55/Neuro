@@ -22,7 +22,7 @@ buster.testCase('Route.dispose()', {
 
         var a = this.router.add({
             pattern: '/{foo}_{bar}',
-            callback: function(foo, bar){
+            callback: function(route, foo, bar){
                 t1 = foo;
                 t2 = bar;
             }

@@ -25,7 +25,7 @@ buster.testCase('Router.toString() and route.toString()', {
 
             var a = this.router.add({
                 pattern: '/{foo}_{bar}',
-                callback: function(foo, bar){
+                callback: function(route, foo, bar){
                     t1 = foo;
                     t2 = bar;
                 }
@@ -50,7 +50,7 @@ buster.testCase('Router.toString() and route.toString()', {
 
             var a = this.router.add({
                 pattern: '/{foo}/{bar}',
-                callback: function(foo, bar){
+                callback: function(route, foo, bar){
                     t1 = foo;
                     t2 = bar;
                 }
@@ -59,7 +59,7 @@ buster.testCase('Router.toString() and route.toString()', {
 
             var b = this.router.add({
                 pattern: '/{foo}_{bar}',
-                callback: function(foo, bar){
+                callback: function(route, foo, bar){
                     t1 = foo;
                     t2 = bar;
                 }

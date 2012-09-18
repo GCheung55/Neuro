@@ -24,7 +24,7 @@ buster.testCase('this.router.parse()', {
 
             this.router.add({
                 pattern: '/foo',
-                callback: function(a){
+                callback: function(route, a){
                     t1++;
                 }
             });
@@ -41,14 +41,14 @@ buster.testCase('this.router.parse()', {
 
             this.router.add({
                 pattern: '/{foo}', 
-                callback: function(foo){
+                callback: function(route, foo){
                     t1 = foo;
                 }
             });
 
             this.router.add({
                 pattern: '/{foo}/{bar}', 
-                callback: function(foo, bar){
+                callback: function(route, foo, bar){
                     t2 = foo;
                     t3 = bar;
                 }
@@ -68,14 +68,14 @@ buster.testCase('this.router.parse()', {
             var a = this.router.add({
                 pattern: '/{foo}'
             }).get(0);
-            a.addEvent('match', function(foo){
+            a.addEvent('match', function(route, foo){
                 t1 = foo;
             });
 
             var b = this.router.add({
                 pattern: '/{foo}/{bar}'
             }).get(1);
-            b.addEvent('match', function(foo, bar){
+            b.addEvent('match', function(route, foo, bar){
                 t2 = foo;
                 t3 = bar;
             });
@@ -94,7 +94,7 @@ buster.testCase('this.router.parse()', {
             var a = this.router.add({
                 pattern: '/{foo}_{bar}'
             }).get(0);
-            a.addEvent('match', function(foo, bar){
+            a.addEvent('match', function(route, foo, bar){
                 t1 = foo;
                 t2 = bar;
             });
@@ -102,7 +102,7 @@ buster.testCase('this.router.parse()', {
             var b = this.router.add({
                 pattern: '/{foo}-{bar}'
             }).get(1);
-            b.addEvent('match', function(foo, bar){
+            b.addEvent('match', function(route, foo, bar){
                 t3 = foo;
                 t4 = bar;
             });
@@ -120,7 +120,7 @@ buster.testCase('this.router.parse()', {
             var t1, t2, t3, t4;
 
             var a = this.router.add({}).get(0);
-            a.addEvent('match', function(foo, bar){
+            a.addEvent('match', function(route, foo, bar){
                 t1 = 'lorem';
                 t2 = 'ipsum';
             });
@@ -139,7 +139,7 @@ buster.testCase('this.router.parse()', {
             var a = this.router.add({
                 pattern: ''
             }).get(0);
-            a.addEvent('match', function(foo, bar){
+            a.addEvent('match', function(route, foo, bar){
                 t1 = 'lorem';
                 t2 = 'ipsum';
             });
@@ -158,7 +158,7 @@ buster.testCase('this.router.parse()', {
             var a = this.router.add({
                 pattern: ''
             }).get(0);
-            a.addEvent('match', function(foo, bar){
+            a.addEvent('match', function(route, foo, bar){
                 t1 = 'lorem';
                 t2 = 'ipsum';
             });
@@ -182,7 +182,7 @@ buster.testCase('this.router.parse()', {
             var a = this.router.add({
                 pattern: 'foo/:lorem:/:ipsum:/:dolor:/:sit:'
             }).get(0);
-            a.addEvent('match', function(a, b, c, d){
+            a.addEvent('match', function(route, a, b, c, d){
                 t1 = a;
                 t2 = b;
                 t3 = c;
@@ -203,7 +203,7 @@ buster.testCase('this.router.parse()', {
             var a = this.router.add({
                 pattern: 'foo/:lorem:/:ipsum:/:dolor:/:sit:'
             }).get(0);
-            a.addEvent('match', function(a, b, c, d){
+            a.addEvent('match', function(route, a, b, c, d){
                 t1 = a;
                 t2 = b;
                 t3 = c;
@@ -230,7 +230,7 @@ buster.testCase('this.router.parse()', {
             var a = this.router.add({
                 pattern: /^\/[0-9]+\/([0-9]+)$/
             }).get(0); //capturing groups becomes params
-            a.addEvent('match', function(foo, bar){
+            a.addEvent('match', function(route, foo, bar){
                 t1 = foo;
                 t2 = bar;
             });
@@ -248,7 +248,7 @@ buster.testCase('this.router.parse()', {
             var a = this.router.add({
                 pattern: /^\/()\/([0-9]+)$/
             }).get(0); //capturing groups becomes params
-            a.addEvent('match', function(foo, bar){
+            a.addEvent('match', function(route, foo, bar){
                 t1 = foo;
                 t2 = bar;
             });
@@ -275,7 +275,7 @@ buster.testCase('this.router.parse()', {
             var a = this.router.add({
                 pattern: '{a}/{b}/{c}/{d}/{e}/{f}'
             }).get(0);
-            a.addEvent('match',function(a, b, c, d, e, f){
+            a.addEvent('match',function(route, a, b, c, d, e, f){
                 t1 = a;
                 t2 = b;
                 t3 = c;
@@ -307,7 +307,7 @@ buster.testCase('this.router.parse()', {
             var a = this.router.add({
                 pattern: '{lorem}/{ipsum}/{dolor}/{sit}'
             }).get(0);
-            a.addEvent('match', function(a, b, c, d){
+            a.addEvent('match', function(route, a, b, c, d){
                 t1 = a;
                 t2 = b;
                 t3 = c;
@@ -360,7 +360,7 @@ buster.testCase('this.router.parse()', {
             });
 
             // Event Psuedo's from MooTools-More can add :once psuedo
-            f1 = function(a, b){
+            f1 = function(route, a, b){
                 t1 = a;
                 t2 = b;
                 this.removeEvent('match', f1);
@@ -368,7 +368,7 @@ buster.testCase('this.router.parse()', {
             myRoute.addEvent('match', f1);
             this.router.parse('news/111/lorem-ipsum');
 
-            f2 = function(a, b){
+            f2 = function(route, a, b){
                 t3 = a;
                 t4 = b;
                 this.removeEvent('match', f2);
@@ -376,7 +376,7 @@ buster.testCase('this.router.parse()', {
             myRoute.addEvent('match', f2);
             this.router.parse('news/foo/222/lorem-ipsum');
 
-            f3 = function(a, b){
+            f3 = function(route, a, b){
                 t5 = a;
                 t6 = b;
                 this.removeEvent('match', f3);
@@ -384,7 +384,7 @@ buster.testCase('this.router.parse()', {
             myRoute.addEvent('match', f3);
             this.router.parse('news/333');
 
-            f4 = function(a, b){
+            f4 = function(route, a, b){
                 t7 = a;
                 t8 = b;
                 this.removeEvent('match', f4);
@@ -466,7 +466,7 @@ buster.testCase('this.router.parse()', {
                 pattern: 'news/{b}/:c:/:d:'
             }).get(0);
 
-            f1 = function(a, b){
+            f1 = function(route, a, b){
                 t1 = a;
                 t2 = b;
                 this.removeEvent('match', f1);
@@ -485,7 +485,7 @@ buster.testCase('this.router.parse()', {
                     return ['foo', vals.b];
                 }
             });
-            f2 = function(a, b){
+            f2 = function(route, a, b){
                 t3 = a;
                 t4 = b;
                 this.removeEvent('match', f2);
@@ -512,14 +512,14 @@ buster.testCase('this.router.parse()', {
 
             this.router.add({
                 pattern: '/{a}/{b}',
-                callback: function(params){
+                callback: function(route, params){
                     t1 = params;
                 }
             });
 
             this.router.add({
                 pattern: '/{a}', 
-                callback: function(params){
+                callback: function(route, params){
                     t2 = params;
                 }
             });
@@ -540,7 +540,7 @@ buster.testCase('this.router.parse()', {
                 this.router.options.modelOptions.defaults.normalizer = Router.NORM_AS_ARRAY;
                 this.router.add({
                     pattern: '/{a}/{b}', 
-                    callback: function (a) {
+                    callback: function (route, a) {
                         arg = a;
                     }
                 });
@@ -561,7 +561,7 @@ buster.testCase('this.router.parse()', {
                 this.router.options.modelOptions.defaults.normalizer = Router.NORM_AS_OBJECT;
                 this.router.add({
                     pattern: '/{a}/{b}', 
-                    callback: function (a) {
+                    callback: function (route, a) {
                         arg = a;
                     }
                 });
@@ -581,7 +581,7 @@ buster.testCase('this.router.parse()', {
                 this.router.options.modelOptions.defaults.normalizer = null;
                 this.router.add({
                     pattern: '/{a}/{b}', 
-                    callback: function (a, b) {
+                    callback: function (route, a, b) {
                         arg1 = a;
                         arg2 = b;
                     }
@@ -605,7 +605,7 @@ buster.testCase('this.router.parse()', {
             var a = this.router.add({
                 pattern: '/{foo}/{bar}'
             }).get(0);
-            a.addEvent('match', function(foo, bar){
+            a.addEvent('match', function(route, foo, bar){
                 expect(null).toEqual('fail: shouldn\'t match');
             });
 
@@ -613,7 +613,7 @@ buster.testCase('this.router.parse()', {
                 pattern: '/{foo}/{bar}', 
                 priority: 1
             }).get(0);
-            b.addEvent('match', function(foo, bar){
+            b.addEvent('match', function(route, foo, bar){
                 t3 = 'foo';
                 t4 = 'bar';
             });
@@ -630,7 +630,7 @@ buster.testCase('this.router.parse()', {
 
             var a = this.router.add({
                 pattern: '/{foo}/{bar}', 
-                callback: function(foo, bar){
+                callback: function(route, foo, bar){
                     expect(null).toEqual('fail: shouldn\'t match');
                 }, 
                 priority: 4
@@ -638,7 +638,7 @@ buster.testCase('this.router.parse()', {
 
             var b = this.router.add({
                 pattern: '/{foo}/{bar}', 
-                callback: function(foo, bar){
+                callback: function(route, foo, bar){
                     t3 = 'foo';
                     t4 = 'bar';
                 }, 
@@ -665,7 +665,7 @@ buster.testCase('this.router.parse()', {
             var a = this.router.add({
                 pattern: pattern
             }).get(0);
-            a.addEvent('match', function(foo, bar){
+            a.addEvent('match', function(route, foo, bar){
                 t1 = foo;
                 t2 = bar;
             });
@@ -679,7 +679,7 @@ buster.testCase('this.router.parse()', {
             var b = this.router.add({
                 pattern: pattern
             }).get(1);
-            b.addEvent('match', function(foo, bar){
+            b.addEvent('match', function(route, foo, bar){
                 t3 = foo;
                 t4 = bar;
             });
@@ -707,7 +707,7 @@ buster.testCase('this.router.parse()', {
             var a = this.router.add({
                 pattern: pattern
             }).get(0);
-            a.addEvent('match', function(foo, bar){
+            a.addEvent('match', function(route, foo, bar){
                 t1 = foo;
                 t2 = bar;
             });
@@ -719,7 +719,7 @@ buster.testCase('this.router.parse()', {
             var b = this.router.add({
                 pattern: pattern
             }).get(1);
-            b.addEvent('match', function(foo, bar){
+            b.addEvent('match', function(route, foo, bar){
                 t3 = foo;
                 t4 = bar;
             });
@@ -748,7 +748,7 @@ buster.testCase('this.router.parse()', {
 
             var r1 = this.router.add({
                 pattern:'/{a}/{b}/', 
-                callback: function(a,b){
+                callback: function(route, a,b){
                     t1 = a;
                     t2 = b;
                 },
@@ -757,7 +757,7 @@ buster.testCase('this.router.parse()', {
 
             var r2 = this.router.add({
                 pattern: '/bar/{b}/', 
-                callback: function(a,b){
+                callback: function(route, a,b){
                     t3 = a;
                     t4 = b;
                 },
@@ -766,7 +766,7 @@ buster.testCase('this.router.parse()', {
 
             var r3 = this.router.add({
                 pattern: '/foo/{b}/', 
-                callback: function(a,b){
+                callback: function(route, a,b){
                     t5 = a;
                     t6 = b;
                 },
@@ -775,7 +775,7 @@ buster.testCase('this.router.parse()', {
 
             var r4 = this.router.add({
                 pattern: '/{a}/:b:/', 
-                callback: function(a,b){
+                callback: function(route, a,b){
                     t7 = a;
                     t8 = b;
                 },
@@ -803,7 +803,7 @@ buster.testCase('this.router.parse()', {
 
             var r1 = this.router.add({
                 pattern: '/{a}/{b}/', 
-                callback: function(a,b){
+                callback: function(route, a,b){
                     t1 = a;
                     t2 = b;
                 }
@@ -811,7 +811,7 @@ buster.testCase('this.router.parse()', {
 
             var r2 = this.router.add({
                 pattern: '/bar/{b}/', 
-                callback: function(a,b){
+                callback: function(route, a,b){
                     t3 = a;
                     t4 = b;
                 }
@@ -819,7 +819,7 @@ buster.testCase('this.router.parse()', {
 
             var r3 = this.router.add({
                 pattern: '/foo/{b}/', 
-                callback: function(a,b){
+                callback: function(route, a,b){
                     t5 = a;
                     t6 = b;
                 }
@@ -827,7 +827,7 @@ buster.testCase('this.router.parse()', {
 
             var r4 = this.router.add({
                 pattern: '/{a}/:b:/', 
-                callback: function(a,b){
+                callback: function(route, a,b){
                     t7 = a;
                     t8 = b;
                 }
@@ -861,7 +861,7 @@ buster.testCase('this.router.parse()', {
 
                 var r1 = this.router.add({
                     pattern: '/{a}/{b}/', 
-                    callback: function(a,b){
+                    callback: function(route, a,b){
                         t1 = a;
                         t2 = b;
                     },
@@ -870,7 +870,7 @@ buster.testCase('this.router.parse()', {
 
                 var r2 = this.router.add({
                     pattern: '/bar/{b}/', 
-                    callback: function(a,b){
+                    callback: function(route, a,b){
                         t3 = a;
                         t4 = b;
                     },
@@ -879,7 +879,7 @@ buster.testCase('this.router.parse()', {
 
                 var r3 = this.router.add({
                     pattern: '/foo/{b}/', 
-                    callback: function(a,b){
+                    callback: function(route, a,b){
                         t5 = a;
                         t6 = b;
                     },
@@ -888,7 +888,7 @@ buster.testCase('this.router.parse()', {
 
                 var r4 = this.router.add({
                     pattern: '/{a}/:b:/', 
-                    callback: function(a,b){
+                    callback: function(route, a,b){
                         t7 = a;
                         t8 = b;
                     },
@@ -919,19 +919,19 @@ buster.testCase('this.router.parse()', {
 
             this.router.add({
                 pattern: 'foo', 
-                callback: function(a, b){
+                callback: function(route, a, b){
                     t1 = a;
                     t2 = b;
                 }
             });
 
-            this.router.addEvent('default', function(a, b, c){
+            this.router.addEvent('default', function(router, a, b, c){
                 t3 = a;
                 t4 = b;
                 t5 = c;
             });
 
-            this.router.addEvent('match', function(a, b, c){
+            this.router.addEvent('match', function(router, a, b, c){
                 t6 = a;
                 t7 = b;
                 t8 = c;
@@ -969,7 +969,7 @@ buster.testCase('this.router.parse()', {
                 'c*' : ['foo/bar', 'edit', '123/456/789']
             });
 
-            f1 = function(a, b, c){
+            f1 = function(route, a, b, c){
                 t1 = a;
                 t2 = b;
                 t3 = c;
@@ -982,7 +982,7 @@ buster.testCase('this.router.parse()', {
             expect( t2 ).toBe( '333' );
             expect( t3 ).not.toBeDefined();
 
-            f2 = function(a, b, c){
+            f2 = function(route, a, b, c){
                 t4 = a;
                 t5 = b;
                 t6 = c;
@@ -995,7 +995,7 @@ buster.testCase('this.router.parse()', {
             expect( t5 ).toBe( '456' );
             expect( t6 ).toBe( 'foo/bar' );
 
-            f3 = function(a, b, c){
+            f3 = function(route, a, b, c){
                 t7 = a;
                 t8 = b;
                 t9 = c;
@@ -1022,7 +1022,7 @@ buster.testCase('this.router.parse()', {
                 c : ['add', 'edit']
             });
 
-            f1 = function(a, b, c){
+            f1 = function(route, a, b, c){
                 t1 = a;
                 t2 = b;
                 t3 = c;
@@ -1035,7 +1035,7 @@ buster.testCase('this.router.parse()', {
             expect( t2 ).toBe( '333' );
             expect( t3 ).toBe( 'add' );
 
-            f2 = function(a, b, c){
+            f2 = function(route, a, b, c){
                 t4 = a;
                 t5 = b;
                 t6 = c;
@@ -1048,7 +1048,7 @@ buster.testCase('this.router.parse()', {
             expect( t5 ).toBe( '456/foo/bar' );
             expect( t6 ).toBe( 'edit' );
 
-            f3 = function(a, b, c){
+            f3 = function(route, a, b, c){
                 t7 = a;
                 t8 = b;
                 t9 = c;
@@ -1075,7 +1075,7 @@ buster.testCase('this.router.parse()', {
                 var t1, t2, t3, 
                     f1;
 
-                f1 = function(a, b, c){
+                f1 = function(route, a, b, c){
                     t1 = a;
                     t2 = b;
                     t3 = c;
@@ -1099,7 +1099,7 @@ buster.testCase('this.router.parse()', {
                 var t1, t2, 
                     f1;
 
-                f1 = function(a, b){
+                f1 = function(route, a, b){
                     t1 = a;
                     t2 = b;
                     this.removeEvent('match', f1);
@@ -1121,7 +1121,7 @@ buster.testCase('this.router.parse()', {
                 var t1, t2,
                     f1;
 
-                f1 = function(a, b){
+                f1 = function(route, a, b){
                     t1 = a;
                     t2 = b;
                     this.removeEvent('match', f1);
@@ -1135,7 +1135,7 @@ buster.testCase('this.router.parse()', {
                 var t3, t4,
                     f2;
 
-                f2 = function(a, b){
+                f2 = function(route, a, b){
                     t3 = a;
                     t4 = b;
                     this.removeEvent('match', f2);
@@ -1157,7 +1157,7 @@ buster.testCase('this.router.parse()', {
                 var t1, t2,
                     f1;
 
-                f1 = function(a, b){
+                f1 = function(route, a, b){
                     t1 = a;
                     t2 = b;
                     this.removeEvent('match', f1);
@@ -1171,7 +1171,7 @@ buster.testCase('this.router.parse()', {
                 var t3, t4,
                     f2;
 
-                f2 = function(a, b){
+                f2 = function(route, a, b){
                     t3 = a;
                     t4 = b;
                     this.removeEvent('match', f2);
@@ -1193,7 +1193,7 @@ buster.testCase('this.router.parse()', {
                 var t1, t2,
                     f1;
 
-                f1 = function(a, b){
+                f1 = function(route, a, b){
                     t1 = a;
                     t2 = b;
                     this.removeEvent('match', f1);
@@ -1207,7 +1207,7 @@ buster.testCase('this.router.parse()', {
                 var t3, t4,
                     f2;
 
-                f2 = function(a, b){
+                f2 = function(route, a, b){
                     t3 = a;
                     t4 = b;
                     this.removeEvent('match', f2);

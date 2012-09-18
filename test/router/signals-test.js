@@ -22,12 +22,12 @@ buster.testCase('Router Signals', {
         var count = 0, requests = [];
         var a = this.router.add({
             pattern: '/{foo}_{bar}',
-            callback: function(foo, bar){
+            callback: function(route, foo, bar){
                 expect(null).toEqual('fail: shouldn\'t match');
             }
         }).get(0);
 
-        this.router.addEvent('default', function(request){
+        this.router.addEvent('default', function(router, request){
             requests.push(request);
             count++;
         });
@@ -50,19 +50,19 @@ buster.testCase('Router Signals', {
 
         var a = this.router.add({
             pattern: '/{foo}_{bar}',
-            callback: function(foo, bar){
+            callback: function(route, foo, bar){
                 count++;
             }
         }).get(0);
 
         // Equiv to 'bypassed'
-        this.router.addEvent('default', function(request){
+        this.router.addEvent('default', function(router, request){
             requests.push(request);
             count2++;
         });
 
         // Equiv to 'routed'
-        this.router.addEvent('match', function(request, data){
+        this.router.addEvent('match', function(router, request, data){
             requests.push(request);
             count++;
 
@@ -94,23 +94,23 @@ buster.testCase('Router Signals', {
 
         var a = this.router.add({
             pattern: '/{foo}_{bar}',
-            callback: function(a, b){
+            callback: function(route, a, b){
                 matched.push(a, b);
             }
         }).get(0);
 
         // Equiv to 'switched'
-        this.router.addEvent('pass', function(req){
+        this.router.addEvent('pass', function(router, req){
             switched.push(req);
         });
 
         // Equiv to 'bypassed'
-        this.router.addEvent('default', function(req){
+        this.router.addEvent('default', function(router, req){
             bypassed.push(req);
         });
 
         // Equiv to 'routed'
-        this.router.addEvent('match', function(req, data){
+        this.router.addEvent('match', function(router, req, data){
             routed.push(req);
             expect( data.route ).toBe( a );
         });
@@ -151,7 +151,7 @@ buster.testCase('Router Signals', {
             firsts = [];
 
         // Equiv to 'routed'
-        this.router.addEvent('match', function(req, data){
+        this.router.addEvent('match', function(router, req, data){
             count += 1;
             firsts.push(data.isFirst);
         });
@@ -189,14 +189,14 @@ buster.testCase('Router Signals', {
 
         var r1 = this.router.add({
             pattern:'/{a}', 
-            callback: function(a){
+            callback: function(route, a){
                 vals.push(a);
                 count += 1;
             }
         }).get(0);
 
         // Equiv to 'switched'
-        r1.addEvent('pass', function(r){
+        r1.addEvent('pass', function(route, r){
             vals.push('SWITCH'); //make sure happened before next matched
             req = r;
             count += 1;
@@ -204,7 +204,7 @@ buster.testCase('Router Signals', {
 
         var r2 = this.router.add({
             pattern: '/foo/{a}', 
-            callback: function(a){
+            callback: function(route, a){
                 vals.push(a);
                 count += 1;
             }

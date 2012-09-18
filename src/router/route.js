@@ -6,7 +6,8 @@
  */
 var Model = require('../model/main').Model,
     patternLexer = require('./patternlexer'),
-    utils = require('./utils');
+    utils = require('./utils'),
+    signalFactory = require('../../utils/signalFactory');
 
 var _hasOptionalGroupBug = (/t(.+)?/).exec('t')[1] === '';
 
@@ -191,5 +192,9 @@ var Route = new Class({
         return patternLexer;
     }
 });
+
+Route.implement(
+    signalFactory(['match', 'pass'])
+);
 
 exports.Route = Route;

@@ -25,7 +25,7 @@ buster.testCase('new Router()', {
 
             cr.add({
                 pattern:'/{foo}',
-                callback: function(foo){
+                callback: function(route, foo){
                     t1 = foo;
                 }
             });
@@ -41,14 +41,14 @@ buster.testCase('new Router()', {
 
             cr.add({
                 pattern: '/{foo}', 
-                callback: function(foo){
+                callback: function(route, foo){
                     t1 = foo;
                 }
             });
 
             this.router.add({
                 pattern: '/{foo}', 
-                callback: function(foo){
+                callback: function(route, foo){
                     t1 = 'error!';
                 }
             });
@@ -64,14 +64,14 @@ buster.testCase('new Router()', {
 
             this.router.add({
                 pattern: '/{foo}', 
-                callback: function(foo){
+                callback: function(route, foo){
                     t1 = foo;
                 }
             });
 
             cr.add({
                 pattern:'/{foo}', 
-                callback: function(foo){
+                callback: function(route, foo){
                     t1 = 'error!';
                 }
             });

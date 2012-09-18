@@ -6,7 +6,8 @@
  */
 var Collection = require('../collection/main').Collection,
     Model = require('../model/main').Model,
-    Route = require('./route').Route;
+    Route = require('./route').Route,
+    signalFactory = require('../../utils/signalFactory');
 
 var Router = new Class({
     Extends: Collection,
@@ -68,14 +69,14 @@ var Router = new Class({
                 //should be incremental loop, execute routes in order
                 while (i < n) {
                     cur = routes[i];
-                    cur.route.fireEvent('match', defaultArgs.concat(cur.params));
+                    cur.route.signalMatch.apply(cur.route, defaultArgs.concat(cur.params));
                     cur.isFirst = !i;
-                    this.fireEvent('match', defaultArgs.concat([request, cur]));
+                    this.signalMatch.apply(this, defaultArgs.concat([request, cur]));
                     i += 1;
                 }
             } else {
                 this._prevBypassedRequest = request;
-                this.fireEvent('default', defaultArgs.concat([request]));
+                this.signalDefault.apply(this, defaultArgs.concat([request]));
             }
         }
 
@@ -88,7 +89,8 @@ var Router = new Class({
         while (prev = this._prevRoutes[i++]) {
             //check if switched exist since route may be disposed
             if (/*prev.route.switched && */this._didSwitch(prev.route, matchedRoutes)) {
-                prev.route.fireEvent('pass', request);
+                prev.route.signalPass(request);
+                // prev.route.fireEvent('pass', request);
             }
         }
 
@@ -139,5 +141,9 @@ Router.NORM_AS_ARRAY = function(req, vals){
 Router.NORM_AS_OBJECT = function(req, vals){
     return [vals];
 };
+
+Router.implement(
+    signalFactory(['match', 'default'])
+);
 
 exports.Router = Router;

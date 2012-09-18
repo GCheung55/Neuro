@@ -922,7 +922,7 @@
         exports.View = View;
     },
     f: function(require, module, exports, global) {
-        var Collection = require("b").Collection, Model = require("2").Model, Route = require("g").Route;
+        var Collection = require("b").Collection, Model = require("2").Model, Route = require("g").Route, signalFactory = require("9");
         var Router = new Class({
             Extends: Collection,
             options: {
@@ -958,14 +958,14 @@
                         this._prevRoutes = routes;
                         while (i < n) {
                             cur = routes[i];
-                            cur.route.fireEvent("match", defaultArgs.concat(cur.params));
+                            cur.route.signalMatch.apply(cur.route, defaultArgs.concat(cur.params));
                             cur.isFirst = !i;
-                            this.fireEvent("match", defaultArgs.concat([ request, cur ]));
+                            this.signalMatch.apply(this, defaultArgs.concat([ request, cur ]));
                             i += 1;
                         }
                     } else {
                         this._prevBypassedRequest = request;
-                        this.fireEvent("default", defaultArgs.concat([ request ]));
+                        this.signalDefault.apply(this, defaultArgs.concat([ request ]));
                     }
                 }
                 return this;
@@ -974,7 +974,7 @@
                 var i = 0, prev;
                 while (prev = this._prevRoutes[i++]) {
                     if (this._didSwitch(prev.route, matchedRoutes)) {
-                        prev.route.fireEvent("pass", request);
+                        prev.route.signalPass(request);
                     }
                 }
                 return this;
@@ -1011,10 +1011,11 @@
         Router.NORM_AS_OBJECT = function(req, vals) {
             return [ vals ];
         };
+        Router.implement(signalFactory([ "match", "default" ]));
         exports.Router = Router;
     },
     g: function(require, module, exports, global) {
-        var Model = require("2").Model, patternLexer = require("h"), utils = require("i");
+        var Model = require("2").Model, patternLexer = require("h"), utils = require("i"), signalFactory = require("9");
         var _hasOptionalGroupBug = /t(.+)?/.exec("t")[1] === "";
         var typecastValue = utils.typecastValue, decodeQueryString = utils.decodeQueryString;
         var Route = new Class({
@@ -1138,6 +1139,7 @@
                 return patternLexer;
             }
         });
+        Route.implement(signalFactory([ "match", "pass" ]));
         exports.Route = Route;
     },
     h: function(require, module, exports, global) {
