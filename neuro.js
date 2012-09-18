@@ -15,12 +15,15 @@
         Neuro.Model = require("2").Model;
         Neuro.Collection = require("b").Collection;
         Neuro.View = require("d").View;
+        Neuro.Router = require("f").Router;
+        Neuro.Router.patternLexer = require("h");
+        Neuro.Router.Route = require("g").Route;
         Neuro.Is = require("4").Is;
         Neuro.Mixins = {
             Butler: require("8").Butler,
             Connector: require("6").Connector,
             Silence: require("5").Silence,
-            Snitch: require("f").Snitch
+            Snitch: require("j").Snitch
         };
         exports = module.exports = Neuro;
     },
@@ -919,6 +922,408 @@
         exports.View = View;
     },
     f: function(require, module, exports, global) {
+        var Collection = require("b").Collection, Model = require("2").Model, Route = require("g").Route;
+        var Router = new Class({
+            Extends: Collection,
+            options: {
+                Model: Route,
+                modelOptions: {
+                    defaults: {
+                        typecast: false,
+                        normalizer: null
+                    }
+                },
+                greedy: false,
+                greedyEnabled: true
+            },
+            _prevRoutes: [],
+            _prevMatchedRequest: null,
+            _prevBypassedRequest: null,
+            _add: function(model, at) {
+                var isInstance = instanceOf(model, Model), priority = isInstance ? model.get("priority") : model.priority;
+                if (at == void 0 && priority != void 0) {
+                    at = priority * -1;
+                }
+                this.parent(model, at);
+                return this;
+            },
+            parse: function(request, defaultArgs) {
+                request = request || "";
+                defaultArgs = defaultArgs || [];
+                if (request !== this._prevMatchedRequest && request !== this._prevBypassedRequest) {
+                    var routes = this._getMatchedRoutes(request), i = 0, n = routes.length, cur;
+                    if (n) {
+                        this._prevMatchedRequest = request;
+                        this._notifyPrevRoutes(routes, request);
+                        this._prevRoutes = routes;
+                        while (i < n) {
+                            cur = routes[i];
+                            cur.route.fireEvent("match", defaultArgs.concat(cur.params));
+                            cur.isFirst = !i;
+                            this.fireEvent("match", defaultArgs.concat([ request, cur ]));
+                            i += 1;
+                        }
+                    } else {
+                        this._prevBypassedRequest = request;
+                        this.fireEvent("default", defaultArgs.concat([ request ]));
+                    }
+                }
+                return this;
+            },
+            _notifyPrevRoutes: function(matchedRoutes, request) {
+                var i = 0, prev;
+                while (prev = this._prevRoutes[i++]) {
+                    if (this._didSwitch(prev.route, matchedRoutes)) {
+                        prev.route.fireEvent("pass", request);
+                    }
+                }
+                return this;
+            },
+            _didSwitch: function(route, matchedRoutes) {
+                var i = 0, matched;
+                while (matched = matchedRoutes[i++]) {
+                    if (matched.route === route) {
+                        return false;
+                    }
+                }
+                return true;
+            },
+            _getMatchedRoutes: function(request) {
+                var res = [], n = this.length, i = 0, route;
+                while (n--) {
+                    route = this.get(i++);
+                    if ((!res.length || this.options.greedy || route.get("greedy")) && route.match(request)) {
+                        res.push({
+                            route: route,
+                            params: route._getParamsArray(request)
+                        });
+                    }
+                    if (!this.options.greedyEnabled && res.length) {
+                        break;
+                    }
+                }
+                return res;
+            }
+        });
+        Router.NORM_AS_ARRAY = function(req, vals) {
+            return [ vals.vals_ ];
+        };
+        Router.NORM_AS_OBJECT = function(req, vals) {
+            return [ vals ];
+        };
+        exports.Router = Router;
+    },
+    g: function(require, module, exports, global) {
+        var Model = require("2").Model, patternLexer = require("h"), utils = require("i");
+        var _hasOptionalGroupBug = /t(.+)?/.exec("t")[1] === "";
+        var typecastValue = utils.typecastValue, decodeQueryString = utils.decodeQueryString;
+        var Route = new Class({
+            Extends: Model,
+            options: {
+                defaults: {
+                    pattern: void 0,
+                    priority: 0,
+                    normalizer: void 0,
+                    greedy: false,
+                    rules: {},
+                    typecast: false
+                },
+                accessors: {
+                    pattern: {
+                        set: function(prop, value) {
+                            if (this.validate(prop, value)) {
+                                var obj = {}, lexer = this.getLexer();
+                                obj[prop] = obj._matchRegexp = value;
+                                obj._optionalParamsIds = obj._paramsIds = void 0;
+                                if (typeOf(value) != "regexp") {
+                                    obj._paramsIds = lexer.getParamIds(value);
+                                    obj._optionalParamsIds = lexer.getOptionalParamsIds(value);
+                                    obj._matchRegexp = lexer.compilePattern(value);
+                                }
+                                this.set(obj);
+                            }
+                        }
+                    },
+                    rules: {
+                        set: function(prop, value) {
+                            if (this.validate(prop, value)) {
+                                this.set(prop, new Model(value));
+                            }
+                        }
+                    },
+                    callback: {
+                        set: function(prop, value) {
+                            if (typeOf(value) == "function") {
+                                this.addEvent("match", value);
+                            }
+                        }
+                    }
+                },
+                validators: {
+                    pattern: function(val) {
+                        return [ "null", "regexp", "string" ].contains(typeOf(val));
+                    },
+                    priority: Type.isNumber,
+                    normalizer: Type.isFunction,
+                    greedy: Type.isBoolean,
+                    rules: Type.isObject
+                }
+            },
+            match: function(request) {
+                request = request || "";
+                return this.get("_matchRegexp").test(request) && this._validateParams(request);
+            },
+            _validateParams: function(request) {
+                var rules = this.get("rules"), values = this._getParamsObject(request);
+                return rules.every(function(rule, key) {
+                    return !(key != "normalize_" && !this._isValidParam(request, key, values));
+                }, this);
+            },
+            _isValidParam: function(request, prop, values) {
+                var validationRule = this.get("rules").get(prop), val = values[prop], isValid = false, isQuery = prop.indexOf("?") === 0, _optionalParamsIds = this.get("_optionalParamsIds"), type;
+                if (!val && _optionalParamsIds && _optionalParamsIds.indexOf(prop) !== -1) {
+                    return true;
+                }
+                type = typeOf(validationRule);
+                if (type !== "function" && isQuery) {
+                    val = values[prop + "_"];
+                }
+                if (type == "regexp") {
+                    isValid = validationRule.test(val);
+                } else if (type == "array") {
+                    isValid = validationRule.indexOf(val) !== -1;
+                } else if (type == "function") {
+                    isValid = validationRule(val, request, values);
+                }
+                return isValid;
+            },
+            _getParamsObject: function(request) {
+                var shouldTypecast = this.get("typecast"), _paramsIds = this.get("_paramsIds"), _optionalParamsIds = this.get("_optionalParamsIds"), values = this.getLexer().getParamValues(request, this.get("_matchRegexp"), shouldTypecast), o = {}, n = values.length, param, val;
+                while (n--) {
+                    val = values[n];
+                    if (_paramsIds) {
+                        param = _paramsIds[n];
+                        if (param.indexOf("?") === 0 && val) {
+                            o[param + "_"] = val;
+                            values[n] = val = decodeQueryString(val);
+                        }
+                        if (_hasOptionalGroupBug && val === "" && _optionalParamsIds && _optionalParamsIds.indexOf(param) !== -1) {
+                            values[n] = val = void 0;
+                        }
+                        o[param] = val;
+                    }
+                    o[n] = val;
+                }
+                o.request_ = shouldTypecast ? typecastValue(request) : request;
+                o.vals_ = values;
+                return o;
+            },
+            _getParamsArray: function(request) {
+                var rules = this.get("rules"), norm = rules && rules.get("normalize_") || this.get("normalizer"), params;
+                if (norm && Type.isFunction(norm)) {
+                    params = norm(request, this._getParamsObject(request));
+                } else {
+                    params = this._getParamsObject(request).vals_;
+                }
+                return params;
+            },
+            interpolate: function(replacements) {
+                var str = this.getLexer().interpolate(this.get("pattern"), replacements);
+                if (!this._validateParams(str)) {
+                    throw new Error("Generated string doesn't validate against `Route.rules`.");
+                }
+                return str;
+            },
+            getLexer: function() {
+                return patternLexer;
+            }
+        });
+        exports.Route = Route;
+    },
+    h: function(require, module, exports, global) {
+        var typecastArrayValues = require("i").typecastArrayValues;
+        var ESCAPE_CHARS_REGEXP = /[\\.+*?\^$\[\](){}\/'#]/g, LOOSE_SLASHES_REGEXP = /^\/|\/$/g, LEGACY_SLASHES_REGEXP = /\/$/g, PARAMS_REGEXP = /(?:\{|:)([^}:]+)(?:\}|:)/g, TOKENS = {
+            OS: {
+                rgx: /([:}]|\w(?=\/))\/?(:|(?:\{\?))/g,
+                save: "$1{{id}}$2",
+                res: "\\/?"
+            },
+            RS: {
+                rgx: /([:}])\/?(\{)/g,
+                save: "$1{{id}}$2",
+                res: "\\/"
+            },
+            RQ: {
+                rgx: /\{\?([^}]+)\}/g,
+                res: "\\?([^#]+)"
+            },
+            OQ: {
+                rgx: /:\?([^:]+):/g,
+                res: "(?:\\?([^#]*))?"
+            },
+            OR: {
+                rgx: /:([^:]+)\*:/g,
+                res: "(.*)?"
+            },
+            RR: {
+                rgx: /\{([^}]+)\*\}/g,
+                res: "(.+)"
+            },
+            RP: {
+                rgx: /\{([^}]+)\}/g,
+                res: "([^\\/?]+)"
+            },
+            OP: {
+                rgx: /:([^:]+):/g,
+                res: "([^\\/?]+)?/?"
+            }
+        }, LOOSE_SLASH = 1, STRICT_SLASH = 2, LEGACY_SLASH = 3, _slashMode = LOOSE_SLASH;
+        function precompileTokens() {
+            var key, cur;
+            for (key in TOKENS) {
+                if (TOKENS.hasOwnProperty(key)) {
+                    cur = TOKENS[key];
+                    cur.id = "__CR_" + key + "__";
+                    cur.save = "save" in cur ? cur.save.replace("{{id}}", cur.id) : cur.id;
+                    cur.rRestore = new RegExp(cur.id, "g");
+                }
+            }
+        }
+        precompileTokens();
+        function captureVals(regex, pattern) {
+            var vals = [], match;
+            regex.lastIndex = 0;
+            while (match = regex.exec(pattern)) {
+                vals.push(match[1]);
+            }
+            return vals;
+        }
+        function getParamIds(pattern) {
+            return captureVals(PARAMS_REGEXP, pattern);
+        }
+        function getOptionalParamsIds(pattern) {
+            return captureVals(TOKENS.OP.rgx, pattern);
+        }
+        function compilePattern(pattern) {
+            pattern = pattern || "";
+            if (pattern) {
+                if (_slashMode === LOOSE_SLASH) {
+                    pattern = pattern.replace(LOOSE_SLASHES_REGEXP, "");
+                } else if (_slashMode === LEGACY_SLASH) {
+                    pattern = pattern.replace(LEGACY_SLASHES_REGEXP, "");
+                }
+                pattern = replaceTokens(pattern, "rgx", "save");
+                pattern = pattern.replace(ESCAPE_CHARS_REGEXP, "\\$&");
+                pattern = replaceTokens(pattern, "rRestore", "res");
+                if (_slashMode === LOOSE_SLASH) {
+                    pattern = "\\/?" + pattern;
+                }
+            }
+            if (_slashMode !== STRICT_SLASH) {
+                pattern += "\\/?";
+            }
+            return new RegExp("^" + pattern + "$");
+        }
+        function replaceTokens(pattern, regexpName, replaceName) {
+            var cur, key;
+            for (key in TOKENS) {
+                if (TOKENS.hasOwnProperty(key)) {
+                    cur = TOKENS[key];
+                    pattern = pattern.replace(cur[regexpName], cur[replaceName]);
+                }
+            }
+            return pattern;
+        }
+        function getParamValues(request, regexp, shouldTypecast) {
+            var vals = regexp.exec(request);
+            if (vals) {
+                vals.shift();
+                if (shouldTypecast) {
+                    vals = typecastArrayValues(vals);
+                }
+            }
+            return vals;
+        }
+        function interpolate(pattern, replacements) {
+            if (typeof pattern !== "string") {
+                throw new Error("Route pattern should be a string.");
+            }
+            var replaceFn = function(match, prop) {
+                var val;
+                if (prop in replacements) {
+                    val = String(replacements[prop]);
+                    if (match.indexOf("*") === -1 && val.indexOf("/") !== -1) {
+                        throw new Error('Invalid value "' + val + '" for segment "' + match + '".');
+                    }
+                } else if (match.indexOf("{") !== -1) {
+                    throw new Error("The segment " + match + " is required.");
+                } else {
+                    val = "";
+                }
+                return val;
+            };
+            if (!TOKENS.OS.trail) {
+                TOKENS.OS.trail = new RegExp("(?:" + TOKENS.OS.id + ")+$");
+            }
+            return pattern.replace(TOKENS.OS.rgx, TOKENS.OS.save).replace(PARAMS_REGEXP, replaceFn).replace(TOKENS.OS.trail, "").replace(TOKENS.OS.rRestore, "/");
+        }
+        exports = module.exports = {
+            strict: function() {
+                _slashMode = STRICT_SLASH;
+            },
+            loose: function() {
+                _slashMode = LOOSE_SLASH;
+            },
+            legacy: function() {
+                _slashMode = LEGACY_SLASH;
+            },
+            getParamIds: getParamIds,
+            getOptionalParamsIds: getOptionalParamsIds,
+            getParamValues: getParamValues,
+            compilePattern: compilePattern,
+            interpolate: interpolate
+        };
+    },
+    i: function(require, module, exports, global) {
+        var UNDEF;
+        var typecastValue = function(val) {
+            var r;
+            if (val === null || val === "null") {
+                r = null;
+            } else if (val === "true") {
+                r = true;
+            } else if (val === "false") {
+                r = false;
+            } else if (val === UNDEF || val === "undefined") {
+                r = UNDEF;
+            } else if (val === "" || isNaN(val)) {
+                r = val;
+            } else {
+                r = parseFloat(val);
+            }
+            return r;
+        };
+        var typecastArrayValues = function(values) {
+            var n = values.length, result = [];
+            while (n--) {
+                result[n] = typecastValue(values[n]);
+            }
+            return result;
+        };
+        var decodeQueryString = function(str) {
+            var queryArr = (str || "").replace("?", "").split("&"), n = queryArr.length, obj = {}, item, val;
+            while (n--) {
+                item = queryArr[n].split("=");
+                val = typecastValue(item[1]);
+                obj[item[0]] = typeof val === "string" ? decodeURIComponent(val) : val;
+            }
+            return obj;
+        };
+        exports.typecastValue = typecastValue;
+        exports.typecastArrayValues = typecastArrayValues;
+        exports.decodeQueryString = decodeQueryString;
+    },
+    j: function(require, module, exports, global) {
         var asterisk = "*";
         var normalizeValidators = function(arg) {
             var obj = {};
