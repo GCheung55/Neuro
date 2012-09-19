@@ -426,7 +426,7 @@ buster.testCase('Match', {
 
             var b = this.router.add({
                 pattern: '/{foo}'
-            }).get(1);
+            }).get(0);
             expect( b.match('foo') ).toBe( false );
             expect( b.match('/foo') ).toBe( true );
             expect( b.match('foo/') ).toBe( false );
@@ -434,7 +434,7 @@ buster.testCase('Match', {
 
             var c = this.router.add({
                 pattern: ''
-            }).get(2);
+            }).get(0);
             expect( c.match() ).toBe( true );
             expect( c.match('') ).toBe( true );
             expect( c.match('/') ).toBe( false );
@@ -442,7 +442,7 @@ buster.testCase('Match', {
 
             var d = this.router.add({
                 pattern: '/'
-            }).get(3);
+            }).get(0);
             expect( d.match() ).toBe( false );
             expect( d.match('') ).toBe( false );
             expect( d.match('/') ).toBe( true );

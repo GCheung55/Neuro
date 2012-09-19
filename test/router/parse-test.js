@@ -74,7 +74,7 @@ buster.testCase('this.router.parse()', {
 
             var b = this.router.add({
                 pattern: '/{foo}/{bar}'
-            }).get(1);
+            }).get(0);
             b.addEvent('match', function(route, foo, bar){
                 t2 = foo;
                 t3 = bar;
@@ -101,7 +101,7 @@ buster.testCase('this.router.parse()', {
 
             var b = this.router.add({
                 pattern: '/{foo}-{bar}'
-            }).get(1);
+            }).get(0);
             b.addEvent('match', function(route, foo, bar){
                 t3 = foo;
                 t4 = bar;
@@ -476,7 +476,7 @@ buster.testCase('this.router.parse()', {
 
             var route2 = this.router.add({
                 pattern: '{a}/{b}/:c:/:d:'
-            }).get(1);
+            }).get(0);
             route2.set('rules', {
                 a : ['news', 'article'],
                 b : /[\-0-9a-zA-Z]+/,
@@ -612,7 +612,7 @@ buster.testCase('this.router.parse()', {
             var b = this.router.add({
                 pattern: '/{foo}/{bar}', 
                 priority: 1
-            }).get(0);
+            }).get(1);
             b.addEvent('match', function(route, foo, bar){
                 t3 = 'foo';
                 t4 = 'bar';
@@ -678,7 +678,7 @@ buster.testCase('this.router.parse()', {
 
             var b = this.router.add({
                 pattern: pattern
-            }).get(1);
+            }).get(0);
             b.addEvent('match', function(route, foo, bar){
                 t3 = foo;
                 t4 = bar;
@@ -762,7 +762,7 @@ buster.testCase('this.router.parse()', {
                     t4 = b;
                 },
                 greedy: true
-            }).get(1);
+            }).get(0);
 
             var r3 = this.router.add({
                 pattern: '/foo/{b}/', 
@@ -771,7 +771,7 @@ buster.testCase('this.router.parse()', {
                     t6 = b;
                 },
                 greedy: true
-            }).get(2);
+            }).get(0);
 
             var r4 = this.router.add({
                 pattern: '/{a}/:b:/', 
@@ -780,7 +780,7 @@ buster.testCase('this.router.parse()', {
                     t8 = b;
                 },
                 greedy: true
-            }).get(3);
+            }).get(0);
 
             this.router.parse('/foo/lorem');
 
