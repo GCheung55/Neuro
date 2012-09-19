@@ -939,13 +939,17 @@
             _prevRoutes: [],
             _prevMatchedRequest: null,
             _prevBypassedRequest: null,
-            _add: function(model, at) {
-                var isInstance = instanceOf(model, Model), priority = isInstance ? model.get("priority") : model.priority;
-                if (at == void 0 && priority != void 0) {
-                    at = priority * -1;
-                }
-                this.parent(model, at);
+            _add: function(route) {
+                var priority = instanceOf(route, Model) ? route.get("priority") : route.priority || (route.priority = 0);
+                this.parent(route, this._calcPriority(priority));
                 return this;
+            },
+            _calcPriority: function(priority) {
+                var route, n = this.length;
+                do {
+                    --n;
+                } while ((route = this.get(n), route) && priority <= route.get("priority"));
+                return n + 1;
             },
             parse: function(request, defaultArgs) {
                 request = request || "";
@@ -989,9 +993,8 @@
                 return true;
             },
             _getMatchedRoutes: function(request) {
-                var res = [], n = this.length, i = 0, route;
-                while (n--) {
-                    route = this.get(i++);
+                var res = [], n = this.length, route;
+                while (route = this.get(--n)) {
                     if ((!res.length || this.options.greedy || route.get("greedy")) && route.match(request)) {
                         res.push({
                             route: route,
@@ -1034,7 +1037,8 @@
                         set: function(prop, value) {
                             if (this.validate(prop, value)) {
                                 var obj = {}, lexer = this.getLexer();
-                                obj[prop] = obj._matchRegexp = value;
+                                this.set(prop, value);
+                                obj._matchRegexp = value;
                                 obj._optionalParamsIds = obj._paramsIds = void 0;
                                 if (typeOf(value) != "regexp") {
                                     obj._paramsIds = lexer.getParamIds(value);
