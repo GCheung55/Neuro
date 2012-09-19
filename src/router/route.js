@@ -9,6 +9,8 @@ var Model = require('../model/main').Model,
     utils = require('./utils'),
     signalFactory = require('../../utils/signalFactory');
 
+// IE 7-8 capture optional groups as empty strings while other browsers
+// capture as `undefined`
 var _hasOptionalGroupBug = (/t(.+)?/).exec('t')[1] === '';
 
 var typecastValue = utils.typecastValue,
@@ -39,7 +41,10 @@ var Route = new Class({
                         var obj = {},
                             lexer = this.getLexer();
 
-                        obj[prop] = obj._matchRegexp = value;
+                        // Set the pattern first, so it doesn't create a loop if the browser doesn't go through the obj's order properly
+                        this.set(prop, value);
+
+                        obj._matchRegexp = value;
                         obj._optionalParamsIds = obj._paramsIds = void 0;
 
                         if (typeOf(value) != 'regexp') {
