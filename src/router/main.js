@@ -1,5 +1,5 @@
 /**
- * A router ported from Crossroads.js by Miller Medeiros (https://github.com/millermedeiros/crossroads.js)
+ * Router, an object heavily influenced by Crossroads.js by Miller Medeiros (https://github.com/millermedeiros/crossroads.js)
  * date - Jul 29, 2012
  * crossroads.js commit - 3b413b0b506b0c04f80b03194d4c1abaeccc9574
  * @type {Class}
@@ -30,23 +30,26 @@ var Router = new Class({
 
     _prevBypassedRequest: null,
 
-    _add: function(model, at){
-        var isInstance = instanceOf(model, Model),
-            priority = isInstance ? model.get('priority') : model.priority;
+    _add: function(route){
+        // placement of route is determined by the priority property
+        var priority = instanceOf(route, Model) ? route.get('priority') : route.priority || (route.priority = 0);
 
-        /*
-        Order priority. 
-        Numbers > 0 should go before 0 (which means turning it into a negative)
-        Numbers < 0 should go after 0 (which means turning it into a positive)
-         */
-        if (at == void 0 && priority != void 0){
-            at = (priority) * -1;
-        }
-        
-
-        this.parent(model, at);
+        this.parent(route, this._calcPriority(priority));
 
         return this;
+    },
+
+    /**
+     * _calcPriority uses a priority number to calculate what should be the returned insertion point.
+     * @param  {Number} priority The value used to determine the insertion index
+     * @return {Number}          The resolved index;
+     */
+    _calcPriority: function(priority){
+        var route, n = this.length;
+
+        do { --n; } while ( (route = this.get(n), route) && priority <= route.get('priority'));
+
+        return n + 1;
     },
 
     parse: function(request, defaultArgs){
@@ -113,12 +116,10 @@ var Router = new Class({
     _getMatchedRoutes : function (request) {
         var res = [],
             n = this.length,
-            i = 0,
             route;
 
         //should be decrement loop since higher priorities are added at the end of array
-        while (n--) {
-            route = this.get(i++);
+        while (route = this.get(--n)) {
             if ((!res.length || this.options.greedy || route.get('greedy')) && route.match(request)) {
                 res.push({
                     route : route,
