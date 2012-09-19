@@ -1,5 +1,5 @@
 /**
- * A route ported from Crossroads.js by Miller Medeiros (https://github.com/millermedeiros/crossroads.js)
+ * Route, an object heavily influenced by Crossroads.js by Miller Medeiros (https://github.com/millermedeiros/crossroads.js)
  * date - Jul 29, 2012
  * crossroads.js commit - 3b413b0b506b0c04f80b03194d4c1abaeccc9574
  * @type {Class}
