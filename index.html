@@ -559,7 +559,7 @@
 <p>A MooTools client-side MVC.
 
 </p>
-<p><strong>Version: 0.2.4 (Alpha)</strong>
+<p><strong>Version: 0.2.5 (Alpha)</strong>
 
 </p>
 <p><a href="http://travis-ci.org/GCheung55/Neuro"><img src="https://secure.travis-ci.org/GCheung55/Neuro.png" alt="Build Status" /></a>
@@ -583,6 +583,7 @@
 
 </p>
 <ul>
+<li>leverage MooTools-Core</li>
 <li>provide base for applications</li>
 <li>provide a clean/clear API</li>
 </ul>
@@ -661,6 +662,7 @@
 <li>defaults - (Object) Contains the default key/value pair defaults for the Model.</li>
 <li>connector - (Object) See <a href="#mixin-connector">Mixin: Connector</a></li>
 <li>accessor - (Object) See <a href="#mixin-butler">Mixin: Butler</a></li>
+<li>validators - (Object) See <a href="#mixin-snitch">Mixin: Snitch</a></li>
 </ul>
 </li>
 </ol>
@@ -739,7 +741,7 @@ model.set({
 <h4>Syntax:</h4>
 <pre><code class="javascript">model.get(property);
 
-model.Get(property1, property2);</code></pre>
+model.get(property1, property2);</code></pre>
 <h4>Arguments:</h4>
 <ul>
 <li>More than One Consecutive Argument<ol>
@@ -937,6 +939,67 @@ model.spy(object);</code></pre>
 </p>
 <h3 id="neuro-model/validate">validate</h3>
 <hr />
+<p>Validate will test a property in <code>Model</code> data against the validators defined in <code>options.validators</code>. If a global validator ('*' or <code>options.validators</code> is a function) is definined, the then the property is tested against the global validator, even if other validators are defined. A global validator can access other defined validators because the validator method is bound to <code>this</code>, the <code>Model</code> instance.
+
+</p>
+<h4>Synatx:</h4>
+<pre><code class="javascript">model.validate(property, value);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li>property - (String)
+Name of property. Should reference an existing validator. If global validator is defined, the <code>property</code> is passed as the first argument to the global validator.</li>
+<li>value - (String | Number | Object | Boolean | Array)
+The <code>value</code> is what the validators will test against. If a global validator is defined, the <code>value</code> is passed as the second argument to the global validator.</li>
+</ol>
+<h4>Returns: Boolean</h4>
+<h4>Example:</h4>
+<pre><code class="javascript"><span class="comment">// Test against a property in validators object</span>
+<span class="keyword">var</span> model = <span class="keyword">new</span> Neuro.Model({}, {
+    validators: {
+        <span class="comment">// Test the 'name' property to make sure it is a string</span>
+        name: Type.isString
+    }
+});
+
+model.validate(<span class="string">'name'</span>, <span class="number">123</span>); <span class="comment">// returns false</span>
+
+model.validate(<span class="string">'name'</span>, <span class="string">'Bruce'</span>); <span class="comment">// returns true</span>
+
+<span class="comment">// Test against a global validator</span>
+<span class="keyword">var</span> model2 = <span class="keyword">new</span> Neuro.Model({}, {
+    <span class="comment">// Test property value to be a string or number</span>
+    validators: <span class="keyword">function</span>(prop, val){
+        <span class="keyword">var</span> type = typeOf(val);
+        <span class="keyword">return</span> type == <span class="string">'string'</span> || type == <span class="string">'number'</span>;
+    }
+});
+
+model2.validate(<span class="string">'name'</span>, <span class="string">'Bruce'</span>); <span class="comment">// returns true</span>
+model2.validate(<span class="string">'age'</span>, <span class="literal">undefined</span>); <span class="comment">// returns false</span>
+model2.validate(<span class="string">'age'</span>, <span class="number">32</span>); <span class="comment">// returns true</span>
+
+<span class="comment">// Define a global validator to test against other defined validators</span>
+<span class="keyword">var</span> model3 = <span class="keyword">new</span> Neuro.Model({}, {
+    validators: {
+        <span class="string">'*'</span>: <span class="keyword">function</span>(prop, value){
+            <span class="comment">// can only be name or age, and has to pass the validator</span>
+            <span class="keyword">return</span> [<span class="string">'name'</span>, <span class="string">'age'</span>].contains(prop) &amp;&amp; <span class="keyword">this</span>.getValidator(prop)(value);
+        },
+        <span class="comment">// Test the 'name' property to make sure it is a string</span>
+        name: Type.isString,
+        <span class="comment">// Test the 'age' property to make sure it is a number</span>
+        age: Type.isNumber
+    }
+});
+
+model3.validate(<span class="string">'birthdate'</span>, <span class="number">1234</span>); <span class="comment">// returns false</span>
+model3.validate(<span class="string">'birthdate'</span>, <span class="string">'1234'</span>); <span class="comment">// returns false</span>
+
+model3.validate(<span class="string">'name'</span>, <span class="number">123</span>); <span class="comment">// returns false</span>
+model3.validate(<span class="string">'name'</span>, <span class="string">'Bruce'</span>); <span class="comment">// returns true</span>
+
+model3.validate(<span class="string">'age'</span>, <span class="string">'32'</span>); <span class="comment">// returns false</span>
+model3.validate(<span class="string">'age'</span>, <span class="number">32</span>); <span class="comment">// returns true</span></code></pre>
 <p>see <a href="#mixin-snitch">Mixin: Snitch</a>
 </p>
 <h3 id="neuro-model/proof">proof</h3>
@@ -1072,6 +1135,7 @@ model.toQueryString();</code></pre>
 <li>Model - (Model, defaults to undefined) The <code>Model</code> Class used to create model instances from when an <code>Object</code> is passed to <code>add</code>.</li>
 <li>modelOptions - (Object, defaults to undefined) An <code>Object</code> containing options for creating new model instances. See <a href="#neuro-model">Neuro Model</a></li>
 <li>connector - (Object) See <a href="#mixin-connector">Mixin: Connector</a></li>
+<li>validators - (Object) See <a href="#mixin-snitch">Mixin: Snitch</a></li>
 </ul>
 </li>
 </ol>
