@@ -19,6 +19,7 @@ __Dependencies:__
 
 __Focus:__
 
+* leverage MooTools-Core
 * provide base for applications
 * provide a clean/clear API
 
@@ -103,6 +104,7 @@ var model = new Neuro.Model(data [, options]);
     * defaults - (Object) Contains the default key/value pair defaults for the Model.
     * connector - (Object) See [Mixin: Connector](#mixin-connector)
     * accessor - (Object) See [Mixin: Butler](#mixin-butler)
+    * validators - (Object) See [Mixin: Snitch](#mixin-snitch)
 
 #### Returns: Model instance.
 
@@ -182,7 +184,7 @@ Retrieve a property value the model has.
 ```javascript
 model.get(property);
 
-model.Get(property1, property2);
+model.get(property1, property2);
 ```
 
 #### Arguments:
@@ -368,6 +370,73 @@ see [Mixin: Snitch](#mixin-snitch)
 see [Mixin: Snitch](#mixin-snitch)
 ### validate
 ---
+Validate will test a property in `Model` data against the validators defined in `options.validators`. If a global validator ('*' or `options.validators` is a function) is definined, the then the property is tested against the global validator, even if other validators are defined. A global validator can access other defined validators because the validator method is bound to `this`, the `Model` instance.
+
+#### Synatx:
+```javascript
+model.validate(property, value);
+```
+
+#### Arguments:
+1.  property - (String)
+    Name of property. Should reference an existing validator. If global validator is defined, the `property` is passed as the first argument to the global validator.
+2.  value - (String | Number | Object | Boolean | Array)
+    The `value` is what the validators will test against. If a global validator is defined, the `value` is passed as the second argument to the global validator.
+
+#### Returns: Boolean
+
+#### Example:
+```javascript
+// Test against a property in validators object
+var model = new Neuro.Model({}, {
+    validators: {
+        // Test the 'name' property to make sure it is a string
+        name: Type.isString
+    }
+});
+
+model.validate('name', 123); // returns false
+
+model.validate('name', 'Bruce'); // returns true
+
+// Test against a global validator
+var model2 = new Neuro.Model({}, {
+    // Test property value to be a string or number
+    validators: function(prop, val){
+        var type = typeOf(val);
+        return type == 'string' || type == 'number';
+    }
+});
+
+model2.validate('name', 'Bruce'); // returns true
+model2.validate('age', undefined); // returns false
+model2.validate('age', 32); // returns true
+
+// Define a global validator to test against other defined validators
+var model3 = new Neuro.Model({}, {
+    validators: {
+        '*': function(prop, value){
+            // can only be name or age, and has to pass the validator
+            return ['name', 'age'].contains(prop) && this.getValidator(prop)(value);
+        },
+        // Test the 'name' property to make sure it is a string
+        name: Type.isString,
+        // Test the 'age' property to make sure it is a number
+        age: Type.isNumber
+    }
+});
+
+model3.validate('birthdate', 1234); // returns false
+model3.validate('birthdate', '1234'); // returns false
+
+model3.validate('name', 123); // returns false
+model3.validate('name', 'Bruce'); // returns true
+
+model3.validate('age', '32'); // returns false
+model3.validate('age', 32); // returns true
+
+```
+
 see [Mixin: Snitch](#mixin-snitch)
 ### proof
 ---
@@ -490,6 +559,7 @@ var collection = new Neuro.Collection(data [, options]);
     * Model - (Model, defaults to undefined) The `Model` Class used to create model instances from when an `Object` is passed to `add`.
     * modelOptions - (Object, defaults to undefined) An `Object` containing options for creating new model instances. See [Neuro Model](#neuro-model)
     * connector - (Object) See [Mixin: Connector](#mixin-connector)
+    * validators - (Object) See [Mixin: Snitch](#mixin-snitch)
 
 #### Returns: Class instance.
 
