@@ -139,9 +139,9 @@ var Route = new Class({
         var shouldTypecast = this.get('typecast'),
             _paramsIds = this.get('_paramsIds'),
             _optionalParamsIds = this.get('_optionalParamsIds'),
-            values = this.getLexer().getParamValues(request, this.get('_matchRegexp'), shouldTypecast) || [],
+            values = this.getLexer().getParamValues(request, this.get('_matchRegexp'), shouldTypecast),
             o = {},
-            n = values.length,
+            n = values && values.length || 0,
             param, val;
 
         while (n--) {

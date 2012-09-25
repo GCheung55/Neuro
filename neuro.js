@@ -1106,7 +1106,7 @@
                 return isValid;
             },
             _getParamsObject: function(request) {
-                var shouldTypecast = this.get("typecast"), _paramsIds = this.get("_paramsIds"), _optionalParamsIds = this.get("_optionalParamsIds"), values = this.getLexer().getParamValues(request, this.get("_matchRegexp"), shouldTypecast) || [], o = {}, n = values.length, param, val;
+                var shouldTypecast = this.get("typecast"), _paramsIds = this.get("_paramsIds"), _optionalParamsIds = this.get("_optionalParamsIds"), values = this.getLexer().getParamValues(request, this.get("_matchRegexp"), shouldTypecast), o = {}, n = values && values.length || 0, param, val;
                 while (n--) {
                     val = values[n];
                     if (_paramsIds) {
