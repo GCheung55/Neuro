@@ -16,8 +16,8 @@
         Neuro.Collection = require("b").Collection;
         Neuro.View = require("d").View;
         Neuro.Router = require("f").Router;
-        Neuro.Router.patternLexer = require("h");
         Neuro.Router.Route = require("g").Route;
+        Neuro.Router.Route.PatternLexer = require("i");
         Neuro.Is = require("4").Is;
         Neuro.Mixins = {
             Butler: require("8").Butler,
@@ -998,7 +998,7 @@
                     if ((!res.length || this.options.greedy || route.get("greedy")) && route.match(request)) {
                         res.push({
                             route: route,
-                            params: route._getParamsArray(request)
+                            params: route.parse(request)
                         });
                     }
                     if (!this.options.greedyEnabled && res.length) {
@@ -1018,7 +1018,7 @@
         exports.Router = Router;
     },
     g: function(require, module, exports, global) {
-        var Model = require("2").Model, patternLexer = require("h"), utils = require("i"), signalFactory = require("9");
+        var Model = require("2").Model, utils = require("h"), signalFactory = require("9");
         var _hasOptionalGroupBug = /t(.+)?/.exec("t")[1] === "";
         var typecastValue = utils.typecastValue, decodeQueryString = utils.decodeQueryString;
         var Route = new Class({
@@ -1078,6 +1078,9 @@
                 request = request || "";
                 return this.get("_matchRegexp").test(request) && this._validateParams(request);
             },
+            parse: function(request) {
+                return this._getParamsArray(request);
+            },
             _validateParams: function(request) {
                 var rules = this.get("rules"), values = this._getParamsObject(request);
                 return rules.every(function(rule, key) {
@@ -1103,7 +1106,7 @@
                 return isValid;
             },
             _getParamsObject: function(request) {
-                var shouldTypecast = this.get("typecast"), _paramsIds = this.get("_paramsIds"), _optionalParamsIds = this.get("_optionalParamsIds"), values = this.getLexer().getParamValues(request, this.get("_matchRegexp"), shouldTypecast), o = {}, n = values.length, param, val;
+                var shouldTypecast = this.get("typecast"), _paramsIds = this.get("_paramsIds"), _optionalParamsIds = this.get("_optionalParamsIds"), values = this.getLexer().getParamValues(request, this.get("_matchRegexp"), shouldTypecast) || [], o = {}, n = values.length, param, val;
                 while (n--) {
                     val = values[n];
                     if (_paramsIds) {
@@ -1140,14 +1143,53 @@
                 return str;
             },
             getLexer: function() {
-                return patternLexer;
+                return Route.PatternLexer;
             }
         });
         Route.implement(signalFactory([ "match", "pass" ]));
         exports.Route = Route;
     },
     h: function(require, module, exports, global) {
-        var typecastArrayValues = require("i").typecastArrayValues;
+        var UNDEF;
+        var typecastValue = function(val) {
+            var r;
+            if (val === null || val === "null") {
+                r = null;
+            } else if (val === "true") {
+                r = true;
+            } else if (val === "false") {
+                r = false;
+            } else if (val === UNDEF || val === "undefined") {
+                r = UNDEF;
+            } else if (val === "" || isNaN(val)) {
+                r = val;
+            } else {
+                r = parseFloat(val);
+            }
+            return r;
+        };
+        var typecastArrayValues = function(values) {
+            var n = values.length, result = [];
+            while (n--) {
+                result[n] = typecastValue(values[n]);
+            }
+            return result;
+        };
+        var decodeQueryString = function(str) {
+            var queryArr = (str || "").replace("?", "").split("&"), n = queryArr.length, obj = {}, item, val;
+            while (n--) {
+                item = queryArr[n].split("=");
+                val = typecastValue(item[1]);
+                obj[item[0]] = typeof val === "string" ? decodeURIComponent(val) : val;
+            }
+            return obj;
+        };
+        exports.typecastValue = typecastValue;
+        exports.typecastArrayValues = typecastArrayValues;
+        exports.decodeQueryString = decodeQueryString;
+    },
+    i: function(require, module, exports, global) {
+        var typecastArrayValues = require("h").typecastArrayValues;
         var ESCAPE_CHARS_REGEXP = /[\\.+*?\^$\[\](){}\/'#]/g, LOOSE_SLASHES_REGEXP = /^\/|\/$/g, LEGACY_SLASHES_REGEXP = /\/$/g, PARAMS_REGEXP = /(?:\{|:)([^}:]+)(?:\}|:)/g, TOKENS = {
             OS: {
                 rgx: /([:}]|\w(?=\/))\/?(:|(?:\{\?))/g,
@@ -1289,45 +1331,6 @@
             compilePattern: compilePattern,
             interpolate: interpolate
         };
-    },
-    i: function(require, module, exports, global) {
-        var UNDEF;
-        var typecastValue = function(val) {
-            var r;
-            if (val === null || val === "null") {
-                r = null;
-            } else if (val === "true") {
-                r = true;
-            } else if (val === "false") {
-                r = false;
-            } else if (val === UNDEF || val === "undefined") {
-                r = UNDEF;
-            } else if (val === "" || isNaN(val)) {
-                r = val;
-            } else {
-                r = parseFloat(val);
-            }
-            return r;
-        };
-        var typecastArrayValues = function(values) {
-            var n = values.length, result = [];
-            while (n--) {
-                result[n] = typecastValue(values[n]);
-            }
-            return result;
-        };
-        var decodeQueryString = function(str) {
-            var queryArr = (str || "").replace("?", "").split("&"), n = queryArr.length, obj = {}, item, val;
-            while (n--) {
-                item = queryArr[n].split("=");
-                val = typecastValue(item[1]);
-                obj[item[0]] = typeof val === "string" ? decodeURIComponent(val) : val;
-            }
-            return obj;
-        };
-        exports.typecastValue = typecastValue;
-        exports.typecastArrayValues = typecastArrayValues;
-        exports.decodeQueryString = decodeQueryString;
     },
     j: function(require, module, exports, global) {
         var asterisk = "*";
