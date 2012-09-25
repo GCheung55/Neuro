@@ -5,8 +5,8 @@ Neuro.Collection = require('./collection/main').Collection;
 Neuro.View = require('./view/main').View;
 
 Neuro.Router = require('./router/main').Router;
-Neuro.Router.patternLexer = require('./router/patternlexer');
 Neuro.Router.Route = require('./router/route').Route;
+Neuro.Router.Route.PatternLexer = require('./router/patternlexer');
 
 Neuro.Is = require('neuro-is').Is;
 

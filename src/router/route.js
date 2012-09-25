@@ -5,7 +5,6 @@
  * @type {Class}
  */
 var Model = require('../model/main').Model,
-    patternLexer = require('./patternlexer'),
     utils = require('./utils'),
     signalFactory = require('../../utils/signalFactory');
 
@@ -92,6 +91,10 @@ var Route = new Class({
         return this.get('_matchRegexp').test(request) && this._validateParams(request);
     },
 
+    parse: function(request){
+        return this._getParamsArray(request);
+    },
+
     _validateParams: function(request){
         var rules = this.get('rules'),
             values = this._getParamsObject(request);
@@ -136,7 +139,7 @@ var Route = new Class({
         var shouldTypecast = this.get('typecast'),
             _paramsIds = this.get('_paramsIds'),
             _optionalParamsIds = this.get('_optionalParamsIds'),
-            values = this.getLexer().getParamValues(request, this.get('_matchRegexp'), shouldTypecast),
+            values = this.getLexer().getParamValues(request, this.get('_matchRegexp'), shouldTypecast) || [],
             o = {},
             n = values.length,
             param, val;
@@ -194,7 +197,7 @@ var Route = new Class({
     },
 
     getLexer: function(){
-        return patternLexer;
+        return Route.PatternLexer;
     }
 });
 

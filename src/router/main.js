@@ -123,7 +123,7 @@ var Router = new Class({
             if ((!res.length || this.options.greedy || route.get('greedy')) && route.match(request)) {
                 res.push({
                     route : route,
-                    params : route._getParamsArray(request)
+                    params : route.parse(request)
                 });
             }
             if (!this.options.greedyEnabled && res.length) {
