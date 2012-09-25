@@ -1030,14 +1030,15 @@
                     normalizer: void 0,
                     greedy: false,
                     rules: {},
-                    typecast: false
+                    typecast: false,
+                    patternLexer: void 0
                 },
                 accessors: {
                     pattern: {
                         set: function(prop, value) {
                             if (this.validate(prop, value)) {
-                                var obj = {}, lexer = this.getLexer();
                                 this.set(prop, value);
+                                var obj = {}, lexer = this.get("patternLexer");
                                 obj._matchRegexp = value;
                                 obj._optionalParamsIds = obj._paramsIds = void 0;
                                 if (typeOf(value) != "regexp") {
@@ -1062,6 +1063,11 @@
                                 this.addEvent("match", value);
                             }
                         }
+                    },
+                    patternLexer: {
+                        get: function() {
+                            return this.get("patternLexer") || Route.PatternLexer;
+                        }
                     }
                 },
                 validators: {
@@ -1071,7 +1077,8 @@
                     priority: Type.isNumber,
                     normalizer: Type.isFunction,
                     greedy: Type.isBoolean,
-                    rules: Type.isObject
+                    rules: Type.isObject,
+                    patternLexer: Type.isObject
                 }
             },
             match: function(request) {
@@ -1106,7 +1113,7 @@
                 return isValid;
             },
             _getParamsObject: function(request) {
-                var shouldTypecast = this.get("typecast"), _paramsIds = this.get("_paramsIds"), _optionalParamsIds = this.get("_optionalParamsIds"), values = this.getLexer().getParamValues(request, this.get("_matchRegexp"), shouldTypecast), o = {}, n = values && values.length || 0, param, val;
+                var shouldTypecast = this.get("typecast"), _paramsIds = this.get("_paramsIds"), _optionalParamsIds = this.get("_optionalParamsIds"), values = this.get("patternLexer").getParamValues(request, this.get("_matchRegexp"), shouldTypecast), o = {}, n = values && values.length || 0, param, val;
                 while (n--) {
                     val = values[n];
                     if (_paramsIds) {
@@ -1136,14 +1143,11 @@
                 return params;
             },
             interpolate: function(replacements) {
-                var str = this.getLexer().interpolate(this.get("pattern"), replacements);
+                var str = this.get("patternLexer").interpolate(this.get("pattern"), replacements);
                 if (!this._validateParams(str)) {
                     throw new Error("Generated string doesn't validate against `Route.rules`.");
                 }
                 return str;
-            },
-            getLexer: function() {
-                return Route.PatternLexer;
             }
         });
         Route.implement(signalFactory([ "match", "pass" ]));

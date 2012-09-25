@@ -26,6 +26,7 @@ var Route = new Class({
             greedy: false,
             rules: {},
             typecast: false,
+            patternLexer: void 0
             // _paramsIds: void 0,
             // _optionalParamsIds: void 0,
             // _matchRegexp: void 0
@@ -37,11 +38,12 @@ var Route = new Class({
                 set: function(prop, value){
                     // Validate that it is regexp or string
                     if (this.validate(prop, value)) {
-                        var obj = {},
-                            lexer = this.getLexer();
-
-                        // Set the pattern first, so it doesn't create a loop if the browser doesn't go through the obj's order properly
+                        // Set the pattern first, so it doesn't create a loop when getting the patternLexer.
                         this.set(prop, value);
+
+                        var obj = {},
+                            // lexer = this.get('patternLexer');
+                            lexer = this.get('patternLexer');
 
                         obj._matchRegexp = value;
                         obj._optionalParamsIds = obj._paramsIds = void 0;
@@ -70,6 +72,11 @@ var Route = new Class({
                         this.addEvent('match', value);
                     }
                 }
+            },
+            patternLexer: {
+                get: function(){
+                    return this.get('patternLexer') || Route.PatternLexer;
+                }
             }
         },
 
@@ -80,7 +87,8 @@ var Route = new Class({
             priority: Type.isNumber,
             normalizer: Type.isFunction,
             greedy: Type.isBoolean,
-            rules: Type.isObject
+            rules: Type.isObject,
+            patternLexer: Type.isObject
         }
     },
 
@@ -139,7 +147,7 @@ var Route = new Class({
         var shouldTypecast = this.get('typecast'),
             _paramsIds = this.get('_paramsIds'),
             _optionalParamsIds = this.get('_optionalParamsIds'),
-            values = this.getLexer().getParamValues(request, this.get('_matchRegexp'), shouldTypecast),
+            values = this.get('patternLexer').getParamValues(request, this.get('_matchRegexp'), shouldTypecast),
             o = {},
             n = values && values.length || 0,
             param, val;
@@ -187,17 +195,13 @@ var Route = new Class({
     },
 
     interpolate: function(replacements){
-        var str = this.getLexer().interpolate(this.get('pattern'), replacements);
+        var str = this.get('patternLexer').interpolate(this.get('pattern'), replacements);
 
         if (!this._validateParams(str)) {
             throw new Error('Generated string doesn\'t validate against `Route.rules`.');
         }
 
         return str;
-    },
-
-    getLexer: function(){
-        return Route.PatternLexer;
     }
 });
 
