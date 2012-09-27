@@ -1135,7 +1135,6 @@ view.destroy();
 
 #### Returns: View instance.
 
-
 ## Neuro Route
 The __Route__ is a `Class` object that extends from the `Model` class object. It is heavily influenced by [Crossroads.js](https://github.com/millermedeiros/crossroads.js) by Miller Medeiros, as well as the documentation for it. A __Route__ instance provides methods, amongst others, to test, parse, and interpolate data against a pattern.
 
@@ -1159,7 +1158,7 @@ var route = new Neuro.Route(data [, options]);
 
 #### Arguments:
 1.  `data` - (Object) An object containg key/value pairs. The properties in the `data` have default values.
-    *   pattern - (String | Regexp, optional, defaults to `undefined`)
+    *   `pattern` - (String | Regexp, optional, defaults to `undefined`)
         String pattern or Regular Expression that should be used to match against requests.
 
         If pattern is a String it can contain named variables surrounded by `'{}'` that will be evaluated and passed to handlers as parameters. Each pattern segment is limited by the `'/'` char, so named variables will match anything until it finds a `'/'` char or the next string token located after the variable.
@@ -1173,43 +1172,48 @@ var route = new Neuro.Route(data [, options]);
         It also allows "rest" segments (ending with __*__) which can match multiple segments. Rest segments can be optional and/or required and don't need to be the last segment of the pattern. The pattern `'{foo}/:bar*:'` will match news `'news/123'`, `'news/123/bar'`, `'news/123/lorem/ipsum'`.
 
         Support has been added to decoding query strings as well by starting the capturing groups with a `'?'` (eg: `{?foo}`, `:?bar:`). The matched value will be converted into an object.
-    *   callback - (Function, optional, defaults to `undefined`) 
+    *   `callback` - (Function, optional, defaults to `undefined`) 
         Function that should be executed when a request matches the Route pattern. It's just a convenient way to attach a handler to the `match` event.
-    *   priority - (Number, optional, defaults to `undefined`)
+    *   `priority` - (Number, optional, defaults to `undefined`)
         Route execution priority.
 
         Routes with higher priority will be tested during `Neuro.Router.parse`. It is important to note that `Neuro.Router` will stop pattern tests as soon as it finds a Route that matches the request. Setting the priority is a way to invert “natural” test order. Routes are tested by order of creation if priority is omitted.
-    *   normalizer - (Function, optional, defaults to `undefined`)
+    *   `normalizer` - (Function, optional, defaults to `undefined`)
         A function that should be used to normalize parameters. Works similarly to `Route` `rules.normalize_`. `normalizer` will be used if `rules.normalizer_` does not exist. If both normalize functions do not exist, then, obviously, normalizing parameters will not occur.
-    *   greedy - (Boolean, optional, defaults to `false`)
+    *   `greedy` - (Boolean, optional, defaults to `false`)
         Used to determine whether `Neuro.Router` should try to match this `Route` instance after having matched another `Route` instance.
 
-        `Neuro.Router` will trigger all "greedy" `Routes` that match the request during `parse()` in the `Neuro.Router` instance.
-    *   rules - (Model, Object, optional, defaults to `{}`)
+        `Neuro.Router` will trigger all "greedy" `Routes` that match the request during `parse` in the `Neuro.Router` instance.
+    *   `rules` - (Model, Object, optional, defaults to `{}`)
         Object used to configure parameters/segments validation rules.
 
         Validation rules can be an Array, a RegExp or a Function:
-            *   If rule is an Array, crossroads will try to match a request segment against items of the Array, if item is found parameter is valid.
-            *   If rule is a RegExp, crossroads will try to match a request segment against it.
-            *   If rule is a Function, crossroads will base validation on value returned by Function (should return a Boolean).
+
+        *   If rule is an Array, crossroads will try to match a request segment against items of the Array, if item is found parameter is valid.
+        *   If rule is a RegExp, crossroads will try to match a request segment against it.
+        *   If rule is a Function, crossroads will base validation on value returned by Function (should return a Boolean).
+
         Rules keys should match route pattern segment names or should be a numeric value, starting at index 0, that match each RegExp capturing group or path segment.
 
         The rules object can also contain 2 special properties `request_` and `normalize_`:
-            *   normalizer_ - (Function(request, values), optional)
-                Used to modify/normalize values before triggering the `match` event by `Neuro.Router`. It should return an Array with parameters that should be passed to listeners.
 
-                Can be used to create route aliases and also to convert data format.
+        *   `normalizer_` - (Function(request, values), optional)
+            Used to modify/normalize values before triggering the `match` event by `Neuro.Router`. It should return an Array with parameters that should be passed to listeners.
 
-                Works exactly like `options.modelOptions.defaults.normalizer` in `Neuro.Router`. It will overwrite `options.modelOptions.defaults.normalizer` in `Neuro.Router` if present.
-            *   request_ - (Array | RegExp | Function)
-                Rule used to validate whole request. `request_` is a special rule used to validate whole request Note that request will be typecasted if value is a boolean or number and `options.modelOptions.defaults.typecast` = true (default = false) in `Neuro.Router`.
-    *   typecast - (Boolean, optional, defaults to `false`)
+            Can be used to create route aliases and also to convert data format.
+
+            Works exactly like `options.modelOptions.defaults.normalizer` in `Neuro.Router`. It will overwrite `options.modelOptions.defaults.normalizer` in `Neuro.Router` if present.
+
+        *   `request_` - (Array | RegExp | Function)
+            Rule used to validate whole request. `request_` is a special rule used to validate whole request Note that request will be typecasted if value is a boolean or number and `options.modelOptions.defaults.typecast` = true (default = false) in `Neuro.Router`.
+
+    *   `typecast` - (Boolean, optional, defaults to `false`)
         Type cast route paths with this property. `true` typecasts values in the route path, while `false` typecasts them as strings.
 
-    *   patternLexer - (Object, optional, defaults to `Route.PatternLexer`)
+    *   `patternLexer` - (Object, optional, defaults to `Route.PatternLexer`)
         The pattern lexer is `undefined`. [Mixin: Butler](#mixin-butler), the custom accessor, allows defining a custom pattern lexer for each individual route, but defaults to using the global `Route.PatternLexer`.
 
-2. `options` - (Object, optional) See [Model](#neuro-model).
+2.  `options` - (Object, optional) See [Model](#neuro-model).
 
 #### Returns: Route instance.
 
@@ -1594,7 +1598,6 @@ no 'pass' event is triggered references to previous request and route have been 
  */
 router.parse('news/123');
 ```
-
 
 ## Mixin: Events
 ---
