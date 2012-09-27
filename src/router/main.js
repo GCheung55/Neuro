@@ -52,6 +52,13 @@ var Router = new Class({
         return n + 1;
     },
 
+    resetState: function(){
+        this._prevRoutes.length = 0;
+        this._prevMatchedRequest = null;
+        this._prevBypassedRequest = null;
+        return this
+    },
+
     parse: function(request, defaultArgs){
         request = request || '';
         defaultArgs = defaultArgs || [];

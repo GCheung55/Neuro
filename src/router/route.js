@@ -92,6 +92,11 @@ var Route = new Class({
         }
     },
 
+    /**
+     * Match a string against the pattern.
+     * @param  {String} str The string that is tested against the pattern.
+     * @return {Boolean} True if the string matches, false otherwise
+     */
     match: function(request){
         request = request || '';
 
@@ -99,6 +104,11 @@ var Route = new Class({
         return this.get('_matchRegexp').test(request) && this._validateParams(request);
     },
 
+    /**
+     * Parse a string for matching params.
+     * @param  {String} request The string that will be parsed for matching params
+     * @return {Array | Null} Matching params will return in an array, null otherwise
+     */
     parse: function(request){
         return this._getParamsArray(request);
     },
@@ -153,7 +163,9 @@ var Route = new Class({
             param, val;
 
         while (n--) {
-            val = values[n];
+            //alias to paths and for RegExp pattern
+            o[n] = val = values[n];
+
             if (_paramsIds) {
                 param = _paramsIds[n];
                 if (param.indexOf('?') === 0 && val) {
@@ -172,8 +184,6 @@ var Route = new Class({
                 }
                 o[param] = val;
             }
-            //alias to paths and for RegExp pattern
-            o[n] = val;
         }
         o.request_ = shouldTypecast ? typecastValue(request) : request;
         o.vals_ = values;
@@ -184,13 +194,13 @@ var Route = new Class({
         var rules = this.get('rules'),
             // use rules normalize if it exists, otherwise use the default
             norm = (rules && rules.get('normalize_')) || this.get('normalizer'),
-            params;
+            obj = this._getParamsObject(request);
+            params = obj.vals_;
 
         if (norm && Type.isFunction(norm)) {
-            params = norm(request, this._getParamsObject(request));
-        } else {
-            params = this._getParamsObject(request).vals_;
+            params = norm(request, obj);
         }
+        
         return params;
     },
 
