@@ -554,7 +554,7 @@ var collection = new Neuro.Collection(data [, options]);
     * Model - A `Model` instance
     * Object - An object of key/value pairs that will be used to create a model instance
     * Array - An array of Model instances or object key/value pairs
-2. `options` - (Object, optional) The Model options
+2. `options` - (Object, optional)
     * primaryKey - (String) Define to uniquely identify a model in a collection
     * Model - (Model, defaults to undefined) The `Model` Class used to create model instances from when an `Object` is passed to `add`.
     * modelOptions - (Object, defaults to undefined) An `Object` containing options for creating new model instances. See [Neuro Model](#neuro-model)
