@@ -951,6 +951,12 @@
                 } while ((route = this.get(n), route) && priority <= route.get("priority"));
                 return n + 1;
             },
+            resetState: function() {
+                this._prevRoutes.length = 0;
+                this._prevMatchedRequest = null;
+                this._prevBypassedRequest = null;
+                return this;
+            },
             parse: function(request, defaultArgs) {
                 request = request || "";
                 defaultArgs = defaultArgs || [];
@@ -1115,7 +1121,7 @@
             _getParamsObject: function(request) {
                 var shouldTypecast = this.get("typecast"), _paramsIds = this.get("_paramsIds"), _optionalParamsIds = this.get("_optionalParamsIds"), values = this.get("patternLexer").getParamValues(request, this.get("_matchRegexp"), shouldTypecast), o = {}, n = values && values.length || 0, param, val;
                 while (n--) {
-                    val = values[n];
+                    o[n] = val = values[n];
                     if (_paramsIds) {
                         param = _paramsIds[n];
                         if (param.indexOf("?") === 0 && val) {
@@ -1127,18 +1133,16 @@
                         }
                         o[param] = val;
                     }
-                    o[n] = val;
                 }
                 o.request_ = shouldTypecast ? typecastValue(request) : request;
                 o.vals_ = values;
                 return o;
             },
             _getParamsArray: function(request) {
-                var rules = this.get("rules"), norm = rules && rules.get("normalize_") || this.get("normalizer"), params;
+                var rules = this.get("rules"), norm = rules && rules.get("normalize_") || this.get("normalizer"), obj = this._getParamsObject(request);
+                params = obj.vals_;
                 if (norm && Type.isFunction(norm)) {
-                    params = norm(request, this._getParamsObject(request));
-                } else {
-                    params = this._getParamsObject(request).vals_;
+                    params = norm(request, obj);
                 }
                 return params;
             },
