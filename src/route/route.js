@@ -5,15 +5,13 @@
  * @type {Class}
  */
 var Model = require('../model/main').Model,
-    utils = require('./utils'),
-    signalFactory = require('../../utils/signalFactory');
+    signalFactory = require('../../utils/signalFactory'),
+    typecastValue = require('../../utils/typecast/value'),
+    decodeQueryString = require('../../utils/typecast/decodeQueryString');
 
 // IE 7-8 capture optional groups as empty strings while other browsers
 // capture as `undefined`
 var _hasOptionalGroupBug = (/t(.+)?/).exec('t')[1] === '';
-
-var typecastValue = utils.typecastValue,
-    decodeQueryString = utils.decodeQueryString;
 
 var Route = new Class({
     Extends: Model,

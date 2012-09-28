@@ -5,8 +5,7 @@
  * @type {Class}
  */
 var Collection = require('../collection/main').Collection,
-    Model = require('../model/main').Model,
-    Route = require('./route').Route,
+    Route = require('../route/main').Route,
     signalFactory = require('../../utils/signalFactory');
 
 var Router = new Class({
@@ -32,7 +31,7 @@ var Router = new Class({
 
     _add: function(route){
         // placement of route is determined by the priority property
-        var priority = instanceOf(route, Model) ? route.get('priority') : route.priority || (route.priority = 0);
+        var priority = instanceOf(route, Route) ? route.get('priority') : route.priority || (route.priority = 0);
 
         this.parent(route, this._calcPriority(priority));
 

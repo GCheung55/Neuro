@@ -2,7 +2,7 @@
 
 //for node
 var Router = Neuro.Router || require('Neuro').Router,
-    patternLexer = Router.Route.PatternLexer;
+    patternLexer = Neuro.Route.PatternLexer || require('Neuro').Route.PatternLexer;
 //end node
 
 

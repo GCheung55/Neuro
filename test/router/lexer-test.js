@@ -1,5 +1,5 @@
 //for node
-var patternLexer = Neuro.Router.Route.PatternLexer || require('Neuro').Router.Route.PatternLexer;
+var patternLexer = Neuro.Route.PatternLexer || require('Neuro').Route.PatternLexer;
 //end node
 
 buster.testCase('patternLexer', {

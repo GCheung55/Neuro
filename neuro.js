@@ -16,14 +16,13 @@
         Neuro.Collection = require("b").Collection;
         Neuro.View = require("d").View;
         Neuro.Router = require("f").Router;
-        Neuro.Router.Route = require("g").Route;
-        Neuro.Router.Route.PatternLexer = require("i");
+        Neuro.Route = require("g").Route;
         Neuro.Is = require("4").Is;
         Neuro.Mixins = {
             Butler: require("8").Butler,
             Connector: require("6").Connector,
             Silence: require("5").Silence,
-            Snitch: require("j").Snitch
+            Snitch: require("m").Snitch
         };
         exports = module.exports = Neuro;
     },
@@ -283,9 +282,9 @@
         exports.Model = Model;
     },
     "4": function(require, module, exports, global) {
-        (function(context) {
-            var toString = Object.prototype.toString, hasOwnProperty = Object.prototype.hasOwnProperty, oldType = window.Type, Is = context.Is = {};
-            var Type = window.Type = function(name, object) {
+        (function(context, global) {
+            var toString = Object.prototype.toString, hasOwnProperty = Object.prototype.hasOwnProperty, oldType = global.Type, Is = context.Is = {};
+            var Type = global.Type = function(name, object) {
                 var obj = new oldType(name, object), str;
                 if (!obj) {
                     return obj;
@@ -390,7 +389,7 @@
                 }
                 obj.not = not;
             })(Is);
-        })(typeof exports != "undefined" ? exports : window);
+        })(typeof exports != "undefined" ? exports : window, this.window || global);
     },
     "5": function(require, module, exports, global) {
         var Silence = new Class({
@@ -922,7 +921,7 @@
         exports.View = View;
     },
     f: function(require, module, exports, global) {
-        var Collection = require("b").Collection, Model = require("2").Model, Route = require("g").Route, signalFactory = require("9");
+        var Collection = require("b").Collection, Route = require("g").Route, signalFactory = require("9");
         var Router = new Class({
             Extends: Collection,
             options: {
@@ -940,7 +939,7 @@
             _prevMatchedRequest: null,
             _prevBypassedRequest: null,
             _add: function(route) {
-                var priority = instanceOf(route, Model) ? route.get("priority") : route.priority || (route.priority = 0);
+                var priority = instanceOf(route, Route) ? route.get("priority") : route.priority || (route.priority = 0);
                 this.parent(route, this._calcPriority(priority));
                 return this;
             },
@@ -1024,9 +1023,13 @@
         exports.Router = Router;
     },
     g: function(require, module, exports, global) {
-        var Model = require("2").Model, utils = require("h"), signalFactory = require("9");
+        var Route = require("h").Route, PatternLexer = require("k");
+        Route.PatternLexer = PatternLexer;
+        exports.Route = Route;
+    },
+    h: function(require, module, exports, global) {
+        var Model = require("2").Model, signalFactory = require("9"), typecastValue = require("i"), decodeQueryString = require("j");
         var _hasOptionalGroupBug = /t(.+)?/.exec("t")[1] === "";
-        var typecastValue = utils.typecastValue, decodeQueryString = utils.decodeQueryString;
         var Route = new Class({
             Extends: Model,
             options: {
@@ -1157,9 +1160,9 @@
         Route.implement(signalFactory([ "match", "pass" ]));
         exports.Route = Route;
     },
-    h: function(require, module, exports, global) {
+    i: function(require, module, exports, global) {
         var UNDEF;
-        var typecastValue = function(val) {
+        exports = module.exports = function(val) {
             var r;
             if (val === null || val === "null") {
                 r = null;
@@ -1176,14 +1179,10 @@
             }
             return r;
         };
-        var typecastArrayValues = function(values) {
-            var n = values.length, result = [];
-            while (n--) {
-                result[n] = typecastValue(values[n]);
-            }
-            return result;
-        };
-        var decodeQueryString = function(str) {
+    },
+    j: function(require, module, exports, global) {
+        var typecastValue = require("i");
+        exports = module.exports = function(str) {
             var queryArr = (str || "").replace("?", "").split("&"), n = queryArr.length, obj = {}, item, val;
             while (n--) {
                 item = queryArr[n].split("=");
@@ -1192,12 +1191,9 @@
             }
             return obj;
         };
-        exports.typecastValue = typecastValue;
-        exports.typecastArrayValues = typecastArrayValues;
-        exports.decodeQueryString = decodeQueryString;
     },
-    i: function(require, module, exports, global) {
-        var typecastArrayValues = require("h").typecastArrayValues;
+    k: function(require, module, exports, global) {
+        var typecastArrayValues = require("l");
         var ESCAPE_CHARS_REGEXP = /[\\.+*?\^$\[\](){}\/'#]/g, LOOSE_SLASHES_REGEXP = /^\/|\/$/g, LEGACY_SLASHES_REGEXP = /\/$/g, PARAMS_REGEXP = /(?:\{|:)([^}:]+)(?:\}|:)/g, TOKENS = {
             OS: {
                 rgx: /([:}]|\w(?=\/))\/?(:|(?:\{\?))/g,
@@ -1340,7 +1336,17 @@
             interpolate: interpolate
         };
     },
-    j: function(require, module, exports, global) {
+    l: function(require, module, exports, global) {
+        var typecastValue = require("i");
+        exports = module.exports = function(values) {
+            var n = values.length, result = [];
+            while (n--) {
+                result[n] = typecastValue(values[n]);
+            }
+            return result;
+        };
+    },
+    m: function(require, module, exports, global) {
         var asterisk = "*";
         var normalizeValidators = function(arg) {
             var obj = {};

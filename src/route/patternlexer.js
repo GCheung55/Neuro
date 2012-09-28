@@ -1,4 +1,4 @@
-var typecastArrayValues = require('./utils').typecastArrayValues;
+var typecastArrayValues = require('../../utils/typecast/arrayValues');
 
 /**
  * A pattern lexer heavily influenced by Crossroads.js by Miller Medeiros (https://github.com/millermedeiros/crossroads.js)
