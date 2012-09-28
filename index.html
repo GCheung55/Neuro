@@ -380,6 +380,52 @@
         </li>
       
         <li>
+          <a href="#neuro-route">Neuro Route</a>
+          
+            <ul>
+              
+                <li>
+                  <a href="#neuro-route/constructor-initialize">constructor (initialize)</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-route/match">match</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-route/parse">parse</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-route/interpolate">interpolate</a>
+                </li>
+              
+            </ul>
+          
+        </li>
+      
+        <li>
+          <a href="#neuro-router">Neuro Router</a>
+          
+            <ul>
+              
+                <li>
+                  <a href="#neuro-router/constructor-initialize">constructor (initialize)</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-router/parse">parse</a>
+                </li>
+              
+                <li>
+                  <a href="#neuro-router/resetstate">resetState</a>
+                </li>
+              
+            </ul>
+          
+        </li>
+      
+        <li>
           <a href="#mixin-events">Mixin: Events</a>
           
             <ul>
@@ -559,7 +605,7 @@
 <p>A MooTools client-side MVC.
 
 </p>
-<p><strong>Version: 0.2.5 (Alpha)</strong>
+<p><strong>Version: 0.2.6</strong>
 
 </p>
 <p><a href="http://travis-ci.org/GCheung55/Neuro"><img src="https://secure.travis-ci.org/GCheung55/Neuro.png" alt="Build Status" /></a>
@@ -1678,6 +1724,453 @@ $(view);</code></pre>
 <h4>Syntax:</h4>
 <pre><code class="javascript">view.destroy();</code></pre>
 <h4>Returns: View instance.</h4>
+<h2 id="neuro-route">Neuro Route</h2>
+<p>The <strong>Route</strong> is a <code>Class</code> object that extends from the <code>Model</code> class object. It is heavily influenced by <a href="https://github.com/millermedeiros/crossroads.js">Crossroads.js</a> by Miller Medeiros, as well as the documentation for it. A <strong>Route</strong> instance provides methods, amongst others, to test, parse, and interpolate data against a pattern.
+
+</p>
+<h4>Extends: <a href="#neuro-model">Model</a></h4>
+<h4>Implements:</h4>
+<ul>
+<li><a href="#mixin-connector">Mixin: Connector</a></li>
+<li><a href="#mixin-butler">Mixin: Butler</a></li>
+<li><a href="#mixin-events">Mixin: Events</a></li>
+<li><a href="#mixin-options">Mixin: Options</a></li>
+<li><a href="#mixin-silence">Mixin: Silence</a></li>
+<li><a href="#mixin-snitch">Mixin: Snitch</a></li>
+</ul>
+<h3 id="neuro-route/constructor-initialize">constructor (initialize)</h3>
+<hr />
+<h4>Syntax</h4>
+<pre><code class="javascript"><span class="keyword">var</span> route = <span class="keyword">new</span> Neuro.Route(data [, options]);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li><p><code>data</code> - (Object) An object containg key/value pairs. The properties in the <code>data</code> have default values.</p>
+<ul>
+<li><p><code>pattern</code> - (String | Regexp, optional, defaults to <code>undefined</code>)
+String pattern or Regular Expression that should be used to match against requests.</p>
+<p>If pattern is a String it can contain named variables surrounded by <code>'{}'</code> that will be evaluated and passed to handlers as parameters. Each pattern segment is limited by the <code>'/'</code> char, so named variables will match anything until it finds a <code>'/'</code> char or the next string token located after the variable.</p>
+<p>The pattern <code>'{foo}/{bar}'</code> will match <code>'lorem/ipsum-dolor'</code> but won't match <code>'lorem/ipsum-dolor/sit'</code>. Trailing slashes at the end/begin of the request are ignored by default, so <code>/{foo}/</code> matches same requests as <code>{foo}</code>. - If you need to match segments that may contain "/" use a regular expression instead of a string pattern.</p>
+<p>A pattern can also have optional segments, which should be surrounded by <code>::</code> (e.g. <code>'news/:foo:/:bar:'</code> will match <code>'news'</code>, <code>'news/123'</code> and <code>'news/123/asd'</code>).</p>
+<p>If pattern is a RegExp, capturing groups will be passed as parameters to handlers on the same order as they were matched.</p>
+<p>It also allows "rest" segments (ending with <strong>*</strong>) which can match multiple segments. Rest segments can be optional and/or required and don't need to be the last segment of the pattern. The pattern <code>'{foo}/:bar*:'</code> will match news <code>'news/123'</code>, <code>'news/123/bar'</code>, <code>'news/123/lorem/ipsum'</code>.</p>
+<p>Support has been added to decoding query strings as well by starting the capturing groups with a <code>'?'</code> (eg: <code>{?foo}</code>, <code>:?bar:</code>). The matched value will be converted into an object.</p>
+</li>
+<li><code>callback</code> - (Function, optional, defaults to <code>undefined</code>) 
+Function that should be executed when a request matches the Route pattern. It's just a convenient way to attach a handler to the <code>match</code> event.</li>
+<li><p><code>priority</code> - (Number, optional, defaults to <code>undefined</code>)
+Route execution priority.</p>
+<p>Routes with higher priority will be tested during <code>Neuro.Router.parse</code>. It is important to note that <code>Neuro.Router</code> will stop pattern tests as soon as it finds a Route that matches the request. Setting the priority is a way to invert “natural” test order. Routes are tested by order of creation if priority is omitted.</p>
+</li>
+<li><code>normalizer</code> - (Function, optional, defaults to <code>undefined</code>)
+A function that should be used to normalize parameters. Works similarly to <code>Route</code> <code>rules.normalize_</code>. <code>normalizer</code> will be used if <code>rules.normalizer_</code> does not exist. If both normalize functions do not exist, then, obviously, normalizing parameters will not occur.</li>
+<li><p><code>greedy</code> - (Boolean, optional, defaults to <code>false</code>)
+Used to determine whether <code>Neuro.Router</code> should try to match this <code>Route</code> instance after having matched another <code>Route</code> instance.</p>
+<p><code>Neuro.Router</code> will trigger all "greedy" <code>Routes</code> that match the request during <code>parse</code> in the <code>Neuro.Router</code> instance.</p>
+</li>
+<li><p><code>rules</code> - (Model, Object, optional, defaults to <code>{}</code>)
+Object used to configure parameters/segments validation rules.</p>
+<p>Validation rules can be an Array, a RegExp or a Function:</p>
+<ul>
+<li>If rule is an Array, crossroads will try to match a request segment against items of the Array, if item is found parameter is valid.</li>
+<li>If rule is a RegExp, crossroads will try to match a request segment against it.</li>
+<li>If rule is a Function, crossroads will base validation on value returned by Function (should return a Boolean).</li>
+</ul>
+<p>Rules keys should match route pattern segment names or should be a numeric value, starting at index 0, that match each RegExp capturing group or path segment.</p>
+<p>The rules object can also contain 2 special properties <code>request_</code> and <code>normalize_</code>:</p>
+<ul>
+<li><p><code>normalizer_</code> - (Function(request, values), optional)
+Used to modify/normalize values before triggering the <code>match</code> event by <code>Neuro.Router</code>. It should return an Array with parameters that should be passed to listeners.</p>
+<p>Can be used to create route aliases and also to convert data format.</p>
+<p>Works exactly like <code>options.modelOptions.defaults.normalizer</code> in <code>Neuro.Router</code>. It will overwrite <code>options.modelOptions.defaults.normalizer</code> in <code>Neuro.Router</code> if present.</p>
+</li>
+<li><p><code>request_</code> - (Array | RegExp | Function)
+Rule used to validate whole request. <code>request_</code> is a special rule used to validate whole request Note that request will be typecasted if value is a boolean or number and <code>options.modelOptions.defaults.typecast</code> = true (default = false) in <code>Neuro.Router</code>.</p>
+</li>
+</ul>
+</li>
+<li><p><code>typecast</code> - (Boolean, optional, defaults to <code>false</code>)
+Type cast route paths with this property. <code>true</code> typecasts values in the route path, while <code>false</code> typecasts them as strings.</p>
+</li>
+<li><p><code>patternLexer</code> - (Object, optional, defaults to <code>Route.PatternLexer</code>)
+The pattern lexer is <code>undefined</code>. <a href="#mixin-butler">Mixin: Butler</a>, the custom accessor, allows defining a custom pattern lexer for each individual route, but defaults to using the global <code>Route.PatternLexer</code>.</p>
+</li>
+</ul>
+</li>
+<li><p><code>options</code> - (Object, optional) See <a href="#neuro-model">Model</a>.</p>
+</li>
+</ol>
+<h4>Returns: Route instance.</h4>
+<h4>Events (Includes events inherited from <code>Neuro.Model</code>):</h4>
+<ul>
+<li><code>match: function(route[, param1, param2, param3...]){}</code> - Triggered when <code>Neuro.Router</code> has found a match. <code>Neuro.Router</code> will pass each captured parameter to the handler function.</li>
+<li><code>pass: function(route[, request]){}</code> - Triggered when <code>Neuro.Router</code> has changed from one route to the next. The <code>request</code> parameter passed to the event refers to the current request that is being changed to.</li>
+</ul>
+<h4>Examples:</h4>
+<pre><code class="javascript"><span class="comment">// Create a new route with a pattern</span>
+<span class="keyword">var</span> route = <span class="keyword">new</span> Neuro.Router.Route({
+    pattern: <span class="string">'person/{name}'</span>
+});
+
+<span class="comment">// Test a string against the route</span>
+route.match(<span class="string">'person/bruce'</span>); <span class="comment">// returns true</span>
+route.match(<span class="string">'person/bruce/lee'</span>); <span class="comment">// returns false</span></code></pre>
+<h3 id="neuro-route/match">match</h3>
+<hr />
+<p>Test if the <code>Route</code> instance matches against a string.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">route.match(string);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li><code>string</code> - (String) The string which will be tested against he <code>Route</code> instances rules and pattern.</li>
+</ol>
+<h4>Returns: Boolean (true/false).</h4>
+<h4>Examples:</h4>
+<pre><code class="javascript"><span class="comment">// Create a new route with a pattern</span>
+<span class="keyword">var</span> route = <span class="keyword">new</span> Neuro.Router.Route({
+    pattern: <span class="string">'person/{name}'</span>
+});
+
+<span class="comment">// Test a string against the route</span>
+route.match(<span class="string">'person/bruce'</span>); <span class="comment">// returns true</span>
+route.match(<span class="string">'person/bruce/lee'</span>); <span class="comment">// returns false</span></code></pre>
+<h3 id="neuro-route/parse">parse</h3>
+<hr />
+<p>Parse a string for matches against the <code>Route</code> instances pattern.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">route.parse(string);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li><code>string</code> - (String) The string which will be parsed for matches against the <code>Route</code> instances pattern.</li>
+</ol>
+<h4>Returns:</h4>
+<ul>
+<li>Found matches<ul>
+<li>An array of matched items</li>
+</ul>
+</li>
+<li>No matches<ul>
+<li><code>null</code></li>
+</ul>
+</li>
+</ul>
+<h4>Examples:</h4>
+<pre><code class="javascript"><span class="comment">// Create a new route with a pattern</span>
+<span class="keyword">var</span> route = <span class="keyword">new</span> Neuro.Router.Route({
+    pattern: <span class="string">'person/{name}'</span>
+});
+
+route.parse(<span class="string">'person/bruce'</span>); <span class="comment">// returns ['bruce']</span>
+route.parse(<span class="string">'person/bruce/lee'</span>); <span class="comment">// returns null</span></code></pre>
+<h3 id="neuro-route/interpolate">interpolate</h3>
+<hr />
+<p>Generates a string that matches the route by replacing captured groups in the <code>Route</code> instances pattern with the <code>replacements</code> values provided.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">route.interpolate(replacements);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li><code>replacements</code> - (Object) Contains key/value pairs to match and replace captured groups in the pattern.</li>
+</ol>
+<h4>Returns: String.</h4>
+<h4>Examples:</h4>
+<pre><code class="javascript"><span class="comment">// Create a new route with a pattern</span>
+<span class="keyword">var</span> route = <span class="keyword">new</span> Neuro.Router.Route({
+    pattern: <span class="string">'person/{name}'</span>
+});
+
+route.interpolate({name: <span class="string">'awesome'</span>}); <span class="comment">// returns 'person/awesome'</span></code></pre>
+<h2 id="neuro-router">Neuro Router</h2>
+<p>The <strong>Router</strong> is a <code>Class</code> object that extends from the <code>Collection</code> class object. It is heavily influenced by <a href="https://github.com/millermedeiros/crossroads.js">Crossroads.js</a> by Miller Medeiros, as well as the documentation for it. It parses string input to decide what action should be taken by matching the string against mutiple patterns (<code>Route</code> instances).
+
+</p>
+<h4>Extends: <a href="#neuro-collection">Collection</a></h4>
+<h4>Implements:</h4>
+<ul>
+<li><a href="#mixin-connector">Mixin: Connector</a></li>
+<li><a href="#mixin-events">Mixin: Events</a></li>
+<li><a href="#mixin-options">Mixin: Options</a></li>
+<li><a href="#mixin-silence">Mixin: Silence</a></li>
+<li><a href="#mixin-snitch">Mixin: Snitch</a></li>
+</ul>
+<h3 id="neuro-router/constructor-initialize">constructor (initialize)</h3>
+<hr />
+<h4>Syntax:</h4>
+<pre><code class="javascript"><span class="keyword">var</span> router = <span class="keyword">new</span> Neuro.Router(routes[, options]);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li><code>routes</code> - (Mixed, optional)<ul>
+<li>Route - A <code>Route</code> instance.</li>
+<li>Object - An object of key/value pairs that will be used to create a <code>Route</code> instance.</li>
+<li>Array - An array of <code>Route</code> instances or object key/value pairs.</li>
+</ul>
+</li>
+<li><p><code>options</code> - (Object, optional) See <a href="#neuro-collection">Collection</a> for the other options inherited from <code>Collection</code></p>
+<ul>
+<li><code>modelOptions</code> - (Object, optional)
+Sets the <code>options</code> for <code>Route</code> instances during the <code>add</code> method call. Check <a href="#neuro-model">Neuro Model</a><ul>
+<li><code>defaults</code> - (Object, optional)
+Sets the default properties for <code>Route</code> instances during the <code>add</code> method call. Check <a href="#neuro-route">Neuro Route</a> for the properties</li>
+</ul>
+</li>
+<li><p><code>greedy</code> - (Boolean, optional, defaults to <code>false</code>)
+Set to <code>false</code> will stop on the first match with the supplied request.</p>
+<p>Set to <code>true</code> will try to match every single <code>Route</code> instance with the supplied request.</p>
+</li>
+<li><code>greedyEnabled</code> - (Boolean, optional, defaults to <code>true</code>)
+If <code>false</code> it won't try to match multiple routes (faster).</li>
+</ul>
+</li>
+</ol>
+<h4>Returns: Route instance.</h4>
+<h4>Events:</h4>
+<ul>
+<li><code>match: function(router, request, data){}</code> - Triggered when <code>Router</code> instance finds a match during <code>parse()</code>.<ul>
+<li><code>router</code> - (Router)
+The <code>Router</code> instance.</li>
+<li><code>request</code> - (String)
+The string being parsed.</li>
+<li><code>data</code>  - (Object)
+Contains data pertaining to matching <code>Route</code> instance.<ul>
+<li><code>route</code> - (Route)
+The matching <code>Route</code> instance</li>
+<li><code>params</code> - (Array)
+An array containing parameters captured by the <code>Route</code> instances pattern</li>
+<li><code>isFirst</code> - (Boolean)
+<code>true</code> for the first time <code>match</code> event is triggered during the <code>parse()</code> method call. Will be <code>false</code> unless the <code>Route</code> instance is <code>greedy</code> and it is being matched after another <code>Route</code> instance already matched the <code>request</code>.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>default: function(router, request){}</code> - Triggered when <code>Router</code> instance does not find a match during <code>parse()</code>.<ul>
+<li><code>router</code> - (Router)
+The <code>Router</code> instance.</li>
+<li><code>request</code> - (String)
+The string being parsed.</li>
+</ul>
+</li>
+</ul>
+<h4>Examples:</h4>
+<pre><code class="javascript"><span class="comment">/*
+Create a router instance. Note the typecast property in modelOptions.defaults object.
+This will typecast the captured group so that rules can be simple functions like Type.isString.
+Otherwise all values passed to the rules will be strings.
+ */</span>
+<span class="keyword">var</span> router = <span class="keyword">new</span> Neuro.Router([{
+    pattern: <span class="string">'news/{id}'</span>,
+    rules: {
+        id: Type.isNumber
+    }
+}], {
+    onMatch: <span class="keyword">function</span>(router, request, data){
+        console.log(<span class="string">'match'</span>, request, data);
+    },
+    onDefault: <span class="keyword">function</span>(router, request){
+        console.log(<span class="string">'default'</span>, request);
+    },
+    modelOptions: {
+        defaults: {
+            typecast: <span class="literal">true</span>
+        }
+    }
+});
+
+<span class="comment">/*
+typecast property needs to be manually set here because modelOptions object is only
+used when a Route instance is created by the Router instance during the add method call.
+ */</span>
+router.add( <span class="keyword">new</span> Neuro.Router.Route({
+    pattern: <span class="string">'news/{type}/{id}'</span>,
+    rules: {
+        type: Type.isString,
+        id: Type.isNumber
+    },
+    typecast: <span class="literal">true</span>
+}) );
+
+<span class="comment">// triggers default event</span>
+router.parse(<span class="string">'news'</span>);
+
+<span class="comment">// triggers default event because 'a' is typecast as a string</span>
+router.parse(<span class="string">'news/a'</span>);
+
+<span class="comment">// triggers match on the 'news/{id}' pattern because '123' is typecast to a number and passes the rule for 'id'</span>
+router.parse(<span class="string">'news/123'</span>);
+
+<span class="comment">// triggers default event because '123' is typecast as a number and does not pass the 'type' rule for 'news/{type}/{id}' pattern</span>
+router.parse(<span class="string">'news/123/456'</span>);
+
+<span class="comment">// triggers match on the 'news/{type}/{id}' pattern because 'abc' is typecast to a string and passes the rule for 'type'</span>
+<span class="comment">// and '456' is typecast as a number and passes the rule for 'id'</span>
+router.parse(<span class="string">'news/abc/456'</span>);</code></pre>
+<h3 id="neuro-router/parse">parse</h3>
+<hr />
+<p>Parse a string input and trigger the first matching <code>Route</code> instances <code>match</code> event. Routing priority is defined by order of insertion or by the <code>priority</code> property of each <code>Route</code> instance.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">router.parse(request[, defaultArgs]);</code></pre>
+<h4>Arguments:</h4>
+<ol>
+<li><code>request</code> - (String)
+String that should be evaluated and matched against <code>Route</code> instances to define which <code>Route</code> <code>match</code> event handlers should be executed and which parameters should be passed to the <code>match</code> event handlers.</li>
+<li><code>defaultArgs</code> - (Array, optional)
+Array containing values passed to <code>match</code>/<code>default</code> signals as first arguments. Useful for node.js in case you need to access the request and response objects.</li>
+</ol>
+<h4>Returns: Router instance.</h4>
+<h4>Events:</h4>
+<ul>
+<li><code>pass</code></li>
+<li><code>Route</code> instance <code>match</code></li>
+<li><code>match</code></li>
+<li><code>default</code></li>
+</ul>
+<h4>Notes:</h4>
+<p>The parse algorithm is very straightforward, since the string patterns were already converted into regular expressions during <code>add</code> method call the router just need to loop through all the routes (following the priority order) and check which one matches the current input. If it does find a route that matches the <code>request</code> it will check if the route contains the special property rules and then it will validate each segment (capturing group). If after all that the route is considered "matched", then the previous <code>Route</code>'s <code>pass</code> event is triggered and the <code>Route</code> <code>match</code> event is triggered together with the <code>Router</code>'s <code>match</code> event. Otherwise the <code>Router</code>'s <code>default</code> event is triggered.
+
+</p>
+<p>Calling <code>parse</code> multiple times in a row passing the same request will trigger the <code>match</code>/<code>Route</code> instance <code>match</code>/<code>default</code> signals only once.
+
+</p>
+<h4>Examples:</h4>
+<pre><code class="javascript"><span class="comment">/*
+typecast property needs to be manually set here because modelOptions object is only
+used when a Route instance is created by the Router instance during the add method call.
+ */</span>
+<span class="keyword">var</span> route1 = <span class="keyword">new</span> Neuro.Router.Route({
+    pattern: <span class="string">'news/{id}'</span>,
+    rules: {
+        id: Type.isNumber
+    },
+    <span class="comment">// the 'match' event handler on the route</span>
+    callback: <span class="keyword">function</span>(route, id){
+        console.log(<span class="string">'Router match news/id'</span>, id);
+    },
+    typecast: <span class="literal">true</span>
+});
+
+route1.addEvent(<span class="string">'pass'</span>, <span class="keyword">function</span>(request){
+    console.log(<span class="string">'Passed to '</span> + request);
+});
+
+<span class="keyword">var</span> route2 = <span class="keyword">new</span> Neuro.Router.Route({
+    pattern: <span class="string">'news/{type}/{id}'</span>,
+    rules: {
+        type: Type.isString,
+        id: Type.isNumber
+    },
+    <span class="comment">// the 'match' event handler on the route</span>
+    callback: <span class="keyword">function</span>(route, type, id){
+        console.log(<span class="string">'Router match news/type/id'</span>, type, id);
+    },
+    typecast: <span class="literal">true</span>
+});
+
+route2.addEvent(<span class="string">'pass'</span>, <span class="keyword">function</span>(request){
+    console.log(<span class="string">'Passed to '</span> + request);
+});
+
+<span class="comment">/*
+Create a router instance. Note the typecast property in modelOptions.defaults object.
+This will typecast the captured group so that rules can be simple functions like Type.isString.
+Otherwise all values passed to the rules will be strings.
+ */</span>
+<span class="keyword">var</span> router = <span class="keyword">new</span> Neuro.Router([route1, router2]);
+
+<span class="comment">/*
+router 'default' event is triggered.
+ */</span>
+router.parse(<span class="string">'news'</span>);
+
+<span class="comment">/*
+route1 'match' event is triggered.
+router 'match' event is triggered.
+no 'pass' event is triggered because there was no matching route in the previous parse method call.
+ */</span>
+router.parse(<span class="string">'news/123'</span>);
+
+<span class="comment">/*
+route1 'pass' event is triggered.
+route2 'match' event is triggered.
+router 'match' event is triggered.
+ */</span>
+router.parse(<span class="string">'news/abc/123'</span>);</code></pre>
+<h3 id="neuro-router/resetstate">resetState</h3>
+<hr />
+<p>Resets the <code>Router</code> instances internal state. Will clear reference to previously matched <code>Route</code> instances (so they won't trigger <code>pass</code> events when matching a new route) and reset last request.
+
+</p>
+<p>This feature should NOT be needed by most users.
+
+</p>
+<h4>Syntax:</h4>
+<pre><code class="javascript">router.resetState();</code></pre>
+<h4>Returns: Router instance.</h4>
+<h4>Examples:</h4>
+<pre><code class="javascript"><span class="keyword">var</span> route1 = <span class="keyword">new</span> Neuro.Router.Route({
+    pattern: <span class="string">'news/{id}'</span>,
+    rules: {
+        id: Type.isNumber
+    },
+    <span class="comment">// the 'match' event handler on the route</span>
+    callback: <span class="keyword">function</span>(route, id){
+        console.log(<span class="string">'Router match news/id'</span>, id);
+    },
+    typecast: <span class="literal">true</span>
+});
+
+route1.addEvent(<span class="string">'pass'</span>, <span class="keyword">function</span>(request){
+    console.log(<span class="string">'Passed to '</span> + request);
+});
+
+<span class="keyword">var</span> route2 = <span class="keyword">new</span> Neuro.Router.Route({
+    pattern: <span class="string">'news/{type}/{id}'</span>,
+    rules: {
+        type: Type.isString,
+        id: Type.isNumber
+    },
+    <span class="comment">// the 'match' event handler on the route</span>
+    callback: <span class="keyword">function</span>(route, type, id){
+        console.log(<span class="string">'Router match news/type/id'</span>, type, id);
+    },
+    typecast: <span class="literal">true</span>
+});
+
+route2.addEvent(<span class="string">'pass'</span>, <span class="keyword">function</span>(request){
+    console.log(<span class="string">'Passed to '</span> + request);
+});
+
+<span class="comment">/*
+Create a router instance. Note the typecast property in modelOptions.defaults object.
+This will typecast the captured group so that rules can be simple functions like Type.isString.
+Otherwise all values passed to the rules will be strings.
+ */</span>
+<span class="keyword">var</span> router = <span class="keyword">new</span> Neuro.Router([route1, router2]);
+
+<span class="comment">/*
+route1 'match' event is triggered.
+no 'pass' event is triggered because there was no matching route to begin with.
+ */</span>
+router.parse(<span class="string">'news/123'</span>);
+
+<span class="comment">/*
+route1 'pass' event is triggered.
+route2 'match' event is triggered.
+ */</span>
+router.parse(<span class="string">'news/abc/123'</span>);
+
+<span class="comment">// Remove references to previous request and route</span>
+router.resetState();
+
+<span class="comment">/*
+route1 'match' event is triggered.
+no 'pass' event is triggered references to previous request and route have been removed.
+ */</span>
+router.parse(<span class="string">'news/123'</span>);</code></pre>
 <h2 id="mixin-events">Mixin: Events</h2>
 <hr />
 <p><strong>From MooTools Documentation:</strong>
