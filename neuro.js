@@ -27,10 +27,9 @@
         exports = module.exports = Neuro;
     },
     "1": function(require, module, exports, global) {
-        var Neuro = {
-            version: "0.2.5"
+        exports = module.exports = {
+            version: "0.2.6"
         };
-        exports = module.exports = Neuro;
     },
     "2": function(require, module, exports, global) {
         var Model = require("3").Model, Butler = require("8").Butler, Snitch = require("a").Snitch, signalFactory = require("9");

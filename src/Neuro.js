@@ -1,4 +1,3 @@
-var Neuro = {
-    version: '0.2.5'
+exports = module.exports = {
+    version: '0.2.6'
 };
-exports = module.exports = Neuro;
