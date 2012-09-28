@@ -9,13 +9,13 @@ __Version: 0.2.6__
 
 __Influences:__
 
-* [Backbone](/documentcloud/backbone)
-* [Shipyard](/seanmonstar/Shipyard)
+* [Backbone](https://github.com/documentcloud/backbone)
+* [Shipyard](https://github.com/seanmonstar/Shipyard)
 
 __Dependencies:__
 
-* [MooTools-Core 1.x](/mootools/mootools-core)
-* [Is.js](/gcheung55/is.js)
+* [MooTools-Core 1.x](https://github.com/mootools/mootools-core)
+* [Is.js](https://github.com/gcheung55/is.js)
 
 __Focus:__
 
