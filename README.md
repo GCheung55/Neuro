@@ -1,7 +1,7 @@
 Neuro
 ======================
 
-A MooTools client-side MVC.
+An MVC framework that leverages MooTools.
 
 __Version: 0.2.6__
 
