@@ -19,7 +19,7 @@
         Neuro.Route = require("g").Route;
         Neuro.Is = require("4").Is;
         Neuro.Mixins = {
-            Butler: require("8").Butler,
+            Butler: require("9").Butler,
             Connector: require("6").Connector,
             Silence: require("5").Silence,
             Snitch: require("m").Snitch
@@ -32,7 +32,7 @@
         };
     },
     "2": function(require, module, exports, global) {
-        var Model = require("3").Model, Butler = require("8").Butler, Snitch = require("a").Snitch, signalFactory = require("9");
+        var Model = require("3").Model, Butler = require("9").Butler, Snitch = require("a").Snitch, signalFactory = require("8");
         var curryGetter = function(type) {
             return function(prop) {
                 var accessor = this.getAccessor(prop, type), accessorName = this._accessorName;
@@ -111,7 +111,7 @@
         });
     },
     "3": function(require, module, exports, global) {
-        var Is = require("4").Is, Silence = require("5").Silence, Connector = require("6").Connector, Butler = require("8").Butler, signalFactory = require("9");
+        var Is = require("4").Is, Silence = require("5").Silence, Connector = require("6").Connector, signalFactory = require("8");
         var cloneVal = function(val) {
             switch (typeOf(val)) {
               case "array":
@@ -140,7 +140,7 @@
             };
         };
         var Model = new Class({
-            Implements: [ Connector, Butler, Events, Options, Silence ],
+            Implements: [ Connector, Events, Options, Silence ],
             primaryKey: undefined,
             _data: {},
             _changed: false,
@@ -327,7 +327,7 @@
             var has = function(obj, key) {
                 return obj.hasOwnProperty(key);
             };
-            var eq = function(a, b, stack) {
+            var eq = function(a, b, aStack, bStack) {
                 if (a === b) return a !== 0 || 1 / a == 1 / b;
                 if (a == null || b == null) return a === b;
                 if (a.isEqual && Is.Function(a.isEqual)) return a.isEqual(b);
@@ -340,26 +340,28 @@
                     return matchMap[typeA](a, b);
                 }
                 if (typeA != "object" || typeB != "object") return false;
-                var length = stack.length;
+                var length = aStack.length;
                 while (length--) {
-                    if (stack[length] == a) return true;
+                    if (aStack[length] == a) return bStack[length] == b;
                 }
-                stack.push(a);
+                aStack.push(a);
+                bStack.push(b);
                 var size = 0, result = true;
                 if (typeA == "array") {
                     size = a.length;
                     result = size == b.length;
                     if (result) {
                         while (size--) {
-                            if (!(result = size in a == size in b && eq(a[size], b[size], stack))) break;
+                            if (!(result = eq(a[size], b[size], aStack, bStack))) break;
                         }
                     }
                 } else {
-                    if ("constructor" in a != "constructor" in b || a.constructor != b.constructor) return false;
+                    var aConstructor = a.constructor, bConstructor = b.constructor;
+                    if (aConstructor !== bConstructor && !(Is.Function(aConstructor) && instanceOf(aConstructor, aConstructor) && Is.Function(bConstructor) && instanceOf(bConstructor, bConstructor))) return false;
                     for (var key in a) {
                         if (has(a, key)) {
                             size++;
-                            if (!(result = has(b, key) && eq(a[key], b[key], stack))) break;
+                            if (!(result = has(b, key) && eq(a[key], b[key], aStack, bStack))) break;
                         }
                     }
                     if (result) {
@@ -369,11 +371,12 @@
                         result = !size;
                     }
                 }
-                stack.pop();
+                aStack.pop();
+                bStack.pop();
                 return result;
             };
             Is.Equal = function(a, b) {
-                return eq(a, b, []);
+                return eq(a, b, [], []);
             };
             (function(obj) {
                 var not = {};
@@ -476,6 +479,25 @@
         });
     },
     "8": function(require, module, exports, global) {
+        var prefix = "signal", hyphen = "-", colon = ":";
+        exports = module.exports = function(names, curryFnc, stack) {
+            if (!Type.isFunction(curryFnc)) {
+                stack = curryFnc;
+                curryFnc = undefined;
+            }
+            stack = stack || {};
+            Array.from(names).each(function(name) {
+                var property = (prefix + hyphen + name.replace(colon, hyphen)).camelCase();
+                stack[property] = curryFnc ? curryFnc(name) : function() {
+                    Array.prototype.unshift.call(arguments, this);
+                    !this.isSilent() && this.fireEvent(name, arguments);
+                    return this;
+                };
+            });
+            return stack;
+        };
+    },
+    "9": function(require, module, exports, global) {
         var Butler = new Class({
             _accessors: {},
             _accessorName: undefined,
@@ -536,25 +558,6 @@
             }
         });
         exports.Butler = Butler;
-    },
-    "9": function(require, module, exports, global) {
-        var prefix = "signal", hyphen = "-", colon = ":";
-        exports = module.exports = function(names, curryFnc, stack) {
-            if (!Type.isFunction(curryFnc)) {
-                stack = curryFnc;
-                curryFnc = undefined;
-            }
-            stack = stack || {};
-            Array.from(names).each(function(name) {
-                var property = (prefix + hyphen + name.replace(colon, hyphen)).camelCase();
-                stack[property] = curryFnc ? curryFnc(name) : function() {
-                    Array.prototype.unshift.call(arguments, this);
-                    !this.isSilent() && this.fireEvent(name, arguments);
-                    return this;
-                };
-            });
-            return stack;
-        };
     },
     a: function(require, module, exports, global) {
         var asterisk = "*";
@@ -659,7 +662,7 @@
         });
     },
     c: function(require, module, exports, global) {
-        var Model = require("2").Model, Silence = require("5").Silence, Connector = require("6").Connector, signalFactory = require("9");
+        var Model = require("2").Model, Silence = require("5").Silence, Connector = require("6").Connector, signalFactory = require("8");
         var Collection = new Class({
             Implements: [ Connector, Events, Options, Silence ],
             _models: [],
@@ -836,7 +839,7 @@
         exports.View = View;
     },
     e: function(require, module, exports, global) {
-        var Connector = require("6").Connector, Silence = require("5").Silence, signalFactory = require("9");
+        var Connector = require("6").Connector, Silence = require("5").Silence, signalFactory = require("8");
         var eventHandler = function(handler) {
             return function() {
                 var events = this.options.events, element = this.element;
@@ -920,11 +923,11 @@
         exports.View = View;
     },
     f: function(require, module, exports, global) {
-        var Collection = require("b").Collection, Route = require("g").Route, signalFactory = require("9");
+        var collectionObj = require("b"), routeObj = require("g"), signalFactory = require("8");
         var Router = new Class({
-            Extends: Collection,
+            Extends: collectionObj.Collection,
             options: {
-                Model: Route,
+                Model: routeObj.Route,
                 modelOptions: {
                     defaults: {
                         typecast: false,
@@ -938,7 +941,7 @@
             _prevMatchedRequest: null,
             _prevBypassedRequest: null,
             _add: function(route) {
-                var priority = instanceOf(route, Route) ? route.get("priority") : route.priority || (route.priority = 0);
+                var priority = instanceOf(route, routeObj.Route) ? route.get("priority") : route.priority || (route.priority = 0);
                 this.parent(route, this._calcPriority(priority));
                 return this;
             },
@@ -1027,10 +1030,10 @@
         exports.Route = Route;
     },
     h: function(require, module, exports, global) {
-        var Model = require("2").Model, signalFactory = require("9"), typecastValue = require("i"), decodeQueryString = require("j");
+        var modelObj = require("2"), signalFactory = require("8"), typecastValue = require("i"), decodeQueryString = require("j");
         var _hasOptionalGroupBug = /t(.+)?/.exec("t")[1] === "";
         var Route = new Class({
-            Extends: Model,
+            Extends: modelObj.Model,
             options: {
                 defaults: {
                     pattern: void 0,
@@ -1061,7 +1064,7 @@
                     rules: {
                         set: function(prop, value) {
                             if (this.validate(prop, value)) {
-                                this.set(prop, new Model(value));
+                                this.set(prop, new modelObj.Model(value));
                             }
                         }
                     },
