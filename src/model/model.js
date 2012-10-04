@@ -3,7 +3,6 @@
 var Is = require('neuro-is').Is,
     Silence = require('../../mixins/silence').Silence,
     Connector = require('../../mixins/connector').Connector,
-    Butler = require('../../mixins/butler').Butler,
     signalFactory = require('../../utils/signalFactory');
 
 var cloneVal = function(val){
@@ -42,7 +41,7 @@ var curryGetData = function(type){
 };
 
 var Model = new Class({
-    Implements: [Connector, Butler, Events, Options, Silence],
+    Implements: [Connector, Events, Options, Silence],
 
     primaryKey: undefined,
 
