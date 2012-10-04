@@ -4,15 +4,15 @@
  * crossroads.js commit - 3b413b0b506b0c04f80b03194d4c1abaeccc9574
  * @type {Class}
  */
-var Collection = require('../collection/main').Collection,
-    Route = require('../route/main').Route,
+var collectionObj = require('../collection/main'),
+    routeObj = require('../route/main'),
     signalFactory = require('../../utils/signalFactory');
 
 var Router = new Class({
-    Extends: Collection,
+    Extends: collectionObj.Collection,
 
     options: {
-        Model: Route,
+        Model: routeObj.Route,
         modelOptions: {
             defaults: {
                 typecast: false,
@@ -31,7 +31,7 @@ var Router = new Class({
 
     _add: function(route){
         // placement of route is determined by the priority property
-        var priority = instanceOf(route, Route) ? route.get('priority') : route.priority || (route.priority = 0);
+        var priority = instanceOf(route, routeObj.Route) ? route.get('priority') : route.priority || (route.priority = 0);
 
         this.parent(route, this._calcPriority(priority));
 

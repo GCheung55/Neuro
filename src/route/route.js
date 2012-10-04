@@ -4,7 +4,7 @@
  * crossroads.js commit - 3b413b0b506b0c04f80b03194d4c1abaeccc9574
  * @type {Class}
  */
-var Model = require('../model/main').Model,
+var modelObj = require('../model/main'),
     signalFactory = require('../../utils/signalFactory'),
     typecastValue = require('../../utils/typecast/value'),
     decodeQueryString = require('../../utils/typecast/decodeQueryString');
@@ -14,7 +14,7 @@ var Model = require('../model/main').Model,
 var _hasOptionalGroupBug = (/t(.+)?/).exec('t')[1] === '';
 
 var Route = new Class({
-    Extends: Model,
+    Extends: modelObj.Model,
 
     options: {
         defaults: {
@@ -60,7 +60,7 @@ var Route = new Class({
                 set: function(prop, value){
                     // Validate that it is an object
                     if (this.validate(prop, value)) {
-                        this.set(prop, new Model(value));
+                        this.set(prop, new modelObj.Model(value));
                     }
                 }
             },
