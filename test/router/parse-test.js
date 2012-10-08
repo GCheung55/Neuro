@@ -267,8 +267,8 @@ buster.testCase('this.router.parse()', {
         'should typecast values if shouldTypecast is set to true': function(){
             // var prevTypecast = this.router.shouldTypecast;
             // this.router.shouldTypecast = true;
-            var prevTypecast = this.router.options.modelOptions.defaults.typecast;
-            this.router.options.modelOptions.defaults.typecast = true;
+            var prevTypecast = this.router.options.Model.options.defaults.typecast;
+            this.router.options.Model.options.defaults.typecast = true;
 
             var t1, t2, t3, t4, t5, t6;
 
@@ -293,14 +293,14 @@ buster.testCase('this.router.parse()', {
             expect( t5 ).toBe( null );
             expect( t6 ).toBe( undefined );
 
-            this.router.options.modelOptions.defaults.typecast = prevTypecast; //restore
+            this.router.options.Model.options.defaults.typecast = prevTypecast; //restore
         },
 
         'should not typecast if shouldTypecast is set to false': function(){
             // var prevTypecast = this.router.shouldTypecast;
             // this.router.shouldTypecast = false;
-            var prevTypecast = this.router.options.modelOptions.defaults.typecast;
-            this.router.options.modelOptions.defaults.typecast = false;
+            var prevTypecast = this.router.options.Model.options.defaults.typecast;
+            this.router.options.Model.options.defaults.typecast = false;
 
             var t1, t2, t3, t4;
 
@@ -321,7 +321,7 @@ buster.testCase('this.router.parse()', {
             expect( t3 ).toBe( 'true' );
             expect( t4 ).toBe( 'false' );
 
-            this.router.options.modelOptions.defaults.typecast = prevTypecast; //restore
+            this.router.options.Model.options.defaults.typecast = prevTypecast; //restore
         }
 
     },
@@ -433,11 +433,11 @@ buster.testCase('this.router.parse()', {
     'this.router.normalizeFn': {
 
         setUp: function(){
-            this.prevNorm = this.router.options.modelOptions.defaults.normalizer;
+            this.prevNorm = this.router.options.Model.options.defaults.normalizer;
         },
 
         tearDown: function(){
-            this.router.options.modelOptions.defaults.normalizer = this.prevNorm;
+            this.router.options.Model.options.defaults.normalizer = this.prevNorm;
         },
 
 
@@ -447,7 +447,7 @@ buster.testCase('this.router.parse()', {
                 f1, f2;
 
 
-            this.router.options.modelOptions.defaults.normalizer = function(request, vals){
+            this.router.options.Model.options.defaults.normalizer = function(request, vals){
                 var id;
                 var idRegex = /^[0-9]+$/;
                 if(vals.a === 'article'){
@@ -505,7 +505,7 @@ buster.testCase('this.router.parse()', {
 
             var t1, t2;
 
-            this.router.options.modelOptions.defaults.normalizer = function(request, vals){
+            this.router.options.Model.options.defaults.normalizer = function(request, vals){
                 //convert params into an array..
                 return [vals.vals_];
             };
@@ -537,7 +537,7 @@ buster.testCase('this.router.parse()', {
             'should pass array': function(){
                 var arg;
 
-                this.router.options.modelOptions.defaults.normalizer = Router.NORM_AS_ARRAY;
+                this.router.options.Model.options.defaults.normalizer = Router.NORM_AS_ARRAY;
                 this.router.add({
                     pattern: '/{a}/{b}', 
                     callback: function (route, a) {
@@ -558,7 +558,7 @@ buster.testCase('this.router.parse()', {
             'should pass object': function(){
                 var arg;
 
-                this.router.options.modelOptions.defaults.normalizer = Router.NORM_AS_OBJECT;
+                this.router.options.Model.options.defaults.normalizer = Router.NORM_AS_OBJECT;
                 this.router.add({
                     pattern: '/{a}/{b}', 
                     callback: function (route, a) {
@@ -578,7 +578,7 @@ buster.testCase('this.router.parse()', {
             'should pass multiple args': function (){
                 var arg1, arg2;
 
-                this.router.options.modelOptions.defaults.normalizer = null;
+                this.router.options.Model.options.defaults.normalizer = null;
                 this.router.add({
                     pattern: '/{a}/{b}', 
                     callback: function (route, a, b) {

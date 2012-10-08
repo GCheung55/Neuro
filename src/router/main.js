@@ -12,11 +12,13 @@ var Router = new Class({
     Extends: collectionObj.Collection,
 
     options: {
-        Model: routeObj.Route,
-        modelOptions: {
-            defaults: {
-                typecast: false,
-                normalizer: null
+        Model: {
+            constructor: routeObj.Route,
+            options: {
+                defaults: {
+                    typecast: false,
+                    normalizer: null
+                }
             }
         },
         greedy: false,

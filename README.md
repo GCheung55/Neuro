@@ -556,8 +556,12 @@ var collection = new Neuro.Collection(data [, options]);
     * Array - An array of Model instances or object key/value pairs
 2. `options` - (Object, optional)
     * primaryKey - (String) Define to uniquely identify a model in a collection
-    * Model - (Model, defaults to undefined) The `Model` Class used to create model instances from when an `Object` is passed to `add`.
-    * modelOptions - (Object, defaults to undefined) An `Object` containing options for creating new model instances. See [Neuro Model](#neuro-model)
+    *   Model - (Object, optional)
+        Contains the constructor and options for creating model instances during `add()` calls.
+        *   constructor (Class, optional, defaults to `Model`)
+            The `Model` Class used to create model instances from when an `Object` is passed to `add`.
+        *   options - (Object, defaults to undefined)
+            An `Object` containing options for creating new model instances. See [Neuro Model](#neuro-model)
     * connector - (Object) See [Mixin: Connector](#mixin-connector)
     * validators - (Object) See [Mixin: Snitch](#mixin-snitch)
 
@@ -1202,10 +1206,10 @@ var route = new Neuro.Route(data [, options]);
 
             Can be used to create route aliases and also to convert data format.
 
-            Works exactly like `options.modelOptions.defaults.normalizer` in `Neuro.Router`. It will overwrite `options.modelOptions.defaults.normalizer` in `Neuro.Router` if present.
+            Works exactly like `options.Model.options.defaults.normalizer` in `Neuro.Router`. It will overwrite `options.Model.options.defaults.normalizer` in `Neuro.Router` if present.
 
         *   `request_` - (Array | RegExp | Function)
-            Rule used to validate whole request. `request_` is a special rule used to validate whole request Note that request will be typecasted if value is a boolean or number and `options.modelOptions.defaults.typecast` = true (default = false) in `Neuro.Router`.
+            Rule used to validate whole request. `request_` is a special rule used to validate whole request Note that request will be typecasted if value is a boolean or number and `options.Model.options.defaults.typecast` = true (default = false) in `Neuro.Router`.
 
     *   `typecast` - (Boolean, optional, defaults to `false`)
         Type cast route paths with this property. `true` typecasts values in the route path, while `false` typecasts them as strings.
@@ -1338,10 +1342,14 @@ var router = new Neuro.Router(routes[, options]);
     *   Object - An object of key/value pairs that will be used to create a `Route` instance.
     *   Array - An array of `Route` instances or object key/value pairs.
 2. `options` - (Object, optional) See [Collection](#neuro-collection) for the other options inherited from `Collection`
-    *   `modelOptions` - (Object, optional)
-        Sets the `options` for `Route` instances during the `add` method call. Check [Neuro Model](#neuro-model)
-        *   `defaults` - (Object, optional)
-            Sets the default properties for `Route` instances during the `add` method call. Check [Neuro Route](#neuro-route) for the properties
+    *   `Model` - (Object, optional)
+        Contains the constructor and options for creating route instances during `add()` calls.
+        *   `constructor` - (Route, optional)
+            Override this at your own risk. If it is overriden, be sure that the value is a `Class` and that it at least extends from `Route`.
+        *   `options` - (Object, optional)
+            Sets the `options` for `Route` instances during the `add` method call. Check [Neuro Model](#neuro-model)
+            *   `defaults` - (Object, optional)
+                Sets the default properties for `Route` instances during the `add` method call. Check [Neuro Route](#neuro-route) for the properties
     *   `greedy` - (Boolean, optional, defaults to `false`)
         Set to `false` will stop on the first match with the supplied request.
 
@@ -1375,7 +1383,7 @@ var router = new Neuro.Router(routes[, options]);
 #### Examples:
 ```javascript
 /*
-Create a router instance. Note the typecast property in modelOptions.defaults object.
+Create a router instance. Note the typecast property in Model.options.defaults object.
 This will typecast the captured group so that rules can be simple functions like Type.isString.
 Otherwise all values passed to the rules will be strings.
  */
@@ -1391,15 +1399,17 @@ var router = new Neuro.Router([{
     onDefault: function(router, request){
         console.log('default', request);
     },
-    modelOptions: {
-        defaults: {
-            typecast: true
+    Model: {
+        options: {
+            defaults: {
+                typecast: true
+            }
         }
     }
 });
 
 /*
-typecast property needs to be manually set here because modelOptions object is only
+typecast property needs to be manually set here because Model.options object is only
 used when a Route instance is created by the Router instance during the add method call.
  */
 router.add( new Neuro.Router.Route({
@@ -1459,7 +1469,7 @@ Calling `parse` multiple times in a row passing the same request will trigger th
 #### Examples:
 ```javascript
 /*
-typecast property needs to be manually set here because modelOptions object is only
+typecast property needs to be manually set here because Model.options object is only
 used when a Route instance is created by the Router instance during the add method call.
  */
 var route1 = new Neuro.Router.Route({
@@ -1496,7 +1506,7 @@ route2.addEvent('pass', function(request){
 });
 
 /*
-Create a router instance. Note the typecast property in modelOptions.defaults object.
+Create a router instance. Note the typecast property in Model.options.defaults object.
 This will typecast the captured group so that rules can be simple functions like Type.isString.
 Otherwise all values passed to the rules will be strings.
  */
@@ -1571,7 +1581,7 @@ route2.addEvent('pass', function(request){
 });
 
 /*
-Create a router instance. Note the typecast property in modelOptions.defaults object.
+Create a router instance. Note the typecast property in Model.options.defaults object.
 This will typecast the captured group so that rules can be simple functions like Type.isString.
 Otherwise all values passed to the rules will be strings.
  */

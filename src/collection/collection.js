@@ -24,9 +24,11 @@ var Collection = new Class({
         // onEmpty: function(){},
         // onSort: function(){},
         primaryKey: undefined,
-        Model: Model,
-        // Model Options
-        modelOptions: undefined
+        Model: {
+            constructor: Model,
+            // Model Options
+            options: undefined
+        }
     },
 
     initialize: function(models, options){
@@ -38,7 +40,7 @@ var Collection = new Class({
     setup: function(models, options){
         this.primaryKey = this.options.primaryKey;
 
-        this._Model = this.options.Model;
+        this._Model = this.options.Model.constructor;
 
         if (models) {
             this.add(models);
@@ -122,7 +124,7 @@ var Collection = new Class({
      * @return {Class} Collection Instance
      */
     _add: function(model, at){
-        model = new this._Model(model, this.options.modelOptions);
+        model = new this._Model(model, this.options.Model.options);
 
         if (!this.hasModel(model)) {
             // Attach events to the model that will signal collection events

@@ -672,8 +672,10 @@
             primaryKey: undefined,
             options: {
                 primaryKey: undefined,
-                Model: Model,
-                modelOptions: undefined
+                Model: {
+                    constructor: Model,
+                    options: undefined
+                }
             },
             initialize: function(models, options) {
                 this.setOptions(options);
@@ -681,7 +683,7 @@
             },
             setup: function(models, options) {
                 this.primaryKey = this.options.primaryKey;
-                this._Model = this.options.Model;
+                this._Model = this.options.Model.constructor;
                 if (models) {
                     this.add(models);
                 }
@@ -725,7 +727,7 @@
                 return !!this._active;
             },
             _add: function(model, at) {
-                model = new this._Model(model, this.options.modelOptions);
+                model = new this._Model(model, this.options.Model.options);
                 if (!this.hasModel(model)) {
                     this.attachModelEvents(model);
                     at = this.length == 0 ? void 0 : at;
@@ -927,11 +929,13 @@
         var Router = new Class({
             Extends: collectionObj.Collection,
             options: {
-                Model: routeObj.Route,
-                modelOptions: {
-                    defaults: {
-                        typecast: false,
-                        normalizer: null
+                Model: {
+                    constructor: routeObj.Route,
+                    options: {
+                        defaults: {
+                            typecast: false,
+                            normalizer: null
+                        }
                     }
                 },
                 greedy: false,
