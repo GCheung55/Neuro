@@ -10,7 +10,7 @@ var neuro = wrup.require('Neuro', './')
 
 var writeNeuro = function(){
     fs.writeFile(root + 'neuro.js', src);
-    fs.writeFile(root + './neuro-min.js', compressed);
+    fs.writeFile(root + 'neuro-min.js', compressed);
     console.log('Neuro created.');
 };
 

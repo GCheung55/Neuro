@@ -3,7 +3,7 @@ Neuro
 
 An MVC framework that leverages MooTools.
 
-__Version: 0.2.6__
+__Version: 0.2.7__
 
 [![Build Status](https://secure.travis-ci.org/GCheung55/Neuro.png)](http://travis-ci.org/GCheung55/Neuro)
 

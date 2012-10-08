@@ -28,7 +28,7 @@
     },
     "1": function(require, module, exports, global) {
         exports = module.exports = {
-            version: "0.2.6"
+            version: "0.2.7"
         };
     },
     "2": function(require, module, exports, global) {
