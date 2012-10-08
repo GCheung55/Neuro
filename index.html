@@ -605,7 +605,7 @@
 <p>An MVC framework that leverages MooTools.
 
 </p>
-<p><strong>Version: 0.2.6</strong>
+<p><strong>Version: 0.2.7</strong>
 
 </p>
 <p><a href="http://travis-ci.org/GCheung55/Neuro"><img src="https://secure.travis-ci.org/GCheung55/Neuro.png" alt="Build Status" /></a>
@@ -1178,8 +1178,14 @@ model.toQueryString();</code></pre>
 </li>
 <li><code>options</code> - (Object, optional)<ul>
 <li>primaryKey - (String) Define to uniquely identify a model in a collection</li>
-<li>Model - (Model, defaults to undefined) The <code>Model</code> Class used to create model instances from when an <code>Object</code> is passed to <code>add</code>.</li>
-<li>modelOptions - (Object, defaults to undefined) An <code>Object</code> containing options for creating new model instances. See <a href="#neuro-model">Neuro Model</a></li>
+<li>Model - (Object, optional)
+Contains the constructor and options for creating model instances during <code>add()</code> calls.<ul>
+<li>constructor (Class, optional, defaults to <code>Model</code>)
+The <code>Model</code> Class used to create model instances from when an <code>Object</code> is passed to <code>add</code>.</li>
+<li>options - (Object, defaults to undefined)
+An <code>Object</code> containing options for creating new model instances. See <a href="#neuro-model">Neuro Model</a></li>
+</ul>
+</li>
 <li>connector - (Object) See <a href="#mixin-connector">Mixin: Connector</a></li>
 <li>validators - (Object) See <a href="#mixin-snitch">Mixin: Snitch</a></li>
 </ul>
@@ -1781,10 +1787,10 @@ Object used to configure parameters/segments validation rules.</p>
 <li><p><code>normalizer_</code> - (Function(request, values), optional)
 Used to modify/normalize values before triggering the <code>match</code> event by <code>Neuro.Router</code>. It should return an Array with parameters that should be passed to listeners.</p>
 <p>Can be used to create route aliases and also to convert data format.</p>
-<p>Works exactly like <code>options.modelOptions.defaults.normalizer</code> in <code>Neuro.Router</code>. It will overwrite <code>options.modelOptions.defaults.normalizer</code> in <code>Neuro.Router</code> if present.</p>
+<p>Works exactly like <code>options.Model.options.defaults.normalizer</code> in <code>Neuro.Router</code>. It will overwrite <code>options.Model.options.defaults.normalizer</code> in <code>Neuro.Router</code> if present.</p>
 </li>
 <li><p><code>request_</code> - (Array | RegExp | Function)
-Rule used to validate whole request. <code>request_</code> is a special rule used to validate whole request Note that request will be typecasted if value is a boolean or number and <code>options.modelOptions.defaults.typecast</code> = true (default = false) in <code>Neuro.Router</code>.</p>
+Rule used to validate whole request. <code>request_</code> is a special rule used to validate whole request Note that request will be typecasted if value is a boolean or number and <code>options.Model.options.defaults.typecast</code> = true (default = false) in <code>Neuro.Router</code>.</p>
 </li>
 </ul>
 </li>
@@ -1911,10 +1917,16 @@ route.interpolate({name: <span class="string">'awesome'</span>}); <span class="c
 </li>
 <li><p><code>options</code> - (Object, optional) See <a href="#neuro-collection">Collection</a> for the other options inherited from <code>Collection</code></p>
 <ul>
-<li><code>modelOptions</code> - (Object, optional)
+<li><code>Model</code> - (Object, optional)
+Contains the constructor and options for creating route instances during <code>add()</code> calls.<ul>
+<li><code>constructor</code> - (Route, optional)
+Override this at your own risk. If it is overriden, be sure that the value is a <code>Class</code> and that it at least extends from <code>Route</code>.</li>
+<li><code>options</code> - (Object, optional)
 Sets the <code>options</code> for <code>Route</code> instances during the <code>add</code> method call. Check <a href="#neuro-model">Neuro Model</a><ul>
 <li><code>defaults</code> - (Object, optional)
 Sets the default properties for <code>Route</code> instances during the <code>add</code> method call. Check <a href="#neuro-route">Neuro Route</a> for the properties</li>
+</ul>
+</li>
 </ul>
 </li>
 <li><p><code>greedy</code> - (Boolean, optional, defaults to <code>false</code>)
@@ -1956,7 +1968,7 @@ The string being parsed.</li>
 </ul>
 <h4>Examples:</h4>
 <pre><code class="javascript"><span class="comment">/*
-Create a router instance. Note the typecast property in modelOptions.defaults object.
+Create a router instance. Note the typecast property in Model.options.defaults object.
 This will typecast the captured group so that rules can be simple functions like Type.isString.
 Otherwise all values passed to the rules will be strings.
  */</span>
@@ -1972,15 +1984,17 @@ Otherwise all values passed to the rules will be strings.
     onDefault: <span class="keyword">function</span>(router, request){
         console.log(<span class="string">'default'</span>, request);
     },
-    modelOptions: {
-        defaults: {
-            typecast: <span class="literal">true</span>
+    Model: {
+        options: {
+            defaults: {
+                typecast: <span class="literal">true</span>
+            }
         }
     }
 });
 
 <span class="comment">/*
-typecast property needs to be manually set here because modelOptions object is only
+typecast property needs to be manually set here because Model.options object is only
 used when a Route instance is created by the Router instance during the add method call.
  */</span>
 router.add( <span class="keyword">new</span> Neuro.Router.Route({
@@ -2038,7 +2052,7 @@ Array containing values passed to <code>match</code>/<code>default</code> signal
 </p>
 <h4>Examples:</h4>
 <pre><code class="javascript"><span class="comment">/*
-typecast property needs to be manually set here because modelOptions object is only
+typecast property needs to be manually set here because Model.options object is only
 used when a Route instance is created by the Router instance during the add method call.
  */</span>
 <span class="keyword">var</span> route1 = <span class="keyword">new</span> Neuro.Router.Route({
@@ -2075,7 +2089,7 @@ route2.addEvent(<span class="string">'pass'</span>, <span class="keyword">functi
 });
 
 <span class="comment">/*
-Create a router instance. Note the typecast property in modelOptions.defaults object.
+Create a router instance. Note the typecast property in Model.options.defaults object.
 This will typecast the captured group so that rules can be simple functions like Type.isString.
 Otherwise all values passed to the rules will be strings.
  */</span>
@@ -2145,7 +2159,7 @@ route2.addEvent(<span class="string">'pass'</span>, <span class="keyword">functi
 });
 
 <span class="comment">/*
-Create a router instance. Note the typecast property in modelOptions.defaults object.
+Create a router instance. Note the typecast property in Model.options.defaults object.
 This will typecast the captured group so that rules can be simple functions like Type.isString.
 Otherwise all values passed to the rules will be strings.
  */</span>
