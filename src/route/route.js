@@ -1,5 +1,5 @@
 /**
- * Route, an object heavily influenced by Crossroads.js by Miller Medeiros (https://github.com/millermedeiros/crossroads.js)
+ * Router, an object heavily influenced by Crossroads.js by Miller Medeiros (https://github.com/millermedeiros/crossroads.js) and Christoph Pojer's MooTools-Router (https://github.com/cpojer/mootools-router)
  * date - Jul 29, 2012
  * crossroads.js commit - 3b413b0b506b0c04f80b03194d4c1abaeccc9574
  * @type {Class}
@@ -111,6 +111,16 @@ var Route = new Class({
         return this._getParamsArray(request);
     },
 
+    interpolate: function(replacements){
+        var str = this.get('patternLexer').interpolate(this.get('pattern'), replacements);
+
+        if (!this._validateParams(str)) {
+            throw new Error('Generated string doesn\'t validate against `Route.rules`.');
+        }
+
+        return str;
+    },
+
     _validateParams: function(request){
         var rules = this.get('rules'),
             values = this._getParamsObject(request);
@@ -200,16 +210,6 @@ var Route = new Class({
         }
         
         return params;
-    },
-
-    interpolate: function(replacements){
-        var str = this.get('patternLexer').interpolate(this.get('pattern'), replacements);
-
-        if (!this._validateParams(str)) {
-            throw new Error('Generated string doesn\'t validate against `Route.rules`.');
-        }
-
-        return str;
     }
 });
 

@@ -1,7 +1,8 @@
 /**
- * Router, an object heavily influenced by Crossroads.js by Miller Medeiros (https://github.com/millermedeiros/crossroads.js)
+ * Router, an object heavily influenced by Crossroads.js by Miller Medeiros (https://github.com/millermedeiros/crossroads.js) and Christoph Pojer's MooTools-Router (https://github.com/cpojer/mootools-router)
  * date - Jul 29, 2012
  * crossroads.js commit - 3b413b0b506b0c04f80b03194d4c1abaeccc9574
+
  * @type {Class}
  */
 var collectionObj = require('../collection/main'),
@@ -90,6 +91,14 @@ var Router = new Class({
                 this.signalDefault.apply(this, defaultArgs.concat([request]));
             }
         }
+
+        return this;
+    },
+
+    empty: function(){
+        this.resetState();
+
+        this.parent();
 
         return this;
     },
