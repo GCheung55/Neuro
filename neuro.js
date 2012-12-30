@@ -54,8 +54,8 @@
             _errored: false,
             _erroredProperties: {},
             setup: function(data, options) {
-                this.setupAccessors();
-                this.setupValidators();
+                this.setupAccessors(this.options.accessors);
+                this.setupValidators(this.options.validators);
                 this.parent(data, options);
                 return this;
             },
@@ -410,6 +410,7 @@
     },
     "6": function(require, module, exports, global) {
         require("7");
+        var Connector;
         var processFn = function(type, evt, fn, obj) {
             if (type == "string") {
                 fn = obj && obj[fn] ? obj.bound(fn) : undefined;
@@ -445,7 +446,6 @@
             }, this);
         };
         var curryConnection = function(str) {
-            var methodStr = str == "connect" ? "addEvent" : "removeEvent";
             return function(obj, key, twoWay) {
                 var map = this.options.connector;
                 if (Type.isBoolean(key)) {
@@ -455,18 +455,26 @@
                 if (key) {
                     map = map[key];
                 }
-                process.call(this, methodStr, map, obj);
+                Connector[str](this, obj, map);
                 twoWay && obj && obj[str](this, key, false);
                 return this;
             };
         };
-        var Connector = new Class({
+        Connector = new Class({
             Implements: [ Class.Binds ],
             options: {
                 connector: {}
             },
             connect: curryConnection("connect"),
             disconnect: curryConnection("disconnect")
+        });
+        Connector.extend({
+            connect: function(obj1, obj2, map) {
+                process.call(obj1, "addEvent", map, obj2);
+            },
+            disconnect: function(obj1, obj2, map) {
+                process.call(obj1, "removeEvent", map, obj2);
+            }
         });
         exports.Connector = Connector;
     },
@@ -504,10 +512,11 @@
             options: {
                 accessors: {}
             },
-            setupAccessors: function() {
+            setupAccessors: function(options) {
                 var accessors = this._accessors;
+                options = options || {};
                 this._accessors = {};
-                this.setAccessor(Object.merge({}, accessors, this.options.accessors));
+                this.setAccessor(Object.merge({}, accessors, options));
                 return this;
             },
             isAccessing: function() {
@@ -575,10 +584,11 @@
             options: {
                 validators: {}
             },
-            setupValidators: function() {
+            setupValidators: function(options) {
                 var validators = this._validators;
+                options = options || {};
                 this._validators = {};
-                this.setValidator(Object.merge({}, normalizeValidators(validators), normalizeValidators(this.options.validators)));
+                this.setValidator(Object.merge({}, normalizeValidators(validators), normalizeValidators(options)));
                 return this;
             },
             setValidator: function(prop, fnc) {
@@ -627,7 +637,7 @@
         exports.Collection = new Class({
             Extends: Collection,
             setup: function(models, options) {
-                this.setupValidators();
+                this.setupValidators(this.options.validators);
                 this.parent(models, options);
                 return this;
             },
@@ -985,6 +995,11 @@
                 }
                 return this;
             },
+            empty: function() {
+                this.resetState();
+                this.parent();
+                return this;
+            },
             _notifyPrevRoutes: function(matchedRoutes, request) {
                 var i = 0, prev;
                 while (prev = this._prevRoutes[i++]) {
@@ -1103,6 +1118,13 @@
             parse: function(request) {
                 return this._getParamsArray(request);
             },
+            interpolate: function(replacements) {
+                var str = this.get("patternLexer").interpolate(this.get("pattern"), replacements);
+                if (!this._validateParams(str)) {
+                    throw new Error("Generated string doesn't validate against `Route.rules`.");
+                }
+                return str;
+            },
             _validateParams: function(request) {
                 var rules = this.get("rules"), values = this._getParamsObject(request);
                 return rules.every(function(rule, key) {
@@ -1154,13 +1176,6 @@
                     params = norm(request, obj);
                 }
                 return params;
-            },
-            interpolate: function(replacements) {
-                var str = this.get("patternLexer").interpolate(this.get("pattern"), replacements);
-                if (!this._validateParams(str)) {
-                    throw new Error("Generated string doesn't validate against `Route.rules`.");
-                }
-                return str;
             }
         });
         Route.implement(signalFactory([ "match", "pass" ]));
@@ -1368,10 +1383,11 @@
             options: {
                 validators: {}
             },
-            setupValidators: function() {
+            setupValidators: function(options) {
                 var validators = this._validators;
+                options = options || {};
                 this._validators = {};
-                this.setValidator(Object.merge({}, normalizeValidators(validators), normalizeValidators(this.options.validators)));
+                this.setValidator(Object.merge({}, normalizeValidators(validators), normalizeValidators(options)));
                 return this;
             },
             setValidator: function(prop, fnc) {

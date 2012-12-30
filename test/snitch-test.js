@@ -33,9 +33,9 @@ buster.testCase('Neuro Mixin: Snitch', {
 
             assert.equals(Object.getLength(snitch._validators), 3);
 
-            snitch.options.validators.d = Type.isFunction;
-
-            snitch.setupValidators();
+            snitch.setupValidators({
+                d: Type.isFunction
+            });
 
             assert.equals(Object.getLength(snitch._validators), 4);
         }

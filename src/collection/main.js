@@ -12,7 +12,7 @@ exports.Collection = new Class({
     Extends: Collection,
 
     setup: function(models, options){
-        this.setupValidators();
+        this.setupValidators(this.options.validators);
 
         this.parent(models, options);
 

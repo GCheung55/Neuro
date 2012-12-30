@@ -49,9 +49,9 @@ exports.Model = new Class({
     _erroredProperties: {},
 
     setup: function(data, options){
-        this.setupAccessors();
+        this.setupAccessors(this.options.accessors);
 
-        this.setupValidators();
+        this.setupValidators(this.options.validators);
 
         this.parent(data, options);
 

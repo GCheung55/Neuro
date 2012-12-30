@@ -26,12 +26,14 @@ var Butler = new Class({
         accessors: {}
     },
 
-    setupAccessors: function(){
+    setupAccessors: function(options){
         var accessors = this._accessors;
+
+        options = options || {};
 
         this._accessors = {};
 
-        this.setAccessor(Object.merge({}, accessors, this.options.accessors));
+        this.setAccessor(Object.merge({}, accessors, options));
 
         return this;
     },

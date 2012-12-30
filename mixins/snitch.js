@@ -30,9 +30,11 @@ var Snitch = new Class({
         }
     },
 
-    setupValidators: function(){
+    setupValidators: function(options){
         // reference the validators
         var validators = this._validators;
+
+        options = options || {}
 
         // reset the validators
         this._validators = {};
@@ -42,7 +44,7 @@ var Snitch = new Class({
             Object.merge(
                 {}, 
                 normalizeValidators(validators), 
-                normalizeValidators(this.options.validators)
+                normalizeValidators(options)
             )
         );
         return this;
