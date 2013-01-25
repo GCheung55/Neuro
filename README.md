@@ -3,7 +3,7 @@ Neuro
 
 An MVC framework that leverages MooTools.
 
-__Version: 0.2.7__
+__Version: 0.2.8__
 
 [![Build Status](https://secure.travis-ci.org/GCheung55/Neuro.png)](http://travis-ci.org/GCheung55/Neuro)
 
@@ -12,7 +12,7 @@ __Influences:__
 * [Backbone](https://github.com/documentcloud/backbone)
 * [Shipyard](https://github.com/seanmonstar/Shipyard)
 
-__Credits:__
+__Credits/Thanks:__
 
 * [Christoph Pojer](https://github.com/cpojer) for his work on [Class.Binds](https://github.com/cpojer/mootools-class-extras) for which I use and [MooTools-Router](https://github.com/cpojer/mootools-router) which Neuro.Router is influenced from.
 * [Miller Medeiros](https://github.com/millermedeiros) for his work on [crossroads.js](https://github.com/millermedeiros/crossroads.js) which Neuro.Router is heavily influenced from.
