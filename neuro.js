@@ -339,7 +339,7 @@
                 if (matchMap[typeA]) {
                     return matchMap[typeA](a, b);
                 }
-                if (typeA != "object" || typeB != "object") return false;
+                if (typeof a != "object" || typeof b != "object") return false;
                 var length = aStack.length;
                 while (length--) {
                     if (aStack[length] == a) return bStack[length] == b;
@@ -400,6 +400,14 @@
                 this._silent++;
                 fnc && fnc.call(this);
                 this._silent--;
+                return this;
+            },
+            tagSilent: function() {
+                this._silent = 1;
+                return this;
+            },
+            untagSilent: function() {
+                this._silent = 0;
                 return this;
             },
             isSilent: function() {
