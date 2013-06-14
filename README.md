@@ -155,7 +155,7 @@ model.set(object);
 #### Examples:
 ```javascript
 // set a property value
-model.('hasGlasses', true);
+model.set('hasGlasses', true);
 
 // set the property 'name' as an object.
 model.set('name', {
