@@ -1,3 +1,7 @@
+var assert = buster.assert;
+var refute = buster.refute;
+buster.spec.expose();
+
 buster.testCase('Neuro Collection', {
     setUp: function(){
         this.mockCollection = new Neuro.Collection();

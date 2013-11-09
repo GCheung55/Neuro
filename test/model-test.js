@@ -1,3 +1,11 @@
+if (typeof buster == undefined) {
+    var buster = require('buster');
+}
+
+var assert = buster.assert;
+var refute = buster.refute;
+buster.spec.expose();
+
 buster.testCase('Neuro Model', {
     setUp: function(){
         var testModel = new Class({

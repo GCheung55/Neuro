@@ -1,3 +1,7 @@
+var assert = buster.assert;
+var refute = buster.refute;
+buster.spec.expose();
+
 buster.testCase('Neuro Mixin: Snitch', {
     'setUp': function(){
         this.snitch = Neuro.Mixins.Snitch;

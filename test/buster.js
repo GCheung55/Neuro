@@ -2,7 +2,8 @@ var config = module.exports;
 
 config["Neuro"] = {
     rootPath: "../",
-    environment: "browser", // or "node"
+    environment: "browser",
+    // environment: "node",
     sources: [
         "test/assets/js/mootools-core.js",
         "neuro.js"

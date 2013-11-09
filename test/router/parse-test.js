@@ -1,5 +1,10 @@
 /*jshint onevar:false */
 
+var assert = buster.assert;
+var refute = buster.refute;
+var expect = buster.expect;
+buster.spec.expose();
+
 //for node
 var Router = Neuro.Router || require('Neuro').Router;
 //end node

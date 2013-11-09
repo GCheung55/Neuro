@@ -1,3 +1,7 @@
+var assert = buster.assert;
+var refute = buster.refute;
+buster.spec.expose();
+
 buster.testCase('Neuro View', {
     setUp: function(){
         this.view = new Neuro.View();
