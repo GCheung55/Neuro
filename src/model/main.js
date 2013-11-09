@@ -48,6 +48,12 @@ exports.Model = new Class({
 
     _erroredProperties: {},
 
+    options: {
+        getData: {
+            includeAccessors: false
+        }
+    },
+
     setup: function(data, options){
         this.setupAccessors(this.options.accessors);
 
@@ -155,5 +161,18 @@ exports.Model = new Class({
 
     proof: function(){
         return this.parent(this.getData());
+    },
+
+    getData: function(includeAccessors){
+        var data = this.parent();
+
+        if ((includeAccessors != undefined && includeAccessors) || this.options.getData.includeAccessors) {
+            Object.each(this._accessors, function(val, key){
+                var get = val['get'];                
+                get && (data[key] = get());
+            }, this);
+        }
+
+        return data;
     }
 });
