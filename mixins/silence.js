@@ -4,6 +4,7 @@
 var Silence = new Class({
     _silent: 0,
 
+    // Silence the object before running the function
     silence: function(fnc){
         this._silent++;
         fnc && fnc.call(this);
@@ -12,6 +13,7 @@ var Silence = new Class({
         return this;
     },
 
+    // Check if object is silent
     isSilent: function(){
         return !!this._silent;
     }
