@@ -14,7 +14,7 @@ Neuro.Mixins = {
     Butler: require('../mixins/butler').Butler,
     Connector: require('../mixins/connector').Connector,
     Silence: require('../mixins/silence').Silence,
-    Snitch: require('../mixins/Snitch').Snitch
+    Snitch: require('../mixins/snitch').Snitch
 };
 
 exports = module.exports = Neuro;
