@@ -1,10 +1,12 @@
 /*jshint onevar:false */
 
-//for node
-var Router = Neuro.Router || require('Neuro').Router;
-//end node
+if (typeof module == "object" && typeof require == "function") {
+    var buster = require("buster");
+    var Neuro = require('../../');
+}
 
-
+var expect = buster.expect;
+var Router = Neuro.Router;
 
 buster.testCase('Route.interpolate()', {
 

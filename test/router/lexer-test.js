@@ -1,6 +1,11 @@
-//for node
-var patternLexer = Neuro.Route.PatternLexer || require('Neuro').Route.PatternLexer;
-//end node
+if (typeof module == "object" && typeof require == "function") {
+    var buster = require("buster");
+    var Neuro = require('../../');
+}
+
+var expect = buster.expect;
+var Router = Neuro.Router;
+var patternLexer = Neuro.Route.PatternLexer;
 
 buster.testCase('patternLexer', {
     'getParamIds()': {

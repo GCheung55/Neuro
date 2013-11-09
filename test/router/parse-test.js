@@ -1,12 +1,16 @@
 /*jshint onevar:false */
 
+if (typeof module == "object" && typeof require == "function") {
+    var buster = require("buster");
+    var Neuro = require('../../');
+}
+
 var assert = buster.assert;
 var refute = buster.refute;
 var expect = buster.expect;
-buster.spec.expose();
 
 //for node
-var Router = Neuro.Router || require('Neuro').Router;
+var Router = Neuro.Router;
 //end node
 
 

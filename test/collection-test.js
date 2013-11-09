@@ -1,6 +1,10 @@
+if (typeof module == "object" && typeof require == "function") {
+    var buster = require("buster");
+    var Neuro = require('../');
+}
+
 var assert = buster.assert;
 var refute = buster.refute;
-buster.spec.expose();
 
 buster.testCase('Neuro Collection', {
     setUp: function(){

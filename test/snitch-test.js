@@ -1,13 +1,17 @@
+if (typeof module == "object" && typeof require == "function") {
+    var buster = require("buster");
+    var Neuro = require('../');
+}
+
 var assert = buster.assert;
 var refute = buster.refute;
-buster.spec.expose();
+
+var Snitch = Neuro.Mixins.Snitch;
 
 buster.testCase('Neuro Mixin: Snitch', {
     'setUp': function(){
-        this.snitch = Neuro.Mixins.Snitch;
-
         this.mockSnitch = new Class({
-            Extends: this.snitch,
+            Extends: Snitch,
             _validators: {
                 a: Type.isString,
                 b: Type.isNumber,
@@ -125,13 +129,13 @@ buster.testCase('Neuro Mixin: Snitch', {
 
             // False because the object doesn't pass the validators.
             // obj is missing a property
-            assert.equals(this.snitch.proof(obj, snitch._validators), false);
+            assert.equals(Snitch.proof(obj, snitch._validators), false);
 
             // Add missing property
             obj.c = [];
 
             // Passes because the obj has the missing property
-            assert.equals(this.snitch.proof(obj, snitch._validators), true);
+            assert.equals(Snitch.proof(obj, snitch._validators), true);
         },
 
         'method should': {
