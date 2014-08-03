@@ -136,7 +136,7 @@ var Model = new Class({
      * @return {Class} The Model instance
      */
     set: function(prop, val){
-        var isSetting;
+        var isSetting, _changedProperties;
 
         if (prop) {
 
@@ -153,14 +153,16 @@ var Model = new Class({
             this._set(prop, val);
 
             if (!isSetting && this._changed) {
+                _changedProperties = this._changedProperties
+
+                // reset changed and changed properties
+                this._resetChanged();
+
                 // Signal any changed properties
-                this._onChangeProperty(this._changedProperties);
+                this._onChangeProperty(_changedProperties);
 
                 // Signal change
                 this.signalChange();
-                
-                // reset changed and changed properties
-                this._resetChanged();
             }
         }
 
@@ -243,13 +245,11 @@ var Model = new Class({
     getPreviousData: curryGetData('getPrevious'),
     
     _resetChanged: function(){
-        if (this._changed) {
-            // reset the changed
-            this._changed = false;
-    
-            // reset changed properties
-            this._changedProperties = {};
-        }
+        // reset the changed
+        this._changed = false;
+
+        // reset changed properties
+        this._changedProperties = {};
         
         return this;
     },
@@ -260,9 +260,7 @@ var Model = new Class({
      * @return {[type]}
      */
     _onChangeProperty: function(prop, val){
-        if (this._changed) {
-            this.signalChangeProperty(prop, val, this.getPrevious(prop));
-        }
+        this.signalChangeProperty(prop, val, this.getPrevious(prop));
 
         return this;
     }.overloadSetter(),

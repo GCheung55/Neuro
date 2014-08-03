@@ -270,6 +270,17 @@ buster.testCase('Neuro Model', {
         assert.calledWith(spy, model, 'age', 30, 29);
     },
 
+    'should trigger a change property event without recursion': function() {
+        var spy = this.spy(function() {
+                this.set('y', 7)
+            }),
+            model = this.mockModel.addEvent('change:x', spy)
+
+        model.set('x', 1)
+
+        assert.calledOnce(spy)
+    },
+
     'should trigger an event when the model is destroyed': function(){
         var spy = this.spy(),
             model = this.mockModelWithData.addEvent('destroy', spy);
