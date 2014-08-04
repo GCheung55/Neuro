@@ -1,17 +1,23 @@
+'use strict';
+
 var fs = require('fs')
-,   wrup = require('wrapup')()
-,   root = __dirname + '/';
+var wrup = require('wrapup')
+var root = __dirname + '/'
 
-// Write the neuro.js file
+var write = function(name){
+    return function(err, js) {
+        if (err) {
+            console.log(name + ' errors?', err)
+            return
+        }
 
-var neuro = wrup.require('Neuro', './')
-,   src = neuro.up()
-,   compressed = neuro.up({compress: true});
+        fs.writeFile(root + name, js)
+        console.log(name + ' write complete.')
+    }
+}
 
-var writeNeuro = function(){
-    fs.writeFile(root + 'neuro.js', src);
-    fs.writeFile(root + 'neuro-min.js', compressed);
-    console.log('Neuro created.');
-};
+wrup().require('Neuro', root).up(write('neuro.js'))
 
-writeNeuro();
+wrup({
+    compress: true
+}).require('Neuro', root).up(write('neuro-min.js'))

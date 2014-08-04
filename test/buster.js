@@ -17,5 +17,5 @@ config["Neuro - Browser"] = {
     sources: [
         "test/assets/js/mootools-core.js",
         "neuro.js"
-    ],
-}
+    ]
+};

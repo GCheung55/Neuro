@@ -6,6 +6,7 @@ if (typeof module == "object" && typeof require == "function") {
 }
 
 var expect = buster.expect;
+var assert = buster.assert;
 var Router = Neuro.Router;
 
 buster.testCase('Route.interpolate()', {
@@ -64,7 +65,8 @@ buster.testCase('Route.interpolate()', {
 
         expect( function(){
             a.interpolate({bar: 'ipsum'});
-        }).toThrow( 'Error' /*'The segment {foo} is required.'*/ );
+        }).toThrow( 'Error: The segment {foo} is required.' );
+
     },
 
     'should throw an error if string doesn\'t match pattern': function(){
@@ -74,7 +76,7 @@ buster.testCase('Route.interpolate()', {
 
         expect( function(){
             a.interpolate({foo: 'lorem/ipsum', bar: 'dolor'});
-        }).toThrow( 'Error' /*'Invalid value "lorem/ipsum" for segment "{foo}".'*/ );
+        }).toThrow( 'Error: Invalid value "lorem/ipsum" for segment "{foo}".' );
     },
 
     'should throw an error if route was created by an RegExp pattern': function () {
@@ -84,7 +86,7 @@ buster.testCase('Route.interpolate()', {
 
         expect( function(){
             a.interpolate({bar: 'ipsum'});
-        }).toThrow( 'Error' /*'Route pattern should be a string.'*/ );
+        }).toThrow( 'Error: Route pattern should be a string.' );
     },
 
     'should throw an error if generated string doesn\'t validate against rules': function () {
@@ -98,7 +100,7 @@ buster.testCase('Route.interpolate()', {
 
         expect( function(){
             a.interpolate({foo: 'lorem', bar: 'ipsum'});
-        }).toThrow( 'Error' /*'Generated string doesn\'t validate against `Route.rules`.'*/ );
+        }).toThrow( 'Error: Generated string doesn\'t validate against `Route.rules`.' );
     }
 
 });
