@@ -278,16 +278,25 @@ buster.testCase('Neuro Model', {
 
                 this.set('y', 7);
             }),
-            ySpy = this.spy(),
+            ySpy = this.spy(function(){
+                this.set('b', 2)
+                this.set('c', 3)
+            }),
+            bSpy = this.spy(),
+            cSpy = this.spy(),
             model = this.mockModel.addEvents({
                 'change:x': xSpy,
-                'change:y': ySpy
+                'change:y': ySpy,
+                'change:b': bSpy,
+                'change:c': cSpy
             });
 
         model.set('x', 1);
 
         assert.calledOnceWith(xSpy, model, 'x', 1);
         assert.calledOnceWith(ySpy, model, 'y', 7);
+        assert.calledOnceWith(bSpy, model, 'b', 2);
+        assert.calledOnceWith(cSpy, model, 'c', 3);
     },
 
     'should trigger a change event once, after all change property events': function(){
@@ -298,11 +307,18 @@ buster.testCase('Neuro Model', {
 
                 this.set('y', 7);
             }),
-            ySpy = this.spy(),
+            ySpy = this.spy(function(){
+                this.set('b', 2)
+                this.set('c', 3)
+            }),
+            bSpy = this.spy(),
+            cSpy = this.spy(),
             changeSpy = this.spy(),
             model = this.mockModel.addEvents({
                 'change:x': xSpy,
                 'change:y': ySpy,
+                'change:b': bSpy,
+                'change:c': cSpy,
                 'change': changeSpy
             });
 
@@ -311,6 +327,8 @@ buster.testCase('Neuro Model', {
         assert.calledOnceWith(changeSpy, model);
         assert.callOrder(xSpy, changeSpy)
         assert.callOrder(ySpy, changeSpy)
+        assert.callOrder(bSpy, changeSpy)
+        assert.callOrder(cSpy, changeSpy)
     },
 
     'should trigger an event when the model is destroyed': function(){
