@@ -282,11 +282,13 @@ buster.testCase('Neuro Model', {
                 this.set('b', 2)
                 this.set('c', 3)
             }),
+            aSpy = this.spy(),
             bSpy = this.spy(),
             cSpy = this.spy(),
             model = this.mockModel.addEvents({
                 'change:x': xSpy,
                 'change:y': ySpy,
+                'change:a': aSpy,
                 'change:b': bSpy,
                 'change:c': cSpy
             });
@@ -295,6 +297,7 @@ buster.testCase('Neuro Model', {
 
         assert.calledOnceWith(xSpy, model, 'x', 1);
         assert.calledOnceWith(ySpy, model, 'y', 7);
+        refute.called(aSpy)
         assert.calledOnceWith(bSpy, model, 'b', 2);
         assert.calledOnceWith(cSpy, model, 'c', 3);
     },
