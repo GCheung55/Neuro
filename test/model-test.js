@@ -270,15 +270,47 @@ buster.testCase('Neuro Model', {
         assert.calledWith(spy, model, 'age', 30, 29);
     },
 
-    'should trigger a change property event without recursion': function() {
-        var spy = this.spy(function() {
-                this.set('y', 7)
+    'should trigger a change property event without recursion, and call change once': function() {
+        var xSpy = this.spy(function() {
+                this.silence(function(){
+                    this.set('a', 1);
+                });
+
+                this.set('y', 7);
             }),
-            model = this.mockModel.addEvent('change:x', spy)
+            ySpy = this.spy(),
+            model = this.mockModel.addEvents({
+                'change:x': xSpy,
+                'change:y': ySpy
+            });
 
-        model.set('x', 1)
+        model.set('x', 1);
 
-        assert.calledOnce(spy)
+        assert.calledOnceWith(xSpy, model, 'x', 1);
+        assert.calledOnceWith(ySpy, model, 'y', 7);
+    },
+
+    'should trigger a change event once, after all change property events': function(){
+        var xSpy = this.spy(function() {
+                this.silence(function(){
+                    this.set('a', 1);
+                });
+
+                this.set('y', 7);
+            }),
+            ySpy = this.spy(),
+            changeSpy = this.spy(),
+            model = this.mockModel.addEvents({
+                'change:x': xSpy,
+                'change:y': ySpy,
+                'change': changeSpy
+            });
+
+        model.set('x', 1);
+
+        assert.calledOnceWith(changeSpy, model);
+        assert.callOrder(xSpy, changeSpy)
+        assert.callOrder(ySpy, changeSpy)
     },
 
     'should trigger an event when the model is destroyed': function(){

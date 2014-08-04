@@ -57,6 +57,8 @@ var Model = new Class({
 
     _setting: 0,
 
+    _execChangeProp: 0,
+
     options: {
         // onChange: function(){},
         // 'onChange:key': function(){},
@@ -161,8 +163,11 @@ var Model = new Class({
                 // Signal any changed properties
                 this._onChangeProperty(_changedProperties);
 
-                // Signal change
-                this.signalChange();
+                // Signal change when changingProperties is done, prevents signaling change more than once
+                if (!this._execChangeProp) {
+                    this.signalChange();
+                }
+                
             }
         }
 
@@ -260,7 +265,11 @@ var Model = new Class({
      * @return {[type]}
      */
     _onChangeProperty: function(prop, val){
+        this._execChangeProp++;
+
         this.signalChangeProperty(prop, val, this.getPrevious(prop));
+
+        this._execChangeProp--;
 
         return this;
     }.overloadSetter(),
